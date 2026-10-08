@@ -6,7 +6,7 @@ Hyperion is an independent, MIT-licensed module. It can accompany Codex or anoth
 
 > **v0.1 — local cooperative preview.** One trusted user and one external coordinator per execution. Hyperion manages workflow state; your agent performs the actual work. Multi-agent dispatch, hosted multi-user operation, and automatic conversation wakeups are future work.
 
-![Hyperion workflow interface with a completed browser test](docs/images/workflow.png)
+![Hyperion landscape canvas with interactive workflow nodes](docs/images/workflow.png)
 
 ## Run locally
 
@@ -32,7 +32,8 @@ Open the returned URL, submit your objective, and ask your agent to read the run
 
 - Directed acyclic plans with agent, manual, and approval steps.
 - Dependency gates, independent parallel steps, and explicit coordinator ownership.
-- A vertical graph with parallel branches, the original request, step details, evidence, and an activity timeline.
+- A full-window landscape canvas with a vertical graph and parallel branches.
+- Node popups for human input, approvals, step details and evidence; buttons for the original request and activity.
 - Human input, approval/rejection, pause/resume, cancel, and retry after failure.
 - Transactional SQLite persistence and command idempotency.
 - Version checks that reject stale human decisions.

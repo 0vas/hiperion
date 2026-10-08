@@ -12,6 +12,10 @@ import {
   Controls,
   Handle,
   Position,
+  useReactFlow,
+  useStore,
+  getNodesBounds,
+  getViewportForBounds,
   type NodeProps,
   type Node,
   type Edge,
@@ -32,7 +36,6 @@ import {
   MessageSquareText,
   Pause,
   Play,
-  Radio,
   ShieldCheck,
   Square,
   UserRound,
@@ -119,6 +122,7 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
       <button
         className={`step-node ${step.status} ${data.selected ? 'selected' : ''}`}
         aria-label={`Ver paso: ${step.title}`}
+        aria-haspopup="dialog"
         onClick={() => data.onSelect(step.id)}
       >
         <div className="node-top">
@@ -142,12 +146,46 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
           {step.kind === 'agent' ? titleCase(data.coordinator) : 'Tú'}
           <span>· {kindLabels[step.kind]}</span>
         </div>
+        <span className="node-action">
+          {step.status === 'waiting'
+            ? step.kind === 'approval'
+              ? 'Revisar y aprobar'
+              : 'Responder'
+            : 'Abrir detalle'}{' '}
+          <ArrowUpRight size={12} />
+        </span>
       </button>
       <Handle type="source" position={Position.Bottom} />
     </>
   );
 }
 const nodeTypes = { step: StepNode };
+function FitCanvas() {
+  const { getNodes, getInternalNode, setViewport } = useReactFlow();
+  const initialized = useStore(
+    (state) =>
+      state.nodeLookup.size > 0 &&
+      Array.from(state.nodeLookup.values()).every((node) =>
+        Boolean(node.measured?.width && node.measured?.height),
+      ),
+  );
+  const fittedSize = useRef('');
+  const width = useStore((state) => state.width);
+  const height = useStore((state) => state.height);
+  useEffect(() => {
+    const size = `${width}:${height}`;
+    if (initialized && fittedSize.current !== size) {
+      fittedSize.current = size;
+      const bounds = getNodesBounds(
+        getNodes().map((node) => getInternalNode(node.id)!),
+      );
+      void setViewport(
+        getViewportForBounds(bounds, width, height, 0.15, 1, 0.12),
+      );
+    }
+  }, [getNodes, getInternalNode, setViewport, initialized, width, height]);
+  return null;
+}
 async function api<T>(path: string, data?: unknown): Promise<T> {
   const res = await fetch(path, {
     ...(data
@@ -180,15 +218,26 @@ async function api<T>(path: string, data?: unknown): Promise<T> {
 function Modal({
   children,
   onClose,
+  returnFocus,
 }: {
+  returnFocus?: HTMLElement | null;
   children: ReactNode;
   onClose: () => void;
 }) {
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null;
+    const previous =
+      returnFocus || (document.activeElement as HTMLElement | null);
     root.current?.querySelector<HTMLElement>('button,textarea')?.focus();
-    return () => previous?.focus();
+    return () => {
+      // React Flow remeasures changed nodes on the next frame. Restore focus
+      // after those nodes become visible again, and after inert is removed.
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          if (previous?.isConnected) previous.focus({ preventScroll: true });
+        }),
+      );
+    };
   }, []);
   return (
     <div
@@ -224,12 +273,15 @@ function Modal({
   );
 }
 export function App() {
+  const popupTrigger = useRef<HTMLElement | null>(null);
   const [runs, setRuns] = useState<Run[]>([]);
   const [runId, setRunId] = useState(
     new URLSearchParams(location.search).get('run') || '',
   );
   const [stepId, setStepId] = useState('');
-  const [tab, setTab] = useState<'details' | 'activity'>('details');
+  const [popup, setPopup] = useState<
+    'step' | 'activity' | 'request' | 'runs' | null
+  >(null);
   const [online, setOnline] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
@@ -292,11 +344,12 @@ export function App() {
   const selectRun = (id: string) => {
     setRunId(id);
     setStepId('');
+    setPopup(null);
     history.replaceState(null, '', id ? `/?run=${id}` : '/');
   };
   const selectStep = useCallback((id: string) => {
     setStepId(id);
-    setTab('details');
+    setPopup('step');
   }, []);
   const graph = useMemo(() => {
     if (!run) return { nodes: [], edges: [] };
@@ -324,16 +377,17 @@ export function App() {
         type: 'step',
         position: {
           x: (group.indexOf(item) - (group.length - 1) / 2) * 285 + 280,
-          y: depth * 170,
+          y: depth * 190,
         },
         data: {
           step: item,
           index,
           coordinator: run.coordinator,
-          selected: step?.id === item.id,
+          selected: popup === 'step' && step?.id === item.id,
           onSelect: selectStep,
         },
         draggable: false,
+        focusable: false,
       };
     });
     const edges: Edge[] = run.steps.flatMap((item) =>
@@ -353,7 +407,7 @@ export function App() {
       })),
     );
     return { nodes, edges };
-  }, [run, step?.id, selectStep]);
+  }, [run, step?.id, selectStep, popup]);
   async function act(type: string, target?: string) {
     if (!run || busy) return;
     setBusy(true);
@@ -368,6 +422,8 @@ export function App() {
       });
       setAnswer('');
       setConfirmation(null);
+      if (['submit', 'approve', 'reject', 'cancel', 'retry'].includes(type))
+        setPopup(null);
       await refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar.');
@@ -402,60 +458,41 @@ export function App() {
     .map((id) => run?.steps.find((s) => s.id === id)?.title)
     .join(', ');
 
+  const dialogOpen = Boolean(popup || help || confirmation);
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <a className="brand" href="/">
-          <span className="brand-mark">
-            <GitBranch size={23} />
-          </span>
-          hyperion<span className="version">α</span>
-        </a>
-        <div className="workspace-label">
-          <span className="workspace-avatar">O</span>
-          <div>
-            Mi espacio de trabajo<small>Local · Open source</small>
-          </div>
-        </div>
-        <div className="nav-label">ESPACIO DE TRABAJO</div>
-        <button className="nav-item active" onClick={() => setHelp(false)}>
-          <Workflow size={17} /> Flujos de trabajo<span>{runs.length}</span>
-        </button>
-        <button className="nav-item" onClick={() => setHelp(true)}>
-          <Layers3 size={17} /> Conectar un agente
-          <ArrowUpRight size={14} />
-        </button>
-        <div className="nav-label recent-label">FLUJOS RECIENTES</div>
-        <div className="run-list">
-          {runs.map((item) => (
+    <div className="app-shell canvas-app">
+      <div
+        className="canvas-shell"
+        inert={dialogOpen}
+        onClickCapture={(event) => {
+          const button = (event.target as HTMLElement).closest('button');
+          if (button) popupTrigger.current = button;
+        }}
+      >
+        <header className="topbar canvas-topbar">
+          <div className="canvas-identity">
+            <a className="brand" href="/" aria-label="Hyperion, inicio">
+              <span className="brand-mark">
+                <GitBranch size={22} />
+              </span>
+              <span className="brand-word">hyperion</span>
+            </a>
             <button
-              key={item.id}
-              onClick={() => selectRun(item.id)}
-              className={`run-link ${run?.id === item.id ? 'selected' : ''}`}
+              className="secondary"
+              aria-haspopup="dialog"
+              onClick={() => setPopup('runs')}
             >
-              <span className={`tiny-dot ${item.status}`} />
-              <span>{item.title}</span>
+              <Workflow size={15} /> Mis flujos
             </button>
-          ))}
-          {loaded && !runs.length && (
-            <p className="muted sidebar-empty">Tus flujos aparecerán aquí.</p>
-          )}
-        </div>
-        <div className="sidebar-footer">
-          <span className="avatar">T</span>
-          <div>
-            Tu espacio, tu control<small>Datos guardados en tu equipo</small>
-          </div>
-          <LockKeyhole size={14} />
-        </div>
-      </aside>
-      <div className="main-shell">
-        <header className="topbar">
-          <div className="breadcrumb">
-            <Workflow size={16} />
-            <span>Flujos de trabajo</span>
-            <ChevronRight size={14} />
-            <strong>{run ? 'Vista general' : 'Empezar'}</strong>
+            {run && (
+              <div className="canvas-title">
+                <h1>{run.title}</h1>
+                <span>
+                  Creado desde {titleCase(run.coordinator)} ·{' '}
+                  {run.id.slice(0, 8)}
+                </span>
+              </div>
+            )}
           </div>
           <div className="topbar-right">
             <span className={`connection ${online ? 'online' : ''}`}>
@@ -465,14 +502,14 @@ export function App() {
             <button
               className="icon-button"
               aria-label="Ayuda de conexión"
+              aria-haspopup="dialog"
               onClick={() => setHelp(true)}
             >
               <CircleHelp size={19} />
             </button>
-            <span className="avatar small">T</span>
           </div>
         </header>
-        <main>
+        <main className="canvas-main">
           {!loaded ? (
             <div className="empty-state">
               <LoaderCircle className="spin" />
@@ -509,27 +546,12 @@ export function App() {
               )}
             </div>
           ) : (
-            <>
-              <section className="page-heading">
-                <div>
-                  <div className="eyebrow">
-                    <span className="tiny-dot active" /> FLUJO DE TRABAJO{' '}
-                    <span className="heading-divider">/</span>
-                    <span className="mono">{run.id.slice(0, 8)}</span>
-                  </div>
-                  <h1>{run.title}</h1>
-                  <p>
-                    {run.description ||
-                      'Un plan compartido entre tu agente y tú.'}
-                  </p>
-                </div>
-                <div className="heading-actions">
-                  <button className="secondary" onClick={copyPrompt}>
-                    <Copy size={15} />
-                    {copied
-                      ? 'Copiado'
-                      : `Continuar en ${titleCase(run.coordinator)}`}
-                  </button>
+            <section
+              className="canvas-workspace"
+              aria-label="Canvas del workflow"
+            >
+              <div className="canvas-tools">
+                <div className="canvas-tools-group">
                   <span
                     className={`run-status ${run.status}`}
                     data-testid="run-status"
@@ -537,505 +559,493 @@ export function App() {
                     <span className="tiny-dot" />
                     {runLabels[run.status]}
                   </span>
-                </div>
-              </section>
-              {run.request && (
-                <details className="request-context">
-                  <summary>
+                  <button
+                    className="secondary"
+                    aria-haspopup="dialog"
+                    onClick={() => setPopup('request')}
+                  >
                     <MessageSquareText size={15} />
                     Petición original
-                  </summary>
-                  <p>{run.request}</p>
-                </details>
-              )}
-              <section className="metrics">
-                <div>
-                  <span className="metric-icon purple">
-                    <Layers3 size={18} />
-                  </span>
-                  <span>
-                    <strong>
-                      {completed}
-                      <small> / {run.steps.length}</small>
-                    </strong>
-                    <small>Pasos completados</small>
-                  </span>
-                  <div className="mini-progress">
-                    <i
-                      style={{
-                        width: `${(completed / run.steps.length) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <span className="metric-icon blue">
-                    <Radio size={18} />
-                  </span>
-                  <span>
-                    <strong>{running.toString().padStart(2, '0')}</strong>
-                    <small>En ejecución</small>
-                  </span>
-                </div>
-                <div>
-                  <span className="metric-icon amber">
-                    <UserRound size={18} />
-                  </span>
-                  <span>
-                    <strong>{waiting.toString().padStart(2, '0')}</strong>
-                    <small>Esperan por ti</small>
-                  </span>
-                </div>
-                <div>
-                  <span className="metric-icon green">
-                    <Bot size={18} />
-                  </span>
-                  <span>
-                    <strong className="metric-name">
-                      {titleCase(run.coordinator)}
-                    </strong>
-                    <small>Coordinador externo</small>
-                  </span>
-                </div>
-              </section>
-              {!online && (
-                <div className="notice error" role="alert">
-                  Conexión interrumpida. Los controles están deshabilitados
-                  hasta reconectar.
-                </div>
-              )}
-              {error && (
-                <div className="notice error" role="alert">
-                  {error}
+                  </button>
                   <button
-                    aria-label="Cerrar error"
-                    onClick={() => setError('')}
+                    className="secondary"
+                    aria-haspopup="dialog"
+                    onClick={() => setPopup('activity')}
                   >
-                    <X size={15} />
+                    <History size={15} />
+                    Actividad
                   </button>
                 </div>
-              )}
-              {live && waiting > 0 && (
-                <div className="notice human-notice">
-                  <span className="notice-icon">
-                    <UserRound size={17} />
-                  </span>
-                  <div>
-                    <strong>Ahora es tu turno</strong>
-                    <span>
-                      {waiting === 1
-                        ? 'Un paso necesita tu intervención para continuar.'
-                        : `${waiting} pasos necesitan tu intervención.`}
-                    </span>
-                  </div>
+                <div className="canvas-tools-group">
                   <button
+                    className="secondary continue-button"
+                    onClick={copyPrompt}
+                  >
+                    <Copy size={15} />
+                    {copied
+                      ? 'Copiado'
+                      : `Continuar en ${titleCase(run.coordinator)}`}
+                  </button>
+                  {(live || run.status === 'paused') && (
+                    <>
+                      <button
+                        className="secondary"
+                        disabled={busy || !online}
+                        onClick={() => void act(live ? 'pause' : 'resume')}
+                      >
+                        {live ? <Pause size={14} /> : <Play size={14} />}
+                        {live ? 'Pausar' : 'Reanudar'}
+                      </button>
+                      <button
+                        className="secondary icon-button"
+                        aria-label="Cancelar flujo"
+                        aria-haspopup="dialog"
+                        disabled={busy || !online}
+                        onClick={() => setConfirmation('cancel')}
+                      >
+                        <Square size={14} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="graph">
+                <ReactFlow
+                  key={run.id}
+                  nodes={graph.nodes}
+                  edges={graph.edges}
+                  nodeTypes={nodeTypes}
+                  fitView
+                  fitViewOptions={{ padding: 0.12, maxZoom: 1 }}
+                  minZoom={0.15}
+                  maxZoom={1.5}
+                  nodesConnectable={false}
+                  nodesDraggable={false}
+                  elementsSelectable
+                  zoomOnDoubleClick={false}
+                >
+                  <FitCanvas />
+                  <Background color="#d3d5e4" gap={22} size={1.1} />
+                  <Controls showInteractive={false} />
+                </ReactFlow>
+                {error && !dialogOpen && (
+                  <div role="alert" className="canvas-alert popup-error">
+                    {error}
+                    <button
+                      aria-label="Cerrar error"
+                      onClick={() => setError('')}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+                {live && waiting > 0 && (
+                  <button
+                    className="canvas-next human"
                     onClick={() =>
                       selectStep(
                         run.steps.find((s) => s.status === 'waiting')!.id,
                       )
                     }
+                    aria-haspopup="dialog"
                   >
-                    Revisar paso <ArrowUpRight size={16} />
-                  </button>
-                </div>
-              )}
-              {live && !waiting && ready > 0 && (
-                <div className="notice ready-notice">
-                  <Bot size={19} />
-                  <div>
-                    <strong>
-                      Listo para que {titleCase(run.coordinator)} continúe
-                    </strong>
+                    <UserRound size={17} />
                     <span>
-                      Tu decisión quedó guardada. Vuelve al chat y pide
-                      continuar; Hyperion no inicia otra conversación.
+                      <strong>
+                        Tu turno · {waiting} {waiting === 1 ? 'paso' : 'pasos'}
+                      </strong>
+                      Responder en el canvas
                     </span>
-                  </div>
-                  <button onClick={copyPrompt}>
-                    {copied ? 'Copiado' : 'Copiar petición'}
+                    <ArrowUpRight size={16} />
+                  </button>
+                )}
+                {live && !waiting && ready > 0 && (
+                  <button className="canvas-next" onClick={copyPrompt}>
+                    <Bot size={17} />
+                    <span>
+                      <strong>
+                        Listo para que {titleCase(run.coordinator)} continúe
+                      </strong>
+                      {copied
+                        ? 'Petición copiada'
+                        : 'Copiar petición para volver al chat'}
+                    </span>
                     <Copy size={15} />
                   </button>
-                </div>
-              )}
-              {run.status === 'paused' && (
-                <div className="notice ready-notice">
-                  <Pause size={18} />
-                  <div>
-                    <strong>Flujo en pausa</strong>
-                    <span>
-                      No se habilitan nuevos inicios. El trabajo que ya comenzó
-                      puede registrar su resultado.
-                    </span>
-                  </div>
-                </div>
-              )}
-              <section className="workbench">
-                <div className="canvas-panel">
-                  <div className="panel-toolbar">
-                    <div>
-                      <GitBranch size={17} />
-                      <strong>Flujo vertical</strong>
-                      <span className="subtle-chip">
-                        {run.steps.length} pasos
-                      </span>
-                    </div>
-                    <div>
-                      {(live || run.status === 'paused') && (
-                        <>
-                          <button
-                            className="text-button"
-                            disabled={busy || !online}
-                            onClick={() => void act(live ? 'pause' : 'resume')}
-                          >
-                            {live ? <Pause size={14} /> : <Play size={14} />}{' '}
-                            {live ? 'Pausar' : 'Reanudar'}
-                          </button>
-                          <button
-                            className="icon-button"
-                            aria-label="Cancelar flujo"
-                            disabled={busy || !online}
-                            onClick={() => setConfirmation('cancel')}
-                          >
-                            <Square size={13} />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div className="graph">
-                    <ReactFlow
-                      key={run.id}
-                      nodes={graph.nodes}
-                      edges={graph.edges}
-                      nodeTypes={nodeTypes}
-                      fitView
-                      fitViewOptions={{ padding: 0.1, maxZoom: 1 }}
-                      minZoom={0.2}
-                      maxZoom={1.5}
-                      nodesConnectable={false}
-                      nodesDraggable={false}
-                      elementsSelectable={true}
-                      zoomOnDoubleClick={false}
-                    >
-                      <Background color="#d6dbe3" gap={20} size={1.1} />
-                      <Controls showInteractive={false} />
-                    </ReactFlow>
-                    <div className="canvas-caption">
-                      <GitBranch size={13} /> Las ramas independientes pueden
-                      avanzar en paralelo
-                    </div>
-                  </div>
-                  <nav className="mobile-steps" aria-label="Pasos del flujo">
-                    {run.steps.map((item) => (
-                      <button
-                        key={item.id}
-                        className={step?.id === item.id ? 'active' : ''}
-                        onClick={() => selectStep(item.id)}
-                      >
-                        <StatusIcon status={item.status} />
-                        {item.title}
-                      </button>
-                    ))}
-                  </nav>
-                  <div className="canvas-legend">
-                    <span>
-                      <i className="legend-dot completed" />
-                      Completado
-                    </span>
-                    <span>
-                      <i className="legend-dot running" />
-                      En curso
-                    </span>
-                    <span>
-                      <i className="legend-dot waiting" />
-                      Tu turno
-                    </span>
-                    <span>
-                      <i className="legend-dot blocked" />
-                      En espera
-                    </span>
-                  </div>
-                </div>
-                <aside className="inspector">
-                  <div className="inspector-tabs">
-                    <button
-                      className={tab === 'details' ? 'active' : ''}
-                      onClick={() => setTab('details')}
-                    >
-                      <Layers3 size={15} />
-                      Detalle del paso
-                    </button>
-                    <button
-                      className={tab === 'activity' ? 'active' : ''}
-                      onClick={() => setTab('activity')}
-                    >
-                      <History size={15} />
-                      Actividad
-                    </button>
-                  </div>
-                  {tab === 'details' && step ? (
-                    <div className="step-detail">
-                      <div className="detail-eyebrow">
-                        PASO{' '}
-                        {String(run.steps.indexOf(step) + 1).padStart(2, '0')}
-                        <span className={`status-tag ${step.status}`}>
-                          <StatusIcon status={step.status} />
-                          {labels[step.status]}
-                        </span>
-                      </div>
-                      <h2>{step.title}</h2>
-                      <p className="step-description">
-                        {step.description ||
-                          (step.kind === 'manual'
-                            ? 'Comparte la información que necesita el agente para avanzar.'
-                            : step.kind === 'approval'
-                              ? 'Revisa los resultados anteriores y decide si el proceso puede continuar.'
-                              : 'El agente ejecutará este paso y registrará su resultado aquí.')}
-                      </p>
-                      <dl className="step-meta">
-                        <div>
-                          <dt>Responsable</dt>
-                          <dd>
-                            {step.kind === 'agent' ? (
-                              <Bot size={14} />
-                            ) : (
-                              <UserRound size={14} />
-                            )}{' '}
-                            {step.kind === 'agent'
-                              ? titleCase(run.coordinator)
-                              : 'Tú'}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Tipo de paso</dt>
-                          <dd>{kindLabels[step.kind]}</dd>
-                        </div>
-                        {step.attempt > 0 && (
-                          <div>
-                            <dt>Intento</dt>
-                            <dd>#{step.attempt}</dd>
-                          </div>
-                        )}
-                      </dl>
-                      {step.dependencies.length > 0 && (
-                        <div className="dependencies">
-                          <h3>Depende de</h3>
-                          {step.dependencies.map((id) => {
-                            const dependency = run.steps.find(
-                              (s) => s.id === id,
-                            )!;
-                            return (
-                              <button key={id} onClick={() => selectStep(id)}>
-                                <span
-                                  className={`dependency-icon ${dependency.status}`}
-                                >
-                                  <StatusIcon
-                                    status={dependency.status}
-                                    size={13}
-                                  />
-                                </span>
-                                <span>{dependency.title}</span>
-                                <ChevronRight size={13} />
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {step.result && (
-                        <div className="result">
-                          <h3>
-                            <CheckCheck size={15} />
-                            {step.status === 'failed'
-                              ? 'Error registrado'
-                              : 'Resultado registrado'}
-                          </h3>
-                          <p>{step.result}</p>
-                        </div>
-                      )}
-                      {step.status === 'blocked' && (
-                        <div className="step-hint">
-                          <LockKeyhole size={16} />
-                          <p>
-                            Este paso se habilitará cuando termine:{' '}
-                            {blockedReason}.
-                          </p>
-                        </div>
-                      )}
-                      {step.status === 'running' && (
-                        <div className="step-hint">
-                          <LoaderCircle className="spin" size={17} />
-                          <p>
-                            El agente tiene este paso en curso. Puedes revisar
-                            sus avances en Actividad.
-                          </p>
-                        </div>
-                      )}
-                      {step.status === 'ready' && live && (
-                        <div className="step-hint">
-                          <Bot size={17} />
-                          <p>
-                            El paso está habilitado. Pide a{' '}
-                            {titleCase(run.coordinator)} que continúe desde el
-                            chat.
-                          </p>
-                        </div>
-                      )}
-                      {step.status === 'waiting' && live && (
-                        <div className="human-action">
-                          <div className="action-title">
-                            {step.kind === 'manual' ? (
-                              <MessageSquareText size={18} />
-                            ) : (
-                              <ShieldCheck size={18} />
-                            )}
-                            <strong>
-                              {step.kind === 'manual'
-                                ? 'Comparte tu respuesta'
-                                : 'Tu aprobación es necesaria'}
-                            </strong>
-                          </div>
-                          <label htmlFor="human-answer">
-                            {step.kind === 'manual'
-                              ? 'Tu respuesta'
-                              : 'Comentario (opcional al aprobar)'}
-                          </label>
-                          <textarea
-                            id="human-answer"
-                            value={answer}
-                            onChange={(e) => setAnswer(e.target.value)}
-                            maxLength={8000}
-                            rows={4}
-                            placeholder={
-                              step.kind === 'manual'
-                                ? 'Escribe aquí lo que quieres conseguir…'
-                                : 'Añade contexto a tu decisión…'
-                            }
-                          />
-                          <button
-                            className="primary full"
-                            disabled={
-                              busy ||
-                              !online ||
-                              (step.kind === 'manual' && !answer.trim())
-                            }
-                            onClick={() =>
-                              void act(
-                                step.kind === 'manual' ? 'submit' : 'approve',
-                                step.id,
-                              )
-                            }
-                          >
-                            {busy ? (
-                              <LoaderCircle className="spin" size={16} />
-                            ) : (
-                              <Check size={16} />
-                            )}{' '}
-                            {step.kind === 'manual'
-                              ? 'Enviar respuesta'
-                              : 'Aprobar paso'}
-                          </button>
-                          {step.kind === 'approval' && (
-                            <button
-                              className="text-button reject"
-                              disabled={busy || !online}
-                              onClick={() => setConfirmation('reject')}
-                            >
-                              Rechazar y detener este flujo
-                            </button>
-                          )}
-                          <small>
-                            Tu decisión quedará en el historial del proceso.
-                          </small>
-                        </div>
-                      )}
-                      {step.status === 'failed' && live && (
-                        <button
-                          className="secondary full"
-                          disabled={busy || !online}
-                          onClick={() => void act('retry', step.id)}
-                        >
-                          Habilitar otro intento
-                        </button>
-                      )}
-                      <div className="step-history">
-                        <h3>Actividad de este paso</h3>
-                        {run.events
-                          .filter((e) => e.stepId === step.id)
-                          .slice(-4)
-                          .reverse()
-                          .map((e) => (
-                            <div key={e.sequence}>
-                              <span className="history-dot" />
-                              <p>
-                                <strong>{eventLabels[e.type] || e.type}</strong>
-                                <small>
-                                  {e.actor} · {time(e.at)}
-                                </small>
-                                {e.message && <span>{e.message}</span>}
-                              </p>
-                            </div>
-                          ))}
-                        {!run.events.some((e) => e.stepId === step.id) && (
-                          <p className="muted">
-                            Todavía no hay actividad registrada.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="activity-list">
-                      <h2>Historial del flujo</h2>
-                      <p className="muted">
-                        Decisiones y acciones observables.
-                      </p>
-                      {[...run.events].reverse().map((e) => (
-                        <article key={e.sequence}>
-                          <span
-                            className={`activity-symbol ${e.type === 'submit' || e.type === 'approve' ? 'human' : ''}`}
-                          >
-                            {['submit', 'approve', 'reject'].includes(
-                              e.type,
-                            ) ? (
-                              <UserRound size={14} />
-                            ) : (
-                              <Bot size={14} />
-                            )}
-                          </span>
-                          <div>
-                            <strong>{eventLabels[e.type] || e.type}</strong>
-                            <small>
-                              {e.actor} · {time(e.at)}
-                            </small>
-                            {e.stepId && (
-                              <button onClick={() => selectStep(e.stepId!)}>
-                                {
-                                  run.steps.find((s) => s.id === e.stepId)
-                                    ?.title
-                                }
-                              </button>
-                            )}
-                            {e.message && <p>{e.message}</p>}
-                          </div>
-                        </article>
-                      ))}
-                    </div>
-                  )}
-                </aside>
-              </section>
-              <footer className="page-footer">
+                )}
+              </div>
+              <nav className="mobile-steps" aria-label="Pasos del flujo">
+                {run.steps.map((item) => (
+                  <button key={item.id} onClick={() => selectStep(item.id)}>
+                    <StatusIcon status={item.status} />
+                    {item.title}
+                  </button>
+                ))}
+              </nav>
+              <footer className="canvas-footer">
                 <span>
-                  <ShieldCheck size={14} /> Control humano en cada decisión
+                  <GitBranch size={14} />
+                  Flujo vertical
                 </span>
                 <span>
-                  Hyperion 0.1 · Cooperativo · Actualizado {time(run.updatedAt)}
+                  {completed}/{run.steps.length} completados · {running} en
+                  curso
+                </span>
+                <span className="canvas-tip">
+                  Pulsa un nodo para ver información y acciones
+                </span>
+                <span className="canvas-coordinator">
+                  <Bot size={14} />
+                  {titleCase(run.coordinator)}
                 </span>
               </footer>
-            </>
+            </section>
           )}
         </main>
       </div>
+      {popup && !confirmation && !help && (
+        <Modal
+          returnFocus={popupTrigger.current}
+          onClose={() => setPopup(null)}
+        >
+          <section
+            className={`modal canvas-popup ${popup === 'step' || popup === 'activity' ? 'step-popup' : ''}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="popup-title"
+          >
+            <button
+              className="modal-close icon-button"
+              aria-label="Cerrar popup"
+              onClick={() => setPopup(null)}
+            >
+              <X size={19} />
+            </button>
+            {error && (
+              <p role="alert" className="popup-error">
+                {error}
+              </p>
+            )}
+            {(popup === 'step' || popup === 'activity') && run && (
+              <>
+                <div className="inspector-tabs">
+                  <button
+                    className={popup === 'step' ? 'active' : ''}
+                    onClick={() => setPopup('step')}
+                  >
+                    <Layers3 size={15} />
+                    Detalle del paso
+                  </button>
+                  <button
+                    className={popup === 'activity' ? 'active' : ''}
+                    onClick={() => setPopup('activity')}
+                  >
+                    <History size={15} />
+                    Actividad
+                  </button>
+                </div>
+                {popup === 'step' && step ? (
+                  <div className="step-detail">
+                    <div className="detail-eyebrow">
+                      PASO{' '}
+                      {String(run.steps.indexOf(step) + 1).padStart(2, '0')}
+                      <span className={`status-tag ${step.status}`}>
+                        <StatusIcon status={step.status} />
+                        {labels[step.status]}
+                      </span>
+                    </div>
+                    <h2 id="popup-title">{step.title}</h2>
+                    <p className="step-description">
+                      {step.description ||
+                        (step.kind === 'manual'
+                          ? 'Comparte la información que necesita el agente para avanzar.'
+                          : step.kind === 'approval'
+                            ? 'Revisa los resultados anteriores y decide si el proceso puede continuar.'
+                            : 'El agente ejecutará este paso y registrará su resultado aquí.')}
+                    </p>
+                    <dl className="step-meta">
+                      <div>
+                        <dt>Responsable</dt>
+                        <dd>
+                          {step.kind === 'agent' ? (
+                            <Bot size={14} />
+                          ) : (
+                            <UserRound size={14} />
+                          )}{' '}
+                          {step.kind === 'agent'
+                            ? titleCase(run.coordinator)
+                            : 'Tú'}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Tipo de paso</dt>
+                        <dd>{kindLabels[step.kind]}</dd>
+                      </div>
+                      {step.attempt > 0 && (
+                        <div>
+                          <dt>Intento</dt>
+                          <dd>#{step.attempt}</dd>
+                        </div>
+                      )}
+                    </dl>
+                    {step.dependencies.length > 0 && (
+                      <div className="dependencies">
+                        <h3>Depende de</h3>
+                        {step.dependencies.map((id) => {
+                          const dependency = run.steps.find(
+                            (s) => s.id === id,
+                          )!;
+                          return (
+                            <button key={id} onClick={() => selectStep(id)}>
+                              <span
+                                className={`dependency-icon ${dependency.status}`}
+                              >
+                                <StatusIcon
+                                  status={dependency.status}
+                                  size={13}
+                                />
+                              </span>
+                              <span>{dependency.title}</span>
+                              <ChevronRight size={13} />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {step.result && (
+                      <div className="result">
+                        <h3>
+                          <CheckCheck size={15} />
+                          {step.status === 'failed'
+                            ? 'Error registrado'
+                            : 'Resultado registrado'}
+                        </h3>
+                        <p>{step.result}</p>
+                      </div>
+                    )}
+                    {step.status === 'blocked' && (
+                      <div className="step-hint">
+                        <LockKeyhole size={16} />
+                        <p>
+                          Este paso se habilitará cuando termine:{' '}
+                          {blockedReason}.
+                        </p>
+                      </div>
+                    )}
+                    {step.status === 'running' && (
+                      <div className="step-hint">
+                        <LoaderCircle className="spin" size={17} />
+                        <p>
+                          El agente tiene este paso en curso. Puedes revisar sus
+                          avances en Actividad.
+                        </p>
+                      </div>
+                    )}
+                    {step.status === 'ready' && live && (
+                      <div className="step-hint">
+                        <Bot size={17} />
+                        <p>
+                          El paso está habilitado. Pide a{' '}
+                          {titleCase(run.coordinator)} que continúe desde el
+                          chat.
+                        </p>
+                      </div>
+                    )}
+                    {step.status === 'waiting' && live && (
+                      <div className="human-action">
+                        <div className="action-title">
+                          {step.kind === 'manual' ? (
+                            <MessageSquareText size={18} />
+                          ) : (
+                            <ShieldCheck size={18} />
+                          )}
+                          <strong>
+                            {step.kind === 'manual'
+                              ? 'Comparte tu respuesta'
+                              : 'Tu aprobación es necesaria'}
+                          </strong>
+                        </div>
+                        <label htmlFor="human-answer">
+                          {step.kind === 'manual'
+                            ? 'Tu respuesta'
+                            : 'Comentario (opcional al aprobar)'}
+                        </label>
+                        <textarea
+                          id="human-answer"
+                          value={answer}
+                          onChange={(e) => setAnswer(e.target.value)}
+                          maxLength={8000}
+                          rows={4}
+                          placeholder={
+                            step.kind === 'manual'
+                              ? 'Escribe aquí lo que quieres conseguir…'
+                              : 'Añade contexto a tu decisión…'
+                          }
+                        />
+                        <button
+                          className="primary full"
+                          disabled={
+                            busy ||
+                            !online ||
+                            (step.kind === 'manual' && !answer.trim())
+                          }
+                          onClick={() =>
+                            void act(
+                              step.kind === 'manual' ? 'submit' : 'approve',
+                              step.id,
+                            )
+                          }
+                        >
+                          {busy ? (
+                            <LoaderCircle className="spin" size={16} />
+                          ) : (
+                            <Check size={16} />
+                          )}{' '}
+                          {step.kind === 'manual'
+                            ? 'Enviar respuesta'
+                            : 'Aprobar paso'}
+                        </button>
+                        {step.kind === 'approval' && (
+                          <button
+                            className="text-button reject"
+                            disabled={busy || !online}
+                            onClick={() => setConfirmation('reject')}
+                          >
+                            Rechazar y detener este flujo
+                          </button>
+                        )}
+                        <small>
+                          Tu decisión quedará en el historial del proceso.
+                        </small>
+                      </div>
+                    )}
+                    {step.status === 'failed' && live && (
+                      <button
+                        className="secondary full"
+                        disabled={busy || !online}
+                        onClick={() => void act('retry', step.id)}
+                      >
+                        Habilitar otro intento
+                      </button>
+                    )}
+                    <div className="step-history">
+                      <h3>Actividad de este paso</h3>
+                      {run.events
+                        .filter((e) => e.stepId === step.id)
+                        .slice(-4)
+                        .reverse()
+                        .map((e) => (
+                          <div key={e.sequence}>
+                            <span className="history-dot" />
+                            <p>
+                              <strong>{eventLabels[e.type] || e.type}</strong>
+                              <small>
+                                {e.actor} · {time(e.at)}
+                              </small>
+                              {e.message && <span>{e.message}</span>}
+                            </p>
+                          </div>
+                        ))}
+                      {!run.events.some((e) => e.stepId === step.id) && (
+                        <p className="muted">
+                          Todavía no hay actividad registrada.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="activity-list">
+                    <h2 id="popup-title">Historial del flujo</h2>
+                    <p className="muted">Decisiones y acciones observables.</p>
+                    {[...run.events].reverse().map((e) => (
+                      <article key={e.sequence}>
+                        <span
+                          className={`activity-symbol ${e.type === 'submit' || e.type === 'approve' ? 'human' : ''}`}
+                        >
+                          {['submit', 'approve', 'reject'].includes(e.type) ? (
+                            <UserRound size={14} />
+                          ) : (
+                            <Bot size={14} />
+                          )}
+                        </span>
+                        <div>
+                          <strong>{eventLabels[e.type] || e.type}</strong>
+                          <small>
+                            {e.actor} · {time(e.at)}
+                          </small>
+                          {e.stepId && (
+                            <button onClick={() => selectStep(e.stepId!)}>
+                              {run.steps.find((s) => s.id === e.stepId)?.title}
+                            </button>
+                          )}
+                          {e.message && <p>{e.message}</p>}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+            {popup === 'request' && run && (
+              <div className="request-popup">
+                <span className="eyebrow">
+                  <Bot size={16} />
+                  Creado desde {titleCase(run.coordinator)}
+                </span>
+                <h2 id="popup-title">Petición original</h2>
+                <p>
+                  {run.request ||
+                    'Este flujo anterior no conserva la petición original.'}
+                </p>
+                {run.description && (
+                  <p className="request-description">{run.description}</p>
+                )}
+                <div className="code-note">ID del flujo: {run.id}</div>
+                <p className="muted">
+                  El agente registra los pasos desde tu petición. Cada nodo
+                  mantiene sus instrucciones, resultados y acciones en este
+                  canvas.
+                </p>
+              </div>
+            )}
+            {popup === 'runs' && (
+              <>
+                <h2 id="popup-title">Mis flujos</h2>
+                <p>Elige el workflow que quieres abrir en el canvas.</p>
+                <div className="popup-run-list">
+                  {runs.map((item) => (
+                    <button
+                      className={run?.id === item.id ? 'selected' : ''}
+                      key={item.id}
+                      onClick={() => selectRun(item.id)}
+                    >
+                      <span className={`tiny-dot ${item.status}`} />
+                      <span>
+                        <strong>{item.title}</strong>
+                        <small>
+                          {titleCase(item.coordinator)} ·{' '}
+                          {runLabels[item.status]}
+                        </small>
+                      </span>
+                      <ChevronRight size={16} />
+                    </button>
+                  ))}
+                  {!runs.length && (
+                    <p>
+                      Tus flujos aparecerán aquí cuando tu agente los registre.
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+          </section>
+        </Modal>
+      )}
       {help && (
-        <Modal onClose={() => setHelp(false)}>
+        <Modal
+          returnFocus={popupTrigger.current}
+          onClose={() => setHelp(false)}
+        >
           <section
             className="modal"
             role="dialog"
@@ -1092,7 +1102,10 @@ export function App() {
         </Modal>
       )}
       {confirmation && (
-        <Modal onClose={() => setConfirmation(null)}>
+        <Modal
+          returnFocus={popupTrigger.current}
+          onClose={() => setConfirmation(null)}
+        >
           <section
             className="modal compact"
             role="dialog"
@@ -1119,6 +1132,11 @@ export function App() {
                   onChange={(e) => setAnswer(e.target.value)}
                 />
               </>
+            )}
+            {error && (
+              <p role="alert" className="popup-error">
+                {error}
+              </p>
             )}
             <div className="modal-actions">
               <button

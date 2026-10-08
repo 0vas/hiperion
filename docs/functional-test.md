@@ -65,3 +65,18 @@ El [manual de uso](manual-uso.md) añade un caso completo generado desde una pet
 - La instancia local actualizada muestra los cinco nodos del nuevo caso y la petición original, sin errores JavaScript en la comprobación de navegador.
 
 El ciclo TDD observó primero el fallo por la operación de registro aún inexistente, después implementó el registro y sus adaptadores, y terminó verificando API, MCP e interfaz.
+
+## Incremento: canvas y popups (2026-10-08)
+
+El caso personal se generó desde la petición recibida en Codex y se registró mediante CLI. Codex inició el paso de implementación antes de realizar los cambios y registra sus verificaciones como evidencia; el usuario responde y aprueba en los nodos del mismo workflow. El archivo de esa petición y el estado personal permanecen en `.hyperion/`, fuera de Git.
+
+Criterios y decisiones: [ADR 0003](decisions/0003-canvas-interaction.md). Recorrido del usuario: [manual](manual-uso.md).
+
+- Canvas landscape de una pantalla, con dependencias verticales y sin inspector fijo.
+- Nodos y botones abren popups para información, respuesta, aprobación, rechazo, actividad y selección de flujos.
+- 20 pruebas de lógica/integración y 8 pruebas de navegador aprobadas. Tipos, build y formato correctos.
+- Las pruebas de navegador comprueban dimensiones del canvas, foco inicial y su restauración, Escape, Tab, respuesta/aprobación, rechazo, errores dentro del popup, persistencia, reajuste al cambiar a viewport estrecho y axe WCAG AA tanto en el canvas como en la intervención humana.
+- Se corrigieron los fallos detectados por las pruebas: canvas aún inexistente, foco perdido tras re-medición del nodo y falta de ajuste del viewport al redimensionar.
+- Inspección visual de escritorio, móvil y popup. La captura del README usa únicamente datos sintéticos del navegador de pruebas.
+
+La prueba humana personal queda pendiente; no se simula su respuesta ni aprobación. La continuación desde Codex sigue siendo cooperativa mediante lectura del estado al retomar el chat.

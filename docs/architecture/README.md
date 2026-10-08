@@ -160,4 +160,6 @@ La vista `cooperacion.svg` conserva la arquitectura de referencia, incluyendo el
 
 La participación humana se representa en el producto mediante pasos manuales y de aprobación. El agente que usa CLI/MCP conserva la responsabilidad de ejecutar acciones externas. El [ADR 0002](../decisions/0002-request-driven-integrations.md) añade la petición original, la vista vertical y un registro de identidades de integración con credenciales propias. Los clientes comparten el núcleo y almacenamiento; cada ejecución conserva un coordinador.
 
+El [ADR 0003](../decisions/0003-canvas-interaction.md) concentra la interacción en un canvas landscape y popups por nodo, sin añadir componentes ni cambiar las relaciones de la vista ArchiMate implementada.
+
 El [modelo XML editable](implemented.xml) contiene los cinco componentes y ocho relaciones de la vista implementada. Se verificaron el XML y sus referencias; la importación y validación XSD en una herramienta ArchiMate quedan pendientes.

@@ -91,8 +91,20 @@ test('an agent creates a workflow; the human supplies input and approves; the ag
 });
 
 test('narrow viewport stays usable', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
+  await page.getByRole('region', { name: 'Canvas del workflow' }).waitFor();
+  await page.setViewportSize({ width: 390, height: 844 });
+  const node = page.getByRole('button', { name: /^Ver paso:/ }).first();
+  await expect
+    .poll(async () => {
+      const box = await node.boundingBox();
+      return Boolean(box && box.x >= 0 && box.x + box.width <= 390);
+    })
+    .toBeTruthy();
+  await node.click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.screenshot({ path: 'test-results/canvas-mobile-popup.png' });
+  await page.keyboard.press('Escape');
   await expect(page.getByRole('banner')).toBeVisible();
   expect(
     await page.evaluate(
@@ -122,6 +134,13 @@ test('human handoff meets automated WCAG AA checks', async ({
   });
   const run = await response.json();
   await page.goto(`/?run=${run.id}`);
+  const canvasAccessibility = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+    .analyze();
+  expect(canvasAccessibility.violations).toEqual([]);
+  await page
+    .getByRole('button', { name: 'Ver paso: Definir el objetivo' })
+    .click();
   await expect(page.getByLabel('Tu respuesta')).toBeVisible();
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
@@ -205,6 +224,7 @@ test('request-derived plans flow top to bottom with parallel branches and retain
   await expect(page.getByText('Flujo vertical', { exact: true })).toBeVisible();
   await page.getByText('Petición original', { exact: true }).click();
   await expect(page.getByText(original, { exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
   const bounds = async (name: string) =>
     (await page
       .getByRole('button', { name: `Ver paso: ${name}` })
@@ -220,4 +240,140 @@ test('request-derived plans flow top to bottom with parallel branches and retain
     path: 'test-results/request-vertical.png',
     fullPage: true,
   });
+});
+
+test('the workflow is a landscape canvas with information and human actions in accessible popups', async ({
+  page,
+  request,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const response = await request.post('/api/runs', {
+    headers: { authorization: `Bearer ${token()}` },
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: {
+        title: 'Canvas desde Codex',
+        request: 'Codex, guía mi revisión en un solo canvas.',
+        steps: [
+          { id: 'input', title: 'Compartir observaciones', kind: 'manual' },
+          {
+            id: 'approval',
+            title: 'Confirmar resultado',
+            kind: 'approval',
+            dependencies: ['input'],
+          },
+        ],
+      },
+    },
+  });
+  const run = await response.json();
+  await page.goto(`/?run=${run.id}`);
+  const canvas = page.getByRole('region', { name: 'Canvas del workflow' });
+  await expect(canvas).toBeVisible();
+  const bounds = (await canvas.boundingBox())!;
+  expect(bounds.width).toBeGreaterThan(1440 * 0.9);
+  expect(bounds.height).toBeGreaterThan(900 * 0.75);
+  expect(bounds.width).toBeGreaterThan(bounds.height);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByLabel('Tu respuesta')).toHaveCount(0);
+  await page
+    .getByRole('button', { name: 'Petición original', exact: true })
+    .click();
+  await expect(
+    page.getByRole('dialog', { name: 'Petición original' }),
+  ).toContainText('Codex, guía mi revisión');
+  await page.keyboard.press('Escape');
+  await expect(
+    page.getByRole('button', { name: 'Petición original', exact: true }),
+  ).toBeFocused();
+  const node = page.getByRole('button', {
+    name: 'Ver paso: Compartir observaciones',
+  });
+  await node.click();
+  await expect(
+    page.getByRole('dialog', { name: 'Compartir observaciones' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Cerrar popup' }),
+  ).toBeFocused();
+  await page
+    .getByLabel('Tu respuesta')
+    .fill('El canvas funciona y mantiene mi contexto.');
+  await page.getByRole('button', { name: 'Cerrar popup' }).focus();
+  await page.keyboard.press('Shift+Tab');
+  await expect(
+    page.getByRole('button', { name: 'Enviar respuesta' }),
+  ).toBeFocused();
+  await page.getByRole('button', { name: 'Enviar respuesta' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(node).toBeFocused();
+  await page
+    .getByRole('button', { name: 'Ver paso: Confirmar resultado' })
+    .click();
+  await expect(
+    page.getByRole('dialog', { name: 'Confirmar resultado' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Aprobar paso', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByTestId('run-status')).toHaveText('Completado');
+  await page.getByRole('button', { name: 'Actividad', exact: true }).click();
+  await expect(
+    page.getByRole('dialog', { name: 'Historial del flujo' }),
+  ).toContainText('El canvas funciona');
+  await page.keyboard.press('Escape');
+  await page.reload();
+  await expect(page.getByTestId('run-status')).toHaveText('Completado');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollHeight <= innerHeight,
+    ),
+  ).toBeTruthy();
+  await page.screenshot({ path: 'test-results/canvas-landscape.png' });
+});
+
+test('rejection stays in the canvas popup and reports command errors before retrying', async ({
+  page,
+  request,
+}) => {
+  const response = await request.post('/api/runs', {
+    headers: { authorization: `Bearer ${token()}` },
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: {
+        title: 'Revisar y rechazar',
+        steps: [{ id: 'gate', title: 'Revisar propuesta', kind: 'approval' }],
+      },
+    },
+  });
+  const run = await response.json();
+  await page.goto(`/?run=${run.id}`);
+  await page
+    .getByRole('button', { name: 'Ver paso: Revisar propuesta' })
+    .click();
+  await page
+    .getByRole('button', { name: 'Rechazar y detener este flujo' })
+    .click();
+  await expect(page.getByRole('dialog')).toHaveCount(1);
+  await page
+    .getByLabel('Motivo del rechazo')
+    .fill('Falta evidencia de la propuesta.');
+  await page.route(`**/api/runs/${run.id}/commands`, (route) =>
+    route.fulfill({
+      status: 409,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'REVISION_CONFLICT' }),
+    }),
+  );
+  await page.getByRole('button', { name: 'Confirmar rechazo' }).click();
+  await expect(page.getByRole('dialog').getByRole('alert')).toContainText(
+    'El flujo cambió',
+  );
+  await expect(page.getByLabel('Motivo del rechazo')).toHaveValue(
+    'Falta evidencia de la propuesta.',
+  );
+  await page.unroute(`**/api/runs/${run.id}/commands`);
+  await page.getByRole('button', { name: 'Confirmar rechazo' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByTestId('run-status')).toHaveText('Rechazado');
 });

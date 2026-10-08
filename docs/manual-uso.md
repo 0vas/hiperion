@@ -126,6 +126,14 @@ No necesitas convertir tu petición a JSON: lo hace el agente. Hyperion valida y
 
 ## 4. Participar en el flujo
 
+Todo ocurre en un único **canvas landscape**. El recorrido mantiene su dirección vertical y puedes desplazar o ampliar el gráfico. No hay un inspector fijo: cada nodo es un botón que abre un popup con sus instrucciones, resultados y acciones disponibles.
+
+- **Petición original:** abre el texto recibido desde Codex o la herramienta coordinadora.
+- **Actividad:** abre el historial del mismo flujo.
+- **Responder / Revisar y aprobar:** abre el popup del nodo correspondiente. Envía la respuesta o decisión allí; al guardarla vuelves al canvas.
+- **Mis flujos:** permite elegir otra ejecución desde un popup.
+- **Escape** o el botón de cierre regresa al canvas sin enviar una decisión.
+
 | Lo que ves            | Qué significa                             | Qué haces                                        |
 | --------------------- | ----------------------------------------- | ------------------------------------------------ |
 | Petición original     | Texto que dio origen al plan              | Ábrelo para comprobar el alcance                 |
@@ -140,7 +148,17 @@ El botón **Continuar en [herramienta]** copia una petición con el ID del flujo
 
 El adaptador ofrece esperas acotadas, pero no inicia ni despierta conversaciones automáticamente. Tu clic queda guardado aunque el agente haya terminado su turno. Una pausa bloquea nuevos inicios; cancelar no deshace acciones externas ya realizadas.
 
-## 5. Caso de prueba completo
+## 5. Caso de prueba desde Codex
+
+El caso se inicia en Codex: escribes la petición en el chat y Codex genera el plan, lo registra mediante CLI o MCP y te entrega el enlace. Hyperion muestra el trabajo que Codex va reportando. No necesitas crear el caso desde la interfaz ni ejecutar comandos de registro personalmente.
+
+Para probar la interacción del canvas, pide en Codex:
+
+> Usa Hyperion para probar su canvas interactivo. Verifica la interfaz, pídeme probar los botones y popups, revisa mis observaciones y solicita mi aprobación antes de cerrar la prueba.
+
+El recorrido esperado es: verificación real de Codex → prueba manual en un popup → revisión de tus observaciones por Codex → aprobación en un popup → cierre registrado por Codex. El texto original y los eventos del coordinador permiten seguir el origen del flujo. Después de enviar una respuesta, usa **Continuar en Codex** y pega la petición copiada en este chat; esta versión no despierta conversaciones automáticamente.
+
+### Otro ejemplo: preparar una contribución
 
 Copia esta petición en cualquiera de las herramientas conectadas:
 
