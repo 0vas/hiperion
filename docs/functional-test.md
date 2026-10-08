@@ -183,3 +183,11 @@ El usuario elige split o desktop en su chat. `hyperion_open` (MCP) y `open RUN_I
 - `npm run check`: 45 pruebas de lógica/adaptadores/presentación, 2 de distribución, tipos, build y formato correctos. `npm run test:e2e`: 18 recorridos aprobados, incluidos movimiento real, estilos SVG, pausa, preferencias, accesibilidad y split.
 - Inspección visual del flujo real en una ventana de 720 px, sin enviar decisiones humanas: tres conexiones alcanzadas con `information-current` y ramas pendientes estáticas. Captura local ignorada en `.hyperion/information-current-split.png`. Inspección adicional del proceso sintético horizontal con los tres tipos de compuerta.
 - El canvas compilado queda actualizado para navegador y desktop conectado al servicio local. En este incremento no se regeneraron los instaladores independientes de ADR 0010.
+
+## Cintas ondulantes (ADR 0012)
+
+- Referencia visual del usuario traducida a tres cintas SVG entrelazadas por conexión alcanzada, con degradado y deformación direccional. La geometría sigue el trazado real y se estrecha al llegar a los nodos; no modifica dependencias ni decisiones.
+- TDD: el escenario falló inicialmente al encontrar cero cintas donde esperaba tres. Tras implementar, comprueba cambio real de geometría CSS, ausencia en rutas pendientes y detención al pausar o reducir movimiento.
+- `npm run check` aprobado: 45 pruebas unitarias/integración, 2 de producción, tipos, compilación y formato. `npm run test:e2e`: 18 recorridos aprobados, incluidos contraste, split, orientación y movimiento. Total: 65 pruebas.
+- Inspección del flujo real sin enviar decisiones: vertical claro a 720 px y horizontal oscuro a 720/1440 px, sin errores JavaScript. Capturas locales ignoradas: `.hyperion/ribbons-split-light.png`, `.hyperion/ribbons-horizontal-dark.png`, `.hyperion/ribbons-desktop-dark.png`.
+- La animación usa CSS sobre geometrías SVG calculadas al cambiar el recorrido, sin actualizaciones React por frame. La prueba se realizó en Chromium; en este incremento no se regeneraron ni probaron los instaladores nativos.

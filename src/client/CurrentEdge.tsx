@@ -5,6 +5,7 @@ import {
   type Edge,
   type EdgeProps,
 } from '@xyflow/react';
+import { FlowRibbons } from './FlowRibbons';
 import type { FlowState } from './flow-visuals';
 
 type Current = Edge<{ state: FlowState; current: boolean }, 'current'>;
@@ -42,6 +43,17 @@ export function CurrentEdge(props: EdgeProps<Current>) {
         />
       )}
       {reached && (
+        <FlowRibbons
+          path={path}
+          flowing={props.data?.current === true}
+          color={String(props.style?.stroke || 'currentColor')}
+          horizontal={
+            props.sourcePosition === Position.Right ||
+            props.sourcePosition === Position.Left
+          }
+        />
+      )}
+      {reached && (
         <path
           d={path}
           pathLength={100}
@@ -56,7 +68,7 @@ export function CurrentEdge(props: EdgeProps<Current>) {
         labelY={labelY}
         markerEnd={props.markerEnd}
         markerStart={props.markerStart}
-        style={props.style}
+        style={reached ? { ...props.style, strokeWidth: 1.4 } : props.style}
         label={props.label}
         labelStyle={props.labelStyle}
         labelShowBg={props.labelShowBg}

@@ -247,3 +247,56 @@
     opacity: 0;
   }
 }
+
+/* Three shaded ribbons travel together without changing the process route. */
+.flow-ribbons {
+  pointer-events: none;
+}
+.flow-ribbons .ribbon-light {
+  stop-color: color-mix(in srgb, currentColor 48%, white);
+}
+.flow-ribbons .ribbon-shade {
+  stop-color: color-mix(in srgb, currentColor 80%, #172333);
+}
+.react-flow__edge path.ribbon-guide,
+.react-flow__edge path.flow-ribbon {
+  animation: none;
+  stroke: none;
+  stroke-dasharray: none;
+}
+.flow-ribbon.strand-0 {
+  opacity: 0.65;
+}
+.flow-ribbon.strand-1 {
+  opacity: 0.8;
+}
+.flow-ribbon.strand-2 {
+  opacity: 0.95;
+}
+.react-flow__edge .flow-ribbons.is-flowing path.flow-ribbon {
+  animation: ribbon-wave 3.2s linear infinite;
+}
+@keyframes ribbon-wave {
+  0%,
+  100% {
+    d: var(--ribbon-0);
+  }
+  25% {
+    d: var(--ribbon-1);
+  }
+  50% {
+    d: var(--ribbon-2);
+  }
+  75% {
+    d: var(--ribbon-3);
+  }
+}
+[data-motion='reduce'] .react-flow__edge .flow-ribbons path.flow-ribbon,
+[data-connected='false'] .react-flow__edge .flow-ribbons path.flow-ribbon {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .react-flow__edge .flow-ribbons.is-flowing path.flow-ribbon {
+    animation: none;
+  }
+}

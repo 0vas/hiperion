@@ -11,7 +11,9 @@ export function FlowLegend() {
           <Check />
           <div>
             <strong>Verde · Completado</strong>
-            <span>La corriente recorre lo hecho hasta la siguiente tarea.</span>
+            <span>
+              Las cintas ondulantes recorren lo hecho hasta la siguiente tarea.
+            </span>
           </div>
         </li>
         <li data-flow-state="active">

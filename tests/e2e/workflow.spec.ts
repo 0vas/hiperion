@@ -1270,6 +1270,16 @@ test('liquid current follows reached routes and BPMN symbol colors stay tied to 
     page.locator('[data-id="scope-parallel"] .liquid-stream'),
   ).toHaveCount(0);
   await expect(path).toHaveCSS('stroke-dasharray', '18px, 82px');
+  const ribbons = page.locator('[data-id="start-scope"] .flow-ribbon');
+  await expect(ribbons).toHaveCount(3);
+  await expect(ribbons.first()).toHaveCSS('animation-name', 'ribbon-wave');
+  const shape = await ribbons.first().evaluate((el) => getComputedStyle(el).d);
+  await expect
+    .poll(() => ribbons.first().evaluate((el) => getComputedStyle(el).d))
+    .not.toBe(shape);
+  await expect(
+    page.locator('[data-id="scope-parallel"] .flow-ribbon'),
+  ).toHaveCount(0);
   const offset = await path.evaluate(
     (el) => getComputedStyle(el).strokeDashoffset,
   );
@@ -1300,11 +1310,13 @@ test('liquid current follows reached routes and BPMN symbol colors stay tied to 
   }
   await page.getByRole('button', { name: 'Pausar', exact: true }).click();
   await expect(page.locator('.liquid-stream')).not.toHaveClass(/is-flowing/);
+  await expect(ribbons.first()).toHaveCSS('animation-name', 'none');
   expect(await color('start')).toBe('rgb(143, 218, 133)');
   await page.getByRole('button', { name: 'Reanudar', exact: true }).click();
   await expect(path).toHaveCSS('animation-name', 'information-current');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(path).toHaveCSS('animation-name', 'none');
+  await expect(ribbons.first()).toHaveCSS('animation-name', 'none');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page
     .getByRole('button', { name: 'Ver flujo horizontal', exact: true })
