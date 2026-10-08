@@ -6,7 +6,7 @@ license: MIT
 
 # Hyperion
 
-Requires Node.js 22.13+ and local shell access, or an already connected Hyperion MCP server.
+Requires local shell access with Node.js 22.13+ or the bundled Desktop runtime, or an already connected Hyperion MCP server.
 
 The user describes the activity in their chat. You construct and advance its visual workflow. Preserve their scope and original request. Hyperion is independent of the model or agent vendor.
 
@@ -41,3 +41,11 @@ Logs may contain public summaries, actions and observations. Do not expose or re
 Manual responses and approvals happen in the canvas. Never submit or approve for the person. Provide the URL and the waiting step, then yield or use `wait RUN_ID REVISION 30` for a bounded wait. A timeout is not approval. Continue after a new user message or actual state change; do not promise background wakeups. Respect pause, cancellation, rejection and the user's explicit instructions.
 
 If only “quiero usar Hyperion” is given without an activity, start the canvas and ask what activity they want to guide. Do not invent a task.
+
+## Presentation chosen in the chat
+
+Keep the same run when the user switches presentation. If they request split/web, return the run URL (`open RUN_ID split` also returns it). With MCP, use `hyperion_open({runId, presentation: "split" | "desktop"})`. Otherwise, if they request desktop, run `open RUN_ID desktop`; the adapter launches the locally registered Hyperion Desktop with the same authenticated service and run. Only report the launch after the command succeeds. If Desktop is not installed/registered, explain that its installer must be opened once and keep the web link available. Do not silently install or choose desktop when the user requested split.
+
+The canvas supports vertical/horizontal orientation and SVG parallel, exclusive and inclusive gateways. Include only gateways justified by the activity. Human decisions appear as a list with progress; use short field descriptions and explicit booleans. Failed agent tasks expose Reintentar: this makes the task ready, preserves history, and still requires the coordinator to execute it. Read state before resuming; do not start a retry automatically because a timeout elapsed.
+
+Desktop also offers **Conectar con mi IA** in its native menu to install the managed skill. If the harness has no `node` executable, read the installed `runtime.json`: invoke its `node` executable with its `cli` path and the desired arguments, applying `nodeEnv`, `HYPERION_DATA_DIR=directory` and `HYPERION_URL=url`. This uses Desktop's bundled runtime; do not ask the user to install Node or type shell commands.

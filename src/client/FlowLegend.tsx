@@ -1,12 +1,5 @@
-import {
-  Check,
-  Play,
-  UserRound,
-  Pause,
-  AlertCircle,
-  Flag,
-  Square,
-} from 'lucide-react';
+import { Check, Play, UserRound, Pause, AlertCircle } from 'lucide-react';
+import { BpmnSymbol } from './BpmnSymbol';
 export function FlowLegend() {
   return (
     <div className="flow-legend">
@@ -35,7 +28,9 @@ export function FlowLegend() {
           <UserRound />
           <div>
             <strong>Ámbar · Tu turno</strong>
-            <span>El flujo espera tu respuesta o aprobación.</span>
+            <span>
+              El pulso indica espera: abre la tarea para responder o aprobar.
+            </span>
           </div>
         </li>
         <li data-flow-state="paused">
@@ -63,9 +58,36 @@ export function FlowLegend() {
           </div>
         </li>
       </ul>
+      <div className="gateway-legend">
+        <h3>Compuertas del proceso</h3>
+        <p>
+          El plan incluye las que necesita tu actividad. «Dividir» abre ramas;
+          «unir» las reúne.
+        </p>
+        <div>
+          <BpmnSymbol kind="parallel" />
+          <span>
+            <strong>Paralela · todas</strong>Ejecuta todas las ramas; la unión
+            espera que terminen.
+          </span>
+        </div>
+        <div>
+          <BpmnSymbol kind="exclusive" />
+          <span>
+            <strong>Exclusiva · una</strong>Elige una ruta según la decisión.
+          </span>
+        </div>
+        <div>
+          <BpmnSymbol kind="inclusive" />
+          <span>
+            <strong>Inclusiva · una o más</strong>Activa las rutas que cumplen
+            condiciones; espera solo esas ramas.
+          </span>
+        </div>
+      </div>
       <p className="legend-events">
-        <Flag size={17} /> Inicio <span>→</span>
-        <Square size={15} /> Fin
+        <BpmnSymbol kind="start" /> Inicio <span>→</span>
+        <BpmnSymbol kind="end" /> Fin
       </p>
       <p className="guide-note">
         Se muestra el estado que registró el agente. Sin conexión, en pausa o

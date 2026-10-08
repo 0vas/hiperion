@@ -4,6 +4,7 @@ import type { FlowState } from './flow-visuals';
 import type { StepStatus } from '../domain/workflow';
 export type JobNodeData = {
   title: string;
+  horizontal: boolean;
   completed: number;
   total: number;
   skipped: number;
@@ -15,7 +16,10 @@ export type JobNodeData = {
 export function JobNode({ data }: NodeProps<Node<JobNodeData>>) {
   return (
     <>
-      <Handle type="target" position={Position.Top} />
+      <Handle
+        type="target"
+        position={data.horizontal ? Position.Left : Position.Top}
+      />
       <div
         className={`job-node step-node flow-node ${data.status}`}
         data-flow-state={data.flowState}
@@ -49,7 +53,10 @@ export function JobNode({ data }: NodeProps<Node<JobNodeData>>) {
           </span>
         </button>
       </div>
-      <Handle type="source" position={Position.Bottom} />
+      <Handle
+        type="source"
+        position={data.horizontal ? Position.Right : Position.Bottom}
+      />
     </>
   );
 }

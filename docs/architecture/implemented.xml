@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" identifier="hyperion-v04" version="0.4">
   <name>Hyperion v0.4 — implemented cooperation</name>
-  <documentation>ArchiMate 3.2 subset. Five logical Application Components and directed Flow relationships. Diagram layout is provided separately in implemented.svg.</documentation>
+  <documentation>ArchiMate 3.2 subset. Five logical Application Components and directed Flow relationships. Browser and Electron host the same visual component and consume the same local HTTP service. Diagram layout is provided separately in implemented.svg.</documentation>
   <elements>
     <element identifier="I1" xsi:type="ApplicationComponent">
-      <name>Interfaz web</name>
-      <documentation>Canvas · trabajos · preferencias</documentation>
+      <name>Interfaz visual web / desktop</name>
+      <documentation>React · canvas SVG · Electron opcional</documentation>
     </element>
     <element identifier="I2" xsi:type="ApplicationComponent">
       <name>Adaptadores de agente</name>

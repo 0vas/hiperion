@@ -1,0 +1,200 @@
+.bpmn-symbol {
+  width: 56px;
+  height: 56px;
+  display: block;
+  margin: 0 auto;
+  color: var(--tone, var(--gold));
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.bpmn-symbol .symbol-outline {
+  fill: var(--node-surface);
+}
+.gateway-legend {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.gateway-legend > div {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin: 16px 0;
+}
+.gateway-legend .bpmn-symbol {
+  flex-shrink: 0;
+  margin: 0;
+}
+.gateway-legend strong {
+  display: block;
+  margin-bottom: 4px;
+}
+.gateway-legend span {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.react-flow__edge.route-attention.animated .react-flow__edge-path {
+  animation: route-wait 1.8s ease-in-out infinite;
+  stroke-dasharray: none;
+}
+@keyframes route-wait {
+  0%,
+  100% {
+    stroke-opacity: 1;
+    stroke-width: 2.2;
+  }
+  50% {
+    stroke-opacity: 0.45;
+    stroke-width: 3.5;
+  }
+}
+[data-motion='reduce'] .react-flow__edge.animated .react-flow__edge-path,
+[data-connected='false'] .react-flow__edge.animated .react-flow__edge-path {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .react-flow__edge.animated .react-flow__edge-path {
+    animation: none !important;
+  }
+}
+.canvas-app .human-action {
+  background: var(--node-surface);
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin: 20px 0;
+}
+.canvas-app .human-action .action-title {
+  align-items: flex-start;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.canvas-app .human-action .decision-context {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 10px 0 20px;
+}
+.decision-checklist {
+  margin: 18px 0;
+}
+.checklist-progress {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+}
+.checklist-progress span {
+  color: var(--muted);
+}
+.decision-checklist progress {
+  width: 100%;
+  height: 4px;
+  accent-color: var(--route-completed);
+  margin: 12px 0;
+}
+.decision-checklist ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.canvas-app .decision-item {
+  display: flex;
+  gap: 12px;
+  padding: 16px 0;
+  margin: 0;
+  border-bottom: 1px solid var(--line);
+}
+.decision-item:last-child {
+  border-bottom: 0;
+}
+.decision-check {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.decision-item[data-answered='true'] .decision-check {
+  color: var(--route-completed);
+  border-color: currentColor;
+}
+.decision-field {
+  flex: 1;
+  min-width: 0;
+}
+.decision-field fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.canvas-app .decision-field legend,
+.canvas-app .decision-field > label {
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0 0 10px;
+  padding: 0;
+}
+.decision-field small {
+  font-size: 11px;
+  color: var(--muted);
+  display: block;
+  font-weight: 400;
+}
+.decision-choices {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.canvas-app .decision-choices label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.decision-choices label:has(input:checked) {
+  background: color-mix(in srgb, var(--gold) 12%, var(--node-surface));
+  border-color: var(--gold);
+}
+.decision-choices input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--gold);
+}
+.canvas-app .human-action :is(textarea, input[type='number']) {
+  background: var(--stone);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 40px;
+}
+.canvas-app .human-action .decision-next {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 14px 0 0;
+}
+@media (max-width: 600px) {
+  .canvas-app .human-action {
+    padding: 14px;
+  }
+}

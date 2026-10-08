@@ -61,6 +61,7 @@ export async function ensureServer(
       stdio: ['ignore', descriptor, descriptor],
       env: {
         ...process.env,
+        ...(process.versions.electron ? { ELECTRON_RUN_AS_NODE: '1' } : {}),
         HYPERION_DATA_DIR: config.directory,
         HYPERION_PORT: target.port || '80',
       },

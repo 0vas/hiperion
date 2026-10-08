@@ -3,6 +3,7 @@ import { VERSION } from '../version.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+import { openPresentation } from './desktop.js';
 import { HyperionClient } from './client.js';
 import { outputValuesSchema, traceSchema } from '../domain/contracts.js';
 import { planSchema } from '../domain/workflow.js';
@@ -38,6 +39,20 @@ server.registerTool(
       const run = await client.create(plan, commandId);
       return { ...run, url: client.link(run) };
     }),
+);
+server.registerTool(
+  'hyperion_open',
+  {
+    description:
+      'Open an existing run in the presentation explicitly chosen by the user in the chat. split returns its browser URL; desktop launches the registered local Hyperion Desktop. Does not create a run or execute work. If Desktop is absent, keep the browser URL available and explain that the app must be installed/opened once.',
+    inputSchema: {
+      runId: z.string().uuid(),
+      presentation: z.enum(['split', 'desktop']),
+    },
+    annotations: { destructiveHint: false, openWorldHint: false },
+  },
+  ({ runId, presentation }) =>
+    safe(() => openPresentation(client, runId, presentation)),
 );
 server.registerTool(
   'hyperion_list_runs',

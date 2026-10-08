@@ -21,6 +21,7 @@ const result = spawnSync(config.node, [config.cli, ...process.argv.slice(2)], {
   shell: false,
   env: {
     ...process.env,
+    ...config.nodeEnv,
     HYPERION_DATA_DIR: config.directory,
     HYPERION_URL: config.url,
   },

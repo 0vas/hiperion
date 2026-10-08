@@ -10,7 +10,7 @@ Hyperion is an independent, MIT-licensed module. It can accompany Codex or anoth
 
 ## Start in your conversation
 
-Say **“Usa Hyperion para [tu actividad]”** to a connected agent. It starts Hyperion, creates jobs and executable steps from the request, and shares the canvas. Choose between the job overview and detailed steps; focus or follow the active task. Human decisions show a concrete question, context and next action. Appearance and navigation preferences live in **Ajustes**.
+Say **“Usa Hyperion para [tu actividad]”** to a connected agent. It starts Hyperion, creates jobs and executable steps from the request, and shares the canvas. Choose between the job overview and detailed steps; focus or follow the active task. Human decisions show a concrete question, context and next action. Appearance and navigation preferences live in **Ajustes**. Switch vertical/horizontal from the direction button. SVG BPMN gateways, animated execution, waiting pulses, decision checklists and visible retries make the process readable.
 
 For daily use, follow the [Spanish user manual](docs/manual-uso.md). The installation instructions below are for setting up a new environment; the user does not run them for each activity.
 
@@ -25,6 +25,12 @@ npm run hyperion -- install
 Reload skills or open a new agent session, then ask: **“Use Hyperion to guide my next release.”** The agent starts the canvas on demand, generates a plan from your request, performs ready work and waits for your decisions in the canvas. Local agents with Agent Skills and shell access do not need MCP setup. MCP and HTTP remain available for other integrations.
 
 For a standalone distribution, run `npm install --global ./hyperion-workflows-0.4.0.tgz`, then `hyperion install`. The archive includes the compiled server, UI and CLI. It is currently built locally with `npm pack`; this increment has not been published to npm or GitHub Releases. Node.js 22.13+ is required. [Installation, discovery and compatibility](docs/conexion.md).
+
+## Desktop or split
+
+The user can ask **“Usa Hyperion en split”** or **“Abre este flujo en escritorio”**. CLI and MCP preserve the same run in either presentation. Hyperion Desktop bundles its runtime; install/open it once, then use **Hyperion → Conectar con mi IA** to prepare the skill when needed.
+
+DMG (macOS arm64/x64) and NSIS EXE (Windows x64) builds are configured in the repository. Local installers are development artifacts without release signing; Windows execution and public distribution remain unverified. See [Desktop build and validation](desktop/README.md). The manual GitHub workflow uploads build artifacts without publishing a release.
 
 ## Run from source
 

@@ -181,3 +181,9 @@ El paquete npm contiene los componentes ejecutables y la interfaz compilados; el
 El [ADR 0007](../decisions/0007-jobs-and-decisions.md) añade agrupación `jobs`/`jobId` y la descripción de intervenciones humanas. El motor valida la jerarquía y deriva el progreso de los trabajos desde pasos reales; no agrega otro ejecutor ni otro estado persistido. La interfaz proyecta el mismo plan como trabajos o pasos y guarda preferencias de apariencia/navegación en el navegador. La sesión, las decisiones y los recibos permanecen en SQLite.
 
 La vista ArchiMate implementada mantiene cinco componentes y ocho relaciones Flow. Actualiza responsabilidades de Interfaz web y Motor de workflow; no confunde la agrupación visual de trabajos con subprocesos BPMN completos. La invocación sigue siendo agente → adaptador → HTTP → motor/persistencia → canvas.
+
+## Cliente desktop y proceso visible (ADR 0010)
+
+El componente de interfaz se aloja en el navegador (incluido split) o en Electron. Ambos consultan el mismo límite HTTP local y comparten ejecuciones/decisiones; no se duplica el motor. CLI abre la presentación que el usuario pide en el chat y reutiliza el run. El modelo ArchiMate `implemented.xml` y su SVG reflejan este alojamiento alternativo manteniendo los cinco componentes lógicos.
+
+La interfaz representa geometría BPMN en SVG, orientación vertical/horizontal, ejecución animada y espera humana con pulso. El perfil de ejecución sigue siendo BPMN-lite estructurado: paralela, exclusiva e inclusiva con uniones correspondientes. No incluye todavía eventos temporizados, compuertas basadas en eventos, bucles ni intercambio BPMN 2.0.

@@ -59,6 +59,9 @@ export function installSkill(
       JSON.stringify(
         {
           node: process.execPath,
+          ...(process.versions.electron
+            ? { nodeEnv: { ELECTRON_RUN_AS_NODE: '1' } }
+            : {}),
           cli: resolve(root, 'dist/adapters/cli.js'),
           directory,
           url: process.env.HYPERION_URL || 'http://127.0.0.1:4317',

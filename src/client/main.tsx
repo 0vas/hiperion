@@ -6,6 +6,7 @@ import './style.css';
 import './canvas.css';
 import './flow.css';
 import './workspace.css';
+import './process.css';
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

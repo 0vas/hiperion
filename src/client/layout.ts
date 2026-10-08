@@ -4,6 +4,7 @@ const control = (s: Step) => ['start', 'end', 'gateway'].includes(s.kind);
 export function layoutSteps(
   steps: Step[],
   structured = true,
+  orientation: 'vertical' | 'horizontal' = 'vertical',
 ): Record<string, { x: number; y: number }> {
   const byId = new Map(steps.map((s) => [s.id, s]));
   const depth = new Map<string, number>();
@@ -96,10 +97,15 @@ export function layoutSteps(
   return Object.fromEntries(
     steps.map((s) => [
       s.id,
-      {
-        x: centers.get(s.id)! - (control(s) ? 90 : 140),
-        y: y.get(depth.get(s.id)!)!,
-      },
+      orientation === 'horizontal'
+        ? {
+            x: depth.get(s.id)! * 390,
+            y: centers.get(s.id)! - (control(s) ? 70 : 75),
+          }
+        : {
+            x: centers.get(s.id)! - (control(s) ? 90 : 140),
+            y: y.get(depth.get(s.id)!)!,
+          },
     ]),
   );
 }

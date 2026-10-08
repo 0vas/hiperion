@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
+import { openPresentation, rememberWorkspace } from './desktop.js';
 import { ensureServer } from './bootstrap.js';
 import { registerAgent } from '../server/config.js';
 import { installSkill, defaultDirectory } from './install.js';
@@ -20,6 +21,7 @@ process.env.HYPERION_DATA_DIR ||= defaultDirectory();
 const [operation, first, second, ...rest] = args;
 const help = `Hyperion — cooperative workflow adapter
   install [skills-directory]  # portable skill, no vendor CLI or MCP required
+  open <run-id> <split|desktop> # user chooses presentation in chat
   up                         # start/reuse local Hyperion, return URL
   setup <codex|claude|cursor>  # configure the client; local server starts on demand
   connect <client-id>  # codex, claude, cursor, or your own ID
@@ -60,6 +62,7 @@ try {
     if (
       ![
         'up',
+        'open',
         'list',
         'create',
         'command',
@@ -80,9 +83,23 @@ try {
       );
     const startup = await ensureServer();
     const client = new HyperionClient();
+    rememberWorkspace({
+      service: client.url,
+      directory: process.env.HYPERION_DATA_DIR!,
+    });
     let result: unknown;
     if (operation === 'up') result = { ...startup, url: client.url };
-    else if (operation === 'list') result = await client.list();
+    else if (
+      operation === 'open' &&
+      first &&
+      ['split', 'desktop'].includes(second || '')
+    ) {
+      result = await openPresentation(
+        client,
+        first,
+        second as 'split' | 'desktop',
+      );
+    } else if (operation === 'list') result = await client.list();
     else if (operation === 'create' && first) {
       const run = await client.create(
         JSON.parse(readFileSync(first, 'utf8')),

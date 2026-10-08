@@ -26,3 +26,19 @@ test('nested process blocks are separated, centered and independent of plan orde
     for (const dep of step.dependencies)
       assert.ok(positions[step.id]!.y > positions[dep]!.y);
 });
+
+test('horizontal process preserves branch separation and puts every successor to the right', () => {
+  const run = createRun(
+    JSON.parse(readFileSync('examples/process-gateways.json', 'utf8')),
+    'codex',
+  );
+  const positions = layoutSteps(run.steps, true, 'horizontal');
+  assert.deepEqual(
+    layoutSteps([...run.steps].reverse(), true, 'horizontal'),
+    positions,
+  );
+  for (const s of run.steps)
+    for (const dep of s.dependencies)
+      assert.ok(positions[s.id]!.x >= positions[dep]!.x + 300);
+  assert.ok(Math.abs(positions.docs!.y - positions.noDocs!.y) > 180);
+});

@@ -44,6 +44,20 @@ export function Settings({
       </fieldset>
       <fieldset>
         <legend>Navegación</legend>
+        <label htmlFor="setting-orientation">Dirección</label>
+        <select
+          id="setting-orientation"
+          value={value.orientation}
+          onChange={(e) =>
+            onChange({
+              ...value,
+              orientation: e.target.value as Preferences['orientation'],
+            })
+          }
+        >
+          <option value="vertical">Vertical · arriba hacia abajo</option>
+          <option value="horizontal">Horizontal · izquierda a derecha</option>
+        </select>
         <label htmlFor="setting-view">Vista del flujo</label>
         <select
           id="setting-view"

@@ -4,12 +4,14 @@ export type Preferences = {
   reduceMotion: boolean;
   follow: boolean;
   view: 'steps' | 'jobs';
+  orientation: 'vertical' | 'horizontal';
 };
 const defaults: Preferences = {
   theme: 'system',
   reduceMotion: false,
   follow: false,
   view: 'steps',
+  orientation: 'vertical',
 };
 const key = 'hyperion.preferences.v1';
 export function readPreferences(): Preferences {
@@ -21,6 +23,8 @@ export function readPreferences(): Preferences {
         : 'system',
       reduceMotion: value?.reduceMotion === true,
       follow: value?.follow === true,
+      orientation:
+        value?.orientation === 'horizontal' ? 'horizontal' : 'vertical',
       view: value?.view === 'jobs' ? 'jobs' : 'steps',
     };
   } catch {

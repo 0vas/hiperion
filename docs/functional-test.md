@@ -161,3 +161,16 @@ Capturas automatizadas: `test-results/jobs-dark.png`, `decision-dark.png`, `sett
 - Se inspeccionó el flujo real en ventanas de 540 y 1440 px, en tema oscuro y sin errores JavaScript. No se enviaron decisiones humanas. Las capturas locales permanecen en `.hyperion/workspace-*.png`; las sintéticas, en `test-results/workspace-*.png`.
 
 «Abrir en ventana» depende de la apertura de ventanas del navegador. No se ha creado ni probado un instalador nativo; la interfaz se adapta a una ventana web independiente.
+
+## Proceso SVG, decisiones y desktop (ADR 0010)
+
+- TDD observó fallos iniciales por orientación horizontal ausente, símbolos SVG inexistentes, reintento no visible y herramienta MCP de presentación ausente. Se corrigieron antes de validar.
+- Inicio/fin usan círculos SVG de borde fino/grueso; las compuertas usan rombos con +, X y O. Orientación persistente en pasos y trabajos, con handles laterales y cámara ajustada. Las compuertas conservan la lógica ejecutable del motor.
+- Animación direccional azul para ejecución y pulso ámbar para espera humana. Pausa, desconexión y movimiento reducido preservan la lectura estática. Se verificó `route-wait` en el flujo real abierto, sin enviar decisiones.
+- Lista de decisiones con progreso, Sí/No explícito y datos tipados. Axe detectó una etiqueta ARIA sin rol; se corrigió. Se eliminó la descripción duplicada del formulario y se inspeccionaron vistas claras/oscuras y split. Reintentar desde la caja deja el paso listo, conserva el intento anterior y su error y no ejecuta herramientas.
+- `npm run check`: 44 pruebas de lógica/adaptadores, 2 de distribución, tipos, build y formato. Playwright: 17 recorridos aprobados; se repitieron los escenarios afectados por los ajustes visuales finales. Total: 65 pruebas contando las 2 de desktop empaquetado.
+- Desktop en macOS Apple Silicon: proceso Electron real, renderizador sin Node, decisión booleana falsa desde otro navegador, progreso publicado por el agente y actualización en ambas ventanas. La CLI abre de nuevo el mismo run mediante la instalación registrada. Arranque con el ejecutable empaquetado, sin Node externo; instalación de la skill con `nodeEnv` de Electron. El primer test de instalación detectó ejemplos faltantes en el paquete; se incluyeron y el escenario pasó.
+- Compilados DMG arm64/x64 y NSIS EXE x64. Aplicación arm64 probada; ejecución Windows e Intel pendiente. Artefactos sin firma/notarización de release, en `release/` ignorado. El workflow manual compila y valida en cada plataforma y conserva artefactos, sin publicar automáticamente; su ejecución remota aún no se ha realizado.
+- Skill actualizada, frontmatter validado con js-yaml (el validador Python no tenía PyYAML disponible). XML/SVG ArchiMate analizados: cinco componentes y ocho relaciones válidas; importación en editor ArchiMate pendiente. La vista lógica representa el canvas alojado en navegador o Electron.
+
+El usuario elige split o desktop en su chat. `hyperion_open` (MCP) y `open RUN_ID split|desktop` (CLI) conservan el run; abrir una presentación no cambia decisiones. El perfil sigue siendo BPMN-lite estructurado, sin bucles ni eventos temporizados. No se afirma compatibilidad BPMN 2.0 completa ni despertar automático de conversaciones.

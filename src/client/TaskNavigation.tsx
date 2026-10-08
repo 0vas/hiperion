@@ -10,6 +10,8 @@ import {
 } from '@xyflow/react';
 import {
   Focus,
+  ArrowRight,
+  ArrowDown,
   Scan,
   ArrowUpRight,
   ArrowRightLeft,
@@ -33,6 +35,8 @@ const statuses: Record<string, string> = {
 export type FocusRequest = { id: string; nonce: number } | null;
 export function TaskNavigation({
   run,
+  orientation,
+  onOrientation,
   view,
   following,
   onFollowing,
@@ -43,6 +47,8 @@ export function TaskNavigation({
   onFocused,
 }: {
   run: Run;
+  orientation: 'vertical' | 'horizontal';
+  onOrientation: () => void;
   view: string;
   following: boolean;
   onFollowing: (value: boolean) => void;
@@ -238,6 +244,17 @@ export function TaskNavigation({
           ))}
         </select>
         <div className="task-navigation-actions">
+          <button
+            aria-label={`Ver flujo ${orientation === 'vertical' ? 'horizontal' : 'vertical'}`}
+            title={`Ver flujo ${orientation === 'vertical' ? 'horizontal' : 'vertical'}`}
+            onClick={onOrientation}
+          >
+            {orientation === 'vertical' ? (
+              <ArrowRight size={17} />
+            ) : (
+              <ArrowDown size={17} />
+            )}
+          </button>
           <button
             className="follow-toggle"
             aria-label="Seguir actividad"

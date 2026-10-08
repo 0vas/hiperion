@@ -394,7 +394,11 @@ test('BPMN nodes expose typed inputs/outputs and public traces through their own
   await expect(
     page.getByRole('button', { name: 'Ver paso: Inicio', exact: true }),
   ).toBeVisible();
-  await expect(page.locator('.bpmn-gateway')).toHaveCount(2);
+  await expect(
+    page.locator(
+      'svg[data-bpmn="parallel"], svg[data-bpmn="exclusive"], svg[data-bpmn="inclusive"]',
+    ),
+  ).toHaveCount(2);
   await page
     .getByRole('button', { name: 'Ver datos: Elegir revisiones', exact: true })
     .click();
@@ -414,8 +418,16 @@ test('BPMN nodes expose typed inputs/outputs and public traces through their own
         .analyze()
     ).violations,
   ).toEqual([]);
-  await page.locator('#output-docs').selectOption('true');
-  await page.locator('#output-code').selectOption('false');
+  await page
+    .locator('.decision-item')
+    .nth(0)
+    .getByRole('radio', { name: 'Sí', exact: true })
+    .check();
+  await page
+    .locator('.decision-item')
+    .nth(1)
+    .getByRole('radio', { name: 'No', exact: true })
+    .check();
   await page.getByRole('button', { name: 'Guardar elección' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.locator('.react-flow__node[data-id="code"]')).toContainText(
@@ -497,8 +509,14 @@ test('the canvas renders start/end and all three gateway symbols together', asyn
   expect(response.status()).toBe(201);
   const run = await response.json();
   await page.goto(`/?run=${run.id}`);
-  await expect(page.locator('.bpmn-gateway')).toHaveCount(6);
-  await expect(page.locator('.bpmn-event')).toHaveCount(2);
+  await expect(
+    page.locator(
+      'svg[data-bpmn="parallel"], svg[data-bpmn="exclusive"], svg[data-bpmn="inclusive"]',
+    ),
+  ).toHaveCount(6);
+  await expect(
+    page.locator('svg[data-bpmn="start"], svg[data-bpmn="end"]'),
+  ).toHaveCount(2);
   await page
     .getByRole('button', { name: 'Ver datos: Definir el alcance', exact: true })
     .click();
@@ -800,7 +818,10 @@ test('jobs, concrete decisions and preferences work from a conversation-generate
   await expect(
     page.getByRole('button', { name: 'Guardar elección' }),
   ).toBeDisabled();
-  await page.getByLabel('Incluir ejemplos de peticiones').selectOption('true');
+  await page
+    .getByRole('group', { name: 'Incluir ejemplos de peticiones' })
+    .getByRole('radio', { name: 'Sí', exact: true })
+    .check();
   await expect(page.locator('.decision-next')).toContainText(
     'Codex redactará la guía con el formato elegido.',
   );
@@ -1107,4 +1128,123 @@ test('split windows reserve the canvas, keep focus clear and expose secondary ac
         .analyze()
     ).violations,
   ).toEqual([]);
+});
+
+test('human checklist, waiting motion, SVG gateways and horizontal layout form one process', async ({
+  page,
+  request,
+}) => {
+  const plan = JSON.parse(
+    readFileSync('examples/process-gateways.json', 'utf8'),
+  );
+  const res = await request.post('/api/runs', {
+    headers: { authorization: `Bearer ${token()}` },
+    data: { plan, commandId: crypto.randomUUID() },
+  });
+  expect(res.status()).toBe(201);
+  const run = await res.json();
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto(`/?run=${run.id}`);
+  await expect(page.locator('svg[data-bpmn="parallel"]')).toHaveCount(2);
+  await expect(page.locator('svg[data-bpmn="exclusive"]')).toHaveCount(2);
+  await expect(page.locator('svg[data-bpmn="inclusive"]')).toHaveCount(2);
+  const waiting = page.locator('.route-attention .react-flow__edge-path');
+  await expect(waiting).toHaveCSS('animation-name', 'route-wait');
+  await page
+    .getByRole('button', { name: 'Ver flujo horizontal', exact: true })
+    .click();
+  const box = async (id: string) =>
+    (await page.locator(`.react-flow__node[data-id="${id}"]`).boundingBox())!;
+  await expect
+    .poll(async () => (await box('scope')).x - (await box('start')).x)
+    .toBeGreaterThan(20);
+  await page.reload();
+  await expect(
+    page.getByRole('button', { name: 'Ver flujo vertical', exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Ver paso: Definir el alcance', exact: true })
+    .click();
+  await expect(
+    page.getByRole('list', { name: 'Lista de decisiones' }),
+  ).toBeVisible();
+  const groups = page.locator('.decision-item fieldset');
+  await expect(groups).toHaveCount(2);
+  await expect(
+    page.getByRole('button', { name: 'Guardar elección', exact: true }),
+  ).toBeDisabled();
+  await groups.nth(0).getByRole('radio', { name: 'Sí', exact: true }).check();
+  await groups.nth(1).getByRole('radio', { name: 'No', exact: true }).check();
+  await expect(
+    page.getByText('2 de 2 resueltos', { exact: true }),
+  ).toBeVisible();
+  await page.screenshot({ path: 'test-results/decision-checklist.png' });
+  const { default: AxeBuilder } = await import('@axe-core/playwright');
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page
+    .getByRole('button', { name: 'Guardar elección', exact: true })
+    .click();
+  const after = await request.get(`/api/runs/${run.id}`, {
+    headers: { authorization: `Bearer ${token()}` },
+  });
+  expect(
+    (await after.json()).steps.find((s: { id: string }) => s.id === 'scope')
+      .outputValues,
+  ).toEqual({ docs: true, code: false });
+});
+
+test('a human retries a failed task from its card without starting it or losing history', async ({
+  page,
+  request,
+}) => {
+  const headers = { authorization: `Bearer ${token()}` };
+  const res = await request.post('/api/runs', {
+    headers,
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: {
+        title: 'Retry visible',
+        steps: [{ id: 'work', title: 'Preparar entrega', kind: 'agent' }],
+      },
+    },
+  });
+  const run = await res.json();
+  for (const type of ['start', 'fail'])
+    expect(
+      (
+        await request.post(`/api/runs/${run.id}/commands`, {
+          headers,
+          data: {
+            type,
+            stepId: 'work',
+            message: 'Conexión interrumpida',
+            commandId: crypto.randomUUID(),
+          },
+        })
+      ).status(),
+    ).toBe(200);
+  await page.goto(`/?run=${run.id}`);
+  await page
+    .getByRole('button', { name: 'Reintentar: Preparar entrega', exact: true })
+    .click();
+  await expect(
+    page.getByText('Reintento habilitado.', { exact: false }),
+  ).toBeVisible();
+  const after = await request.get(`/api/runs/${run.id}`, { headers });
+  const state = await after.json();
+  expect(state.steps[0].status).toBe('ready');
+  expect(state.steps[0].attempt).toBe(1);
+  expect(
+    state.events.filter((e: { type: string }) => e.type === 'fail'),
+  ).toHaveLength(1);
+  expect(state.events.at(-1).actor).not.toBe('codex');
+  await expect(
+    page.getByRole('button', { name: 'Reintentar: Preparar entrega' }),
+  ).toHaveCount(0);
 });

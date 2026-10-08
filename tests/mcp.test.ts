@@ -48,7 +48,7 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
     try {
       await client.connect(transport);
       const tools = await client.listTools();
-      assert.equal(tools.tools.length, 5);
+      assert.equal(tools.tools.length, 6);
       assert.ok(!tools.tools.some((t) => /approve|submit/.test(t.name)));
       const created = await client.callTool({
         name: 'hyperion_create_run',
@@ -72,6 +72,18 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
       const run = JSON.parse((created.content as { text: string }[])[0]!.text);
       assert.match(run.url, /\?run=/);
       assert.equal(run.coordinator, coordinator);
+      const presented = await client.callTool({
+        name: 'hyperion_open',
+        arguments: { runId: run.id, presentation: 'split' },
+      });
+      assert.equal(presented.isError, undefined);
+      const view = JSON.parse(
+        (presented.content as { text: string }[])[0]!.text,
+      );
+      assert.equal(view.runId, run.id);
+      assert.equal(view.url, run.url);
+      assert.equal(view.presentation, 'split');
+
       const blocked = await client.callTool({
         name: 'hyperion_step',
         arguments: {

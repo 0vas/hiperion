@@ -23,8 +23,8 @@ import {
 } from '@xyflow/react';
 import {
   Ellipsis,
+  RotateCcw,
   ExternalLink,
-  Flag,
   Route,
   Settings2,
   ArrowUpRight,
@@ -32,8 +32,6 @@ import {
   BookOpen,
   ArrowRightLeft,
   ListTree,
-  Circle,
-  Plus,
   Bot,
   Check,
   CheckCheck,
@@ -62,6 +60,8 @@ import {
   flowLabels,
   type FlowState,
 } from './flow-visuals';
+import { BpmnSymbol } from './BpmnSymbol';
+import { DecisionFields } from './DecisionFields';
 import { canvasInsets } from './viewport';
 import { FlowLegend } from './FlowLegend';
 import { JobNode } from './JobNode';
@@ -156,6 +156,9 @@ type StepNodeData = {
   coordinator: string;
   jobTitle?: string;
   selected: boolean;
+  horizontal: boolean;
+  canRetry: boolean;
+  onRetry: (id: string) => void;
   flowState: FlowState;
   onSelect: (id: string, view?: StepView) => void;
 };
@@ -163,6 +166,18 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
   const { step } = data;
   const tools = (
     <div className="node-tools">
+      {step.status === 'failed' && (
+        <button
+          aria-label={`Reintentar: ${step.title}`}
+          title="Reintentar paso"
+          disabled={!data.canRetry}
+          onClick={() => data.onRetry(step.id)}
+        >
+          <RotateCcw size={14} />
+          <span>Reintentar</span>
+        </button>
+      )}
+
       <button
         aria-label={`Ver datos: ${step.title}`}
         title="Entradas y salidas"
@@ -188,7 +203,10 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
   return (
     <>
       {step.kind !== 'start' && (
-        <Handle type="target" position={Position.Top} />
+        <Handle
+          type="target"
+          position={data.horizontal ? Position.Left : Position.Top}
+        />
       )}
       {isControl(step) ? (
         <div
@@ -206,27 +224,11 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
                 {step.kind === 'start' ? 'INICIO' : 'FIN'}
               </span>
             )}
-            <span
-              className={
-                step.kind === 'gateway'
-                  ? 'bpmn-gateway'
-                  : `bpmn-event ${step.kind}`
+            <BpmnSymbol
+              kind={
+                step.gateway?.type || (step.kind === 'start' ? 'start' : 'end')
               }
-            >
-              {step.gateway && (
-                <span>
-                  {step.gateway.type === 'parallel' ? (
-                    <Plus size={23} />
-                  ) : step.gateway.type === 'exclusive' ? (
-                    <X size={23} />
-                  ) : (
-                    <Circle size={22} />
-                  )}
-                </span>
-              )}
-              {step.kind === 'start' && <Flag size={18} />}
-              {step.kind === 'end' && <Square size={15} fill="currentColor" />}
-            </span>
+            />
             <strong>{step.title}</strong>
             <small>
               {step.gateway
@@ -288,7 +290,10 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
         </div>
       )}
       {step.kind !== 'end' && (
-        <Handle type="source" position={Position.Bottom} />
+        <Handle
+          type="source"
+          position={data.horizontal ? Position.Right : Position.Bottom}
+        />
       )}
     </>
   );
@@ -622,7 +627,11 @@ export function App() {
     if (!run) return { nodes: [], edges: [] };
     const collapsed = preferences.view === 'jobs' && !!run.jobs?.length;
     const displayed = collapsed ? projectJobs(run) : run.steps;
-    const positions = layoutSteps(displayed, !collapsed);
+    const positions = layoutSteps(
+      displayed,
+      !collapsed,
+      preferences.orientation,
+    );
     const nodes: Node[] = displayed.map((item, index) => {
       if (item.id.startsWith('job:')) {
         const id = item.id.slice(4);
@@ -635,6 +644,7 @@ export function App() {
           focusable: false,
           data: {
             title: item.title,
+            horizontal: preferences.orientation === 'horizontal',
             ...progress,
             flowState: nodeState(progress, run.status),
             statusLabel: flowLabels[nodeState(progress, run.status)],
@@ -657,6 +667,9 @@ export function App() {
         position: positions[item.id]!,
         data: {
           step: item,
+          horizontal: preferences.orientation === 'horizontal',
+          canRetry: online && run.status === 'active' && !busy,
+          onRetry: (id: string) => void act('retry', id),
           flowState: nodeState(item, run.status),
           index,
           coordinator: run.coordinator,
@@ -702,7 +715,11 @@ export function App() {
           labelStyle: { fontSize: 11, fill: '#655e50' },
           labelBgStyle: { fill: '#f7f5ef', fillOpacity: 0.95 },
           pathOptions: { borderRadius: 20 },
-          animated: state === 'active' && online && !preferences.reduceMotion,
+          animated:
+            ['active', 'attention'].includes(state) &&
+            online &&
+            run.status === 'active' &&
+            !preferences.reduceMotion,
           style: {
             stroke: color,
             strokeWidth: state === 'pending' || state === 'skipped' ? 1.5 : 2.2,
@@ -718,6 +735,8 @@ export function App() {
     popup,
     focusedStepId,
     preferences.view,
+    preferences.orientation,
+    busy,
     preferences.reduceMotion,
     online,
   ]);
@@ -756,6 +775,10 @@ export function App() {
       if (['submit', 'approve'].includes(type))
         setNotice(
           `Elección guardada. Vuelve al chat y pide a ${titleCase(run.coordinator)} continuar este flujo.`,
+        );
+      if (type === 'retry')
+        setNotice(
+          `Reintento habilitado. Pide a ${titleCase(run.coordinator)} continuar desde el chat. La ejecución aún no ha empezado.`,
         );
       setConfirmation(null);
       if (['submit', 'approve', 'reject', 'cancel', 'retry'].includes(type))
@@ -1044,11 +1067,23 @@ export function App() {
                     if (event) setFollowing(false);
                   }}
                 >
-                  <FitCanvas view={preferences.view} />
+                  <FitCanvas
+                    view={`${preferences.view}:${preferences.orientation}`}
+                  />
                   <Background color="#c6c0b2" gap={28} size={0.8} />
                   <TaskNavigation
+                    orientation={preferences.orientation}
+                    onOrientation={() =>
+                      setPreferences((p) => ({
+                        ...p,
+                        orientation:
+                          p.orientation === 'vertical'
+                            ? 'horizontal'
+                            : 'vertical',
+                      }))
+                    }
                     run={run}
-                    view={preferences.view}
+                    view={`${preferences.view}:${preferences.orientation}`}
                     following={following}
                     onFollowing={setFollowing}
                     suspended={dialogOpen}
@@ -1208,17 +1243,27 @@ export function App() {
                         <Focus size={15} />
                         Enfocar tarea
                       </button>
-                      {!step.interaction && (
-                        <p className="step-description">
-                          {step.description ||
-                            (isControl(step)
-                              ? 'El motor aplica este nodo automáticamente al cumplirse sus condiciones y dependencias.'
-                              : step.kind === 'manual'
-                                ? 'Comparte la información que necesita el agente para avanzar.'
-                                : step.kind === 'approval'
-                                  ? 'Revisa los resultados anteriores y decide si el proceso puede continuar.'
-                                  : 'El agente ejecutará este paso y registrará su resultado aquí.')}
-                        </p>
+                      {!step.interaction &&
+                        !(step.status === 'waiting' && live) && (
+                          <p className="step-description">
+                            {step.description ||
+                              (isControl(step)
+                                ? 'El motor aplica este nodo automáticamente al cumplirse sus condiciones y dependencias.'
+                                : step.kind === 'manual'
+                                  ? 'Comparte la información que necesita el agente para avanzar.'
+                                  : step.kind === 'approval'
+                                    ? 'Revisa los resultados anteriores y decide si el proceso puede continuar.'
+                                    : 'El agente ejecutará este paso y registrará su resultado aquí.')}
+                          </p>
+                        )}
+                      {step.status === 'failed' && live && (
+                        <button
+                          className="secondary full"
+                          disabled={busy || !online}
+                          onClick={() => void act('retry', step.id)}
+                        >
+                          <RotateCcw size={16} /> Reintentar paso
+                        </button>
                       )}
                       {step.status === 'waiting' && live && (
                         <div className="human-action">
@@ -1231,7 +1276,9 @@ export function App() {
                             <strong>
                               {step.interaction?.question ||
                                 (step.kind === 'manual'
-                                  ? step.title
+                                  ? step.outputs?.length
+                                    ? 'Completa tu lista'
+                                    : 'Tu aporte'
                                   : '¿Apruebas este resultado?')}
                             </strong>
                           </div>
@@ -1263,55 +1310,11 @@ export function App() {
                             </>
                           )}
                           {!!step.outputs?.length && (
-                            <fieldset className="output-fields">
-                              <legend>Tu elección</legend>
-                              {step.outputs.map((port) => (
-                                <div key={port.name}>
-                                  <label htmlFor={`output-${port.name}`}>
-                                    {port.description || port.name}
-                                    {!port.required && ' (opcional)'}
-                                  </label>
-                                  {port.type === 'boolean' ? (
-                                    <select
-                                      id={`output-${port.name}`}
-                                      value={outputDraft[port.name] || ''}
-                                      onChange={(e) =>
-                                        setOutputDraft({
-                                          ...outputDraft,
-                                          [port.name]: e.target.value,
-                                        })
-                                      }
-                                    >
-                                      <option value="">
-                                        Selecciona una opción
-                                      </option>
-                                      <option value="true">Sí</option>
-                                      <option value="false">No</option>
-                                    </select>
-                                  ) : (
-                                    <textarea
-                                      id={`output-${port.name}`}
-                                      rows={2}
-                                      value={outputDraft[port.name] || ''}
-                                      placeholder={
-                                        port.type === 'object' ||
-                                        port.type === 'array'
-                                          ? 'JSON'
-                                          : port.type === 'number'
-                                            ? 'Número'
-                                            : 'Valor'
-                                      }
-                                      onChange={(e) =>
-                                        setOutputDraft({
-                                          ...outputDraft,
-                                          [port.name]: e.target.value,
-                                        })
-                                      }
-                                    />
-                                  )}
-                                </div>
-                              ))}
-                            </fieldset>
+                            <DecisionFields
+                              ports={step.outputs}
+                              values={outputDraft}
+                              onChange={setOutputDraft}
+                            />
                           )}
                           <button
                             className="primary full"
@@ -1456,15 +1459,6 @@ export function App() {
                           </p>
                         </div>
                       )}
-                      {step.status === 'failed' && live && (
-                        <button
-                          className="secondary full"
-                          disabled={busy || !online}
-                          onClick={() => void act('retry', step.id)}
-                        >
-                          Habilitar otro intento
-                        </button>
-                      )}
                       <div className="step-history">
                         <h3>Actividad de este paso</h3>
                         {run.events
@@ -1559,10 +1553,12 @@ export function App() {
                     <CircleHelp size={17} />
                     Ayuda de conexión
                   </button>
-                  <button onClick={openWindow}>
-                    <ExternalLink size={17} />
-                    Abrir en ventana
-                  </button>
+                  {!navigator.userAgent.includes('Electron/') && (
+                    <button onClick={openWindow}>
+                      <ExternalLink size={17} />
+                      Abrir en ventana
+                    </button>
+                  )}
                 </div>
                 <p className="muted">
                   La ventana independiente mantiene este mismo flujo. Puedes

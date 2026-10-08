@@ -68,7 +68,7 @@ En esta versión, al guardar una decisión debes volver al chat para continuar. 
 
 ## Leer los colores y las flechas
 
-- **Inicio:** bandera dentro de un círculo y etiqueta INICIO. **Fin:** cuadrado dentro de un círculo de borde grueso y etiqueta FIN.
+- **Inicio:** círculo de borde fino y etiqueta INICIO. **Fin:** círculo de borde grueso y etiqueta FIN.
 - **Verde:** paso completado y ruta recorrida.
 - **Azul:** «Listo» espera al agente; «En curso» muestra trazos que avanzan hacia el paso en ejecución.
 - **Ámbar:** el proceso espera tu intervención o está en pausa. La etiqueta distingue ambos casos.
@@ -85,4 +85,26 @@ En una ventana dividida, la cabecera muestra el flujo y la fila inferior permite
 
 **Más opciones (⋯)** reúne la petición original, actividad, vista de trabajos/pasos, continuación y pausa. **Ajustes** permanece accesible en la cabecera. Al ampliar la ventana, las acciones del flujo también aparecen en la barra inferior.
 
-Para trabajar fuera del panel del chat, pulsa **Más opciones → Abrir en ventana**. Se abre el mismo flujo en una ventana web independiente que puedes colocar junto a Codex, Cursor o Claude. No requiere comandos. Si el navegador bloquea la apertura, permite ventanas para Hyperion y vuelve a pulsar el botón. Esta opción no instala una aplicación nativa de escritorio.
+Para trabajar fuera del panel del chat, pulsa **Más opciones → Abrir en ventana**. Se abre el mismo flujo en una ventana web independiente que puedes colocar junto a Codex, Cursor o Claude. No requiere comandos. Si el navegador bloquea la apertura, permite ventanas para Hyperion y vuelve a pulsar el botón. Esta opción abre otra ventana del navegador. Para el cliente de escritorio, usa la opción siguiente.
+
+## Elegir escritorio o split desde el chat
+
+Puedes decir:
+
+> Usa Hyperion en split para preparar mi guía.
+
+> Abre este mismo flujo de Hyperion en escritorio.
+
+> Vuelve a mostrarlo junto al chat.
+
+El agente mantiene el mismo flujo: decisiones y resultados aparecen en ambas vistas. **Split** usa el enlace web. **Escritorio** abre Hyperion Desktop después de instalarlo y abrirlo una vez. El usuario no tiene que copiar comandos ni configurar puertos. La herramienta de IA sí necesita la integración local de Hyperion, como en el uso web.
+
+Los instaladores son **DMG para macOS** y **EXE para Windows**. Se generaron DMG para Apple Silicon e Intel y EXE x64 para Windows; se probó la aplicación en Apple Silicon. Windows e Intel aún requieren una prueba en su plataforma. El repositorio contiene la compilación reproducible; la distribución pública firmada aún está pendiente. El DMG local es de desarrollo y no está notarizado.
+
+## Orientación, decisiones y reintentos
+
+- **Horizontal / vertical:** pulsa la flecha de dirección junto al selector de tareas, o cambia **Ajustes → Dirección**. Se conserva tu preferencia. «Vista general» muestra el proceso completo; «Enfocar paso actual» vuelve al trabajo pendiente.
+- **Compuertas:** los rombos SVG usan **+** (todas las ramas), **X** (una) y **○** (una o más). Abre **Más opciones → Colores del flujo** para ver sus reglas. Solo aparecen las compuertas que el agente incluyó en tu proceso.
+- **Animación:** trazos azules avanzan durante ejecución; el pulso ámbar señala que te toca responder. Las rutas pendientes no se mueven. Pausa, desconexión y movimiento reducido detienen las animaciones.
+- **Tu lista:** cada pregunta indica si está resuelta. Selecciona Sí o No, completa los datos solicitados y guarda al terminar. Marcar No también resuelve la pregunta; no hay respuestas predeterminadas.
+- **Reintentar:** aparece en la caja y el detalle de una tarea que falló. Conserva el error en el historial y habilita otro intento. Después pide al chat «Continúa mi flujo de Hyperion». El botón no ejecuta herramientas por su cuenta.
