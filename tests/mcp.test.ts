@@ -63,6 +63,7 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
                 title: 'Agent work',
                 kind: 'agent',
                 dependencies: ['approval'],
+                outputs: [{ name: 'report', type: 'string', required: true }],
               },
             ],
           },
@@ -113,6 +114,22 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
         },
       });
       assert.ok(!start.isError);
+      const trace = await client.callTool({
+        name: 'hyperion_step',
+        arguments: {
+          runId: run.id,
+          stepId: 'work',
+          action: 'log',
+          commandId: 'trace',
+          message: 'Read the relevant files',
+          trace: { kind: 'action', tool: 'read_file' },
+        },
+      });
+      assert.equal(
+        JSON.parse((trace.content as { text: string }[])[0]!.text).events.at(-1)
+          .trace.tool,
+        'read_file',
+      );
       const done = await client.callTool({
         name: 'hyperion_step',
         arguments: {
@@ -120,9 +137,16 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
           stepId: 'work',
           action: 'complete',
           message: 'Contract test executed successfully',
+          outputs: { report: 'Verified MCP output contract' },
           commandId: 'done',
         },
       });
+      assert.equal(
+        JSON.parse((done.content as { text: string }[])[0]!.text).steps.find(
+          (s: { id: string }) => s.id === 'work',
+        ).outputValues.report,
+        'Verified MCP output contract',
+      );
       assert.equal(
         JSON.parse((done.content as { text: string }[])[0]!.text).status,
         'completed',

@@ -4,7 +4,7 @@
 
 Hyperion is an independent, MIT-licensed module. It can accompany Codex or another compatible agent through HTTP, a CLI, or MCP. It has no dependency on Olimpo and does not require an AI API key.
 
-> **v0.1 — local cooperative preview.** One trusted user and one external coordinator per execution. Hyperion manages workflow state; your agent performs the actual work. Multi-agent dispatch, hosted multi-user operation, and automatic conversation wakeups are future work.
+> **v0.2 — local cooperative preview.** One trusted user and one external coordinator per execution. Hyperion manages workflow state; your agent performs the actual work. Multi-agent dispatch, hosted multi-user operation, and automatic conversation wakeups are future work.
 
 ![Hyperion landscape canvas with interactive workflow nodes](docs/images/workflow.png)
 
@@ -31,6 +31,8 @@ Open the returned URL, submit your objective, and ask your agent to read the run
 ## What works
 
 - Directed acyclic plans with agent, manual, and approval steps.
+- An executable BPMN-based profile: start/end and structured parallel, exclusive and inclusive gateways.
+- Typed task inputs/outputs and public decision/action/observation traces, each available from node icons.
 - Dependency gates, independent parallel steps, and explicit coordinator ownership.
 - A full-window landscape canvas with a vertical graph and parallel branches.
 - Node popups for human input, approvals, step details and evidence; buttons for the original request and activity.
@@ -42,6 +44,14 @@ Open the returned URL, submit your objective, and ask your agent to read the run
 The interface refreshes state every second. An agent must cooperate with the protocol; Hyperion cannot stop arbitrary work performed outside it. Plans are immutable in this release. Create a new run when the scope changes.
 
 ## Connect an agent
+
+After `npm ci`, configure your client with one command:
+
+```sh
+npm run hyperion -- setup codex  # or claude / cursor
+```
+
+The adapter starts Hyperion locally on demand. Reload MCP tools or start a new client session. No hand-written connection JSON is required. [Setup and manual alternatives](docs/manual-uso.md).
 
 The CLI works immediately from an existing Codex conversation with local shell access:
 
@@ -80,7 +90,7 @@ src/adapters/     HTTP client, CLI, MCP stdio server
 src/client/       React UI and graph
 ```
 
-[Architecture context and ArchiMate view](docs/architecture/README.md) · [First increment decision](docs/decisions/0001-functional-increment.md) · [Request-driven integrations](docs/decisions/0002-request-driven-integrations.md) · [Protocol](docs/protocol.md) · [Functional test with Codex](docs/functional-test.md)
+[Architecture context and ArchiMate view](docs/architecture/README.md) · [First increment decision](docs/decisions/0001-functional-increment.md) · [Request-driven integrations](docs/decisions/0002-request-driven-integrations.md) · [Protocol](docs/protocol.md) · [Process and data contract](docs/process-contract.md) · [Functional test with Codex](docs/functional-test.md)
 
 ## Configuration
 

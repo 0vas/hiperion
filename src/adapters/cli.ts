@@ -1,12 +1,18 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
+import { setupClient } from './setup.js';
 import { HyperionClient } from './client.js';
 import { commandSchema } from '../domain/workflow.js';
 import { generateConnection } from './connections.js';
 const [operation, first, second, ...rest] = process.argv.slice(2);
 const help = `Hyperion — cooperative workflow adapter
+  setup <codex|claude|cursor>  # configure the client; local server starts on demand
   connect <client-id>  # codex, claude, cursor, or your own ID
   create <plan.json> [idempotency-key]
+  command <run-id> <command.json>  # typed outputs or structured traces
   list
   get <run-id>
   start|complete|fail|log|retry <run-id> <step-id> [message]
@@ -16,7 +22,19 @@ Human approvals and manual input belong in the web interface.
 Set HYPERION_URL and HYPERION_DATA_DIR to target another local instance.`;
 try {
   if (!operation || operation === '--help') console.log(help);
-  else if (operation === 'connect' && first)
+  else if (operation === 'setup' && first) {
+    const root = fileURLToPath(new URL('../../', import.meta.url));
+    if (!existsSync(resolve(root, 'dist/adapters/mcp-launcher.js'))) {
+      const build = spawnSync('npm', ['run', 'build'], {
+        cwd: root,
+        stdio: 'inherit',
+        shell: false,
+      });
+      if (build.status !== 0)
+        throw new Error('Build failed. Run npm ci and npm run build first.');
+    }
+    console.log(JSON.stringify(await setupClient(first), null, 2));
+  } else if (operation === 'connect' && first)
     console.log(JSON.stringify(generateConnection(first), null, 2));
   else {
     const client = new HyperionClient();
@@ -28,7 +46,12 @@ try {
         second,
       );
       result = { ...run, url: client.link(run) };
-    } else if (operation === 'get' && first) result = await client.get(first);
+    } else if (operation === 'command' && first && second)
+      result = await client.command(
+        first,
+        commandSchema.parse(JSON.parse(readFileSync(second, 'utf8'))),
+      );
+    else if (operation === 'get' && first) result = await client.get(first);
     else if (operation === 'wait' && first)
       result = await client.wait(
         first,

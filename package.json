@@ -1,6 +1,6 @@
 {
   "name": "hyperion-workflows",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Human-guided workflows for any AI tool",
   "license": "MIT",
@@ -20,7 +20,8 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run typecheck && npm test && npm run build && npm run format:check"
+    "check": "npm run typecheck && npm test && npm run build && npm run test:production && npm run format:check",
+    "test:production": "node --test tests/production-smoke.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",

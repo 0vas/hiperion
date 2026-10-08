@@ -21,7 +21,9 @@ Independent ready steps may be active together. Only do this when the underlying
 
 ## MCP stdio
 
-Build and start the HTTP server first. Run `npm run hyperion -- connect CLIENT_ID` to register an identity and generate an absolute-path MCP configuration without credentials. Register the adapter in a compatible MCP client:
+Recommended: `npm run hyperion -- setup codex` (or `claude` / `cursor`) configures the adapter and local startup on demand. Reload tools or open a new client session. For structured gateways, typed outputs and public traces, follow the [process contract](process-contract.md).
+
+Manual alternative: build and start the HTTP server first. Run `npm run hyperion -- connect CLIENT_ID` to register an identity and generate an absolute-path MCP configuration without credentials. Register the adapter in a compatible MCP client:
 
 ```json
 {

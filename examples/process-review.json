@@ -1,0 +1,156 @@
+{
+  "title": "Revisión guiada con compuerta inclusiva",
+  "profile": "bpmn-lite",
+  "request": "Usa Hyperion para elegir qué revisiones hacer, ejecuta las seleccionadas y pide mi aprobación antes de finalizar.",
+  "steps": [
+    {
+      "id": "start",
+      "title": "Inicio",
+      "kind": "start"
+    },
+    {
+      "id": "scope",
+      "title": "Elegir revisiones",
+      "kind": "manual",
+      "dependencies": ["start"],
+      "outputs": [
+        {
+          "name": "docs",
+          "type": "boolean",
+          "required": true,
+          "description": "Revisar documentación"
+        },
+        {
+          "name": "code",
+          "type": "boolean",
+          "required": true,
+          "description": "Revisar código"
+        }
+      ]
+    },
+    {
+      "id": "split",
+      "title": "Revisiones seleccionadas",
+      "kind": "gateway",
+      "dependencies": ["scope"],
+      "gateway": {
+        "type": "inclusive",
+        "direction": "split",
+        "routes": [
+          {
+            "target": "docs",
+            "when": {
+              "stepId": "scope",
+              "output": "docs",
+              "equals": true
+            }
+          },
+          {
+            "target": "code",
+            "when": {
+              "stepId": "scope",
+              "output": "code",
+              "equals": true
+            }
+          },
+          {
+            "target": "fallback"
+          }
+        ],
+        "defaultTarget": "fallback"
+      }
+    },
+    {
+      "id": "docs",
+      "title": "Revisar documentación",
+      "kind": "agent",
+      "phase": "Revisión",
+      "dependencies": ["split"],
+      "inputs": [
+        {
+          "name": "project",
+          "type": "string",
+          "required": true,
+          "value": "Hyperion"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "code",
+      "title": "Revisar código",
+      "kind": "agent",
+      "phase": "Revisión",
+      "dependencies": ["split"],
+      "inputs": [
+        {
+          "name": "project",
+          "type": "string",
+          "required": true,
+          "value": "Hyperion"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "fallback",
+      "title": "Registrar selección vacía",
+      "kind": "agent",
+      "dependencies": ["split"],
+      "description": "No se eligió ninguna revisión. Registra esa decisión sin inventar revisiones y continúa hacia la aprobación."
+    },
+    {
+      "id": "join",
+      "title": "Reunir revisiones",
+      "kind": "gateway",
+      "dependencies": ["docs", "code", "fallback"],
+      "gateway": {
+        "type": "inclusive",
+        "direction": "join",
+        "splitId": "split"
+      }
+    },
+    {
+      "id": "approve",
+      "title": "Aprobar la revisión",
+      "kind": "approval",
+      "dependencies": ["join"],
+      "inputs": [
+        {
+          "name": "docsReport",
+          "type": "string",
+          "source": {
+            "stepId": "docs",
+            "output": "report"
+          }
+        },
+        {
+          "name": "codeReport",
+          "type": "string",
+          "source": {
+            "stepId": "code",
+            "output": "report"
+          }
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "Fin",
+      "kind": "end",
+      "dependencies": ["approve"]
+    }
+  ]
+}

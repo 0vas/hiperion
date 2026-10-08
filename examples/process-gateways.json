@@ -1,0 +1,315 @@
+{
+  "title": "Revisión con compuertas paralela, exclusiva e inclusiva",
+  "profile": "bpmn-lite",
+  "request": "Usa Hyperion para revisar este proyecto. Pídeme el alcance, separa documentación y verificaciones en paralelo, elige una ruta documental exclusiva y las verificaciones inclusivas, y pide mi aprobación final.",
+  "steps": [
+    {
+      "id": "start",
+      "title": "Inicio",
+      "kind": "start"
+    },
+    {
+      "id": "scope",
+      "title": "Definir el alcance",
+      "kind": "manual",
+      "description": "Elige si quieres revisar documentación y código. Tu selección controla las compuertas. Después pide a Codex continuar este flujo.",
+      "dependencies": ["start"],
+      "outputs": [
+        {
+          "name": "docs",
+          "type": "boolean",
+          "required": true,
+          "description": "Incluir revisión documental y de enlaces"
+        },
+        {
+          "name": "code",
+          "type": "boolean",
+          "required": true,
+          "description": "Incluir revisión de código y pruebas"
+        }
+      ]
+    },
+    {
+      "id": "parallel",
+      "title": "Abrir fases en paralelo",
+      "kind": "gateway",
+      "dependencies": ["scope"],
+      "gateway": {
+        "type": "parallel",
+        "direction": "split",
+        "routes": [
+          {
+            "target": "exclusive"
+          },
+          {
+            "target": "inclusive"
+          }
+        ]
+      }
+    },
+    {
+      "id": "exclusive",
+      "title": "Elegir ruta documental",
+      "kind": "gateway",
+      "dependencies": ["parallel"],
+      "gateway": {
+        "type": "exclusive",
+        "direction": "split",
+        "routes": [
+          {
+            "target": "docs",
+            "when": {
+              "stepId": "scope",
+              "output": "docs",
+              "equals": true
+            }
+          },
+          {
+            "target": "noDocs"
+          }
+        ],
+        "defaultTarget": "noDocs"
+      }
+    },
+    {
+      "id": "docs",
+      "title": "Revisar documentación",
+      "kind": "agent",
+      "dependencies": ["exclusive"],
+      "description": "Lee README y la guía de conexión. Comprueba que describan los comandos reales. Registra resumen, acción y observación públicos, con los archivos consultados.",
+      "phase": "Documentación",
+      "inputs": [
+        {
+          "name": "project",
+          "type": "string",
+          "required": true,
+          "value": "Hyperion"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "type": "string",
+          "required": true,
+          "description": "Hallazgos verificables de esta tarea"
+        }
+      ]
+    },
+    {
+      "id": "noDocs",
+      "title": "Registrar exclusión documental",
+      "kind": "agent",
+      "dependencies": ["exclusive"],
+      "description": "Lee la elección humana y registra que no se solicitó revisar documentación, sin inventar una revisión.",
+      "phase": "Documentación",
+      "inputs": [
+        {
+          "name": "project",
+          "type": "string",
+          "required": true,
+          "value": "Hyperion"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "type": "string",
+          "required": true,
+          "description": "Hallazgos verificables de esta tarea"
+        }
+      ]
+    },
+    {
+      "id": "xorJoin",
+      "title": "Unir la ruta documental",
+      "kind": "gateway",
+      "dependencies": ["docs", "noDocs"],
+      "gateway": {
+        "type": "exclusive",
+        "direction": "join",
+        "splitId": "exclusive"
+      }
+    },
+    {
+      "id": "inclusive",
+      "title": "Seleccionar verificaciones",
+      "kind": "gateway",
+      "dependencies": ["parallel"],
+      "gateway": {
+        "type": "inclusive",
+        "direction": "split",
+        "routes": [
+          {
+            "target": "code",
+            "when": {
+              "stepId": "scope",
+              "output": "code",
+              "equals": true
+            }
+          },
+          {
+            "target": "links",
+            "when": {
+              "stepId": "scope",
+              "output": "docs",
+              "equals": true
+            }
+          },
+          {
+            "target": "noChecks"
+          }
+        ],
+        "defaultTarget": "noChecks"
+      }
+    },
+    {
+      "id": "code",
+      "title": "Revisar código y pruebas",
+      "kind": "agent",
+      "dependencies": ["inclusive"],
+      "description": "Inspecciona package.json, el motor y sus pruebas. Ejecuta npm test y registra el resultado real con trazas públicas.",
+      "phase": "Verificaciones",
+      "inputs": [
+        {
+          "name": "project",
+          "type": "string",
+          "required": true,
+          "value": "Hyperion"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "type": "string",
+          "required": true,
+          "description": "Hallazgos verificables de esta tarea"
+        }
+      ]
+    },
+    {
+      "id": "links",
+      "title": "Comprobar enlaces locales",
+      "kind": "agent",
+      "dependencies": ["inclusive"],
+      "description": "Verifica que los enlaces locales de README y el manual resuelvan a archivos reales; registra los hallazgos y cómo se comprobaron.",
+      "phase": "Verificaciones",
+      "inputs": [
+        {
+          "name": "project",
+          "type": "string",
+          "required": true,
+          "value": "Hyperion"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "type": "string",
+          "required": true,
+          "description": "Hallazgos verificables de esta tarea"
+        }
+      ]
+    },
+    {
+      "id": "noChecks",
+      "title": "Registrar selección sin verificaciones",
+      "kind": "agent",
+      "dependencies": ["inclusive"],
+      "description": "Registra la elección de no ejecutar estas verificaciones. No inventes resultados de pruebas.",
+      "phase": "Verificaciones",
+      "inputs": [
+        {
+          "name": "project",
+          "type": "string",
+          "required": true,
+          "value": "Hyperion"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "report",
+          "type": "string",
+          "required": true,
+          "description": "Hallazgos verificables de esta tarea"
+        }
+      ]
+    },
+    {
+      "id": "orJoin",
+      "title": "Reunir verificaciones activas",
+      "kind": "gateway",
+      "dependencies": ["code", "links", "noChecks"],
+      "gateway": {
+        "type": "inclusive",
+        "direction": "join",
+        "splitId": "inclusive"
+      }
+    },
+    {
+      "id": "parallelJoin",
+      "title": "Reunir ambas fases",
+      "kind": "gateway",
+      "dependencies": ["xorJoin", "orJoin"],
+      "gateway": {
+        "type": "parallel",
+        "direction": "join",
+        "splitId": "parallel"
+      }
+    },
+    {
+      "id": "approve",
+      "title": "Aprobar los resultados",
+      "kind": "approval",
+      "dependencies": ["parallelJoin"],
+      "description": "Abre I/O para consultar los reportes disponibles y Logs para revisar la actividad. Aprueba o rechaza los resultados de este mismo proceso.",
+      "inputs": [
+        {
+          "name": "docsReport",
+          "type": "string",
+          "source": {
+            "stepId": "docs",
+            "output": "report"
+          }
+        },
+        {
+          "name": "noDocsReport",
+          "type": "string",
+          "source": {
+            "stepId": "noDocs",
+            "output": "report"
+          }
+        },
+        {
+          "name": "codeReport",
+          "type": "string",
+          "source": {
+            "stepId": "code",
+            "output": "report"
+          }
+        },
+        {
+          "name": "linksReport",
+          "type": "string",
+          "source": {
+            "stepId": "links",
+            "output": "report"
+          }
+        },
+        {
+          "name": "noChecksReport",
+          "type": "string",
+          "source": {
+            "stepId": "noChecks",
+            "output": "report"
+          }
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "title": "Fin",
+      "kind": "end",
+      "dependencies": ["approve"]
+    }
+  ]
+}

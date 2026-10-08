@@ -1,18 +1,36 @@
 import { z } from 'zod';
 
-const identifier = z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/);
+import {
+  identifier,
+  inputSchema,
+  portSchema,
+  gatewaySchema,
+  outputValuesSchema,
+  traceSchema,
+} from './contracts.js';
+import {
+  validateProcess,
+  refreshProcess,
+  resolveInputs,
+  validateOutputs,
+} from './process.js';
 export const stepSchema = z
   .object({
     id: identifier,
     title: z.string().trim().min(1).max(160),
     description: z.string().trim().max(4000).default(''),
-    kind: z.enum(['agent', 'manual', 'approval']),
+    kind: z.enum(['agent', 'manual', 'approval', 'start', 'end', 'gateway']),
+    phase: z.string().trim().min(1).max(100).optional(),
+    inputs: z.array(inputSchema).max(30).optional(),
+    outputs: z.array(portSchema).max(30).optional(),
+    gateway: gatewaySchema.optional(),
     dependencies: z.array(identifier).max(100).default([]),
   })
   .strict();
 export const planSchema = z
   .object({
     title: z.string().trim().min(1).max(180),
+    profile: z.literal('bpmn-lite').optional(),
     request: z.string().trim().min(1).max(8000).optional(),
     description: z.string().trim().max(4000).default(''),
     steps: z.array(stepSchema).min(1).max(100),
@@ -35,6 +53,8 @@ export const commandSchema = z
     ]),
     stepId: identifier.optional(),
     message: z.string().trim().max(8000).optional(),
+    outputs: outputValuesSchema.optional(),
+    trace: traceSchema.optional(),
     expectedRevision: z.number().int().nonnegative().optional(),
     commandId: z.string().min(1).max(128).optional(),
   })
@@ -49,15 +69,20 @@ export type StepStatus =
   | 'waiting'
   | 'completed'
   | 'failed'
-  | 'rejected';
+  | 'rejected'
+  | 'skipped';
 export type Step = Plan['steps'][number] & {
   status: StepStatus;
+  selectedBranches?: string[];
+  inputValues?: Record<string, unknown>;
+  outputValues?: Record<string, unknown>;
   attempt: number;
   result?: string;
   startedAt?: string;
   completedAt?: string;
 };
 export type RunEvent = {
+  trace?: z.infer<typeof traceSchema>;
   sequence: number;
   type: string;
   actor: string;
@@ -66,6 +91,7 @@ export type RunEvent = {
   message: string;
 };
 export type Run = {
+  profile?: 'bpmn-lite';
   request?: string;
   id: string;
   title: string;
@@ -96,11 +122,16 @@ function requireCondition(
   if (!ok) throw new WorkflowError(code, message, status);
 }
 function refresh(run: Run) {
+  if (run.profile === 'bpmn-lite') {
+    refreshProcess(run);
+    return;
+  }
   for (const step of run.steps) {
     if (!['blocked', 'ready', 'waiting'].includes(step.status)) continue;
     const enabled = step.dependencies.every(
       (id) => run.steps.find((s) => s.id === id)!.status === 'completed',
     );
+    if (enabled) step.inputValues = resolveInputs(run, step);
     step.status = enabled
       ? step.kind === 'agent'
         ? 'ready'
@@ -143,6 +174,7 @@ export function createRun(input: unknown, coordinator: string): Run {
     visited.add(id);
   }
   plan.steps.forEach((step) => visit(step.id));
+  validateProcess(plan);
   const now = new Date().toISOString();
   const run: Run = {
     ...plan,
@@ -177,6 +209,18 @@ export function transition(
 ): Run {
   const command = commandSchema.parse(input);
   const { type, stepId, message = '' } = command;
+  requireCondition(
+    !command.outputs || ['complete', 'submit', 'approve'].includes(type),
+    'INVALID_COMMAND',
+    'Outputs belong to task completion',
+    400,
+  );
+  requireCondition(
+    !command.trace || type === 'log',
+    'INVALID_COMMAND',
+    'Trace belongs to a log command',
+    400,
+  );
   requireCondition(
     !['completed', 'cancelled', 'rejected'].includes(current.status),
     'TERMINAL',
@@ -225,6 +269,7 @@ export function transition(
     );
   const run = structuredClone(current);
   const now = new Date().toISOString();
+  run.updatedAt = now;
   if (['pause', 'resume', 'cancel'].includes(type)) {
     requireCondition(
       !stepId,
@@ -284,6 +329,8 @@ export function transition(
           'NOT_RUNNING',
           'Step must be running',
         );
+        if (type === 'complete')
+          step.outputValues = validateOutputs(step, command.outputs);
         if (type !== 'log') {
           step.status = type === 'complete' ? 'completed' : 'failed';
           step.result = message;
@@ -303,6 +350,8 @@ export function transition(
           'NOT_WAITING',
           'Step must be waiting for human input',
         );
+        if (type !== 'reject')
+          step.outputValues = validateOutputs(step, command.outputs);
         step.status = type === 'reject' ? 'rejected' : 'completed';
         step.result = message || 'Aprobado por el usuario';
         step.completedAt = now;
@@ -316,21 +365,23 @@ export function transition(
         );
         step.status = 'blocked';
         delete step.result;
+        delete step.outputValues;
         delete step.startedAt;
         delete step.completedAt;
         break;
     }
   }
-  if (!['cancelled', 'rejected'].includes(run.status)) refresh(run);
   run.revision += 1;
   run.updatedAt = now;
   run.events.push({
-    sequence: run.revision,
+    sequence: (run.events.at(-1)?.sequence || 0) + 1,
     type,
     actor: actor.id,
     at: now,
     ...(stepId ? { stepId } : {}),
     message,
+    ...(command.trace ? { trace: command.trace } : {}),
   });
+  if (!['cancelled', 'rejected'].includes(run.status)) refresh(run);
   return run;
 }

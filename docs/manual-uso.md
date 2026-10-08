@@ -4,6 +4,26 @@ Hyperion convierte el plan de tu agente en un flujo **vertical, de arriba hacia 
 
 La configuración se realiza una vez por herramienta. Después, el uso habitual comienza con una petición en lenguaje natural. No necesitas escribir JSON ni preparar una plantilla de pasos.
 
+## Conexión rápida — configuración una sola vez
+
+Desde el repositorio, ejecuta `npm ci` la primera vez. Después utiliza **solo el comando correspondiente** a tu herramienta:
+
+```sh
+npm run hyperion -- setup codex
+npm run hyperion -- setup claude
+npm run hyperion -- setup cursor
+```
+
+`setup` resuelve las rutas de Node y del adaptador, registra la identidad y configura el cliente. Construye el adaptador si todavía no existe. Codex y Claude Code requieren su CLI instalada; Cursor recibe una entrada en su configuración local de usuario. Los demás servidores se conservan; una entrada distinta de Hyperion en Cursor se señala como conflicto.
+
+Recarga las herramientas MCP o abre una sesión nueva del cliente. Al cargar Hyperion, el adaptador inicia el servidor local si hace falta y reutiliza la instancia autenticada si ya existe. El arranque no escribe mensajes en el canal de herramientas; sus logs quedan en `.hyperion/server.log`. La instancia permanece disponible después de cerrar el adaptador. Si una versión anterior ocupa el puerto, detén esa instancia antes de reconectar. Tras actualizar el repositorio, ejecuta `npm run build`.
+
+Luego basta con escribir en el chat:
+
+> Usa Hyperion para [mi actividad]. Genera un proceso con inicio y fin, compuertas cuando correspondan, entradas y salidas por tarea, y registra tus acciones y observaciones.
+
+La configuración no añade herramientas retroactivamente a una conversación abierta. Esta conversación puede continuar usando la CLI. Las secciones siguientes conservan la configuración manual, Claude Desktop y otros clientes como alternativas.
+
 ## 1. Iniciar Hyperion
 
 Requisitos: Node.js 22.13 o superior y npm. Los comandos siguientes utilizan una terminal macOS o Linux.
@@ -130,6 +150,8 @@ Todo ocurre en un único **canvas landscape**. El recorrido mantiene su direcci�
 
 - **Petición original:** abre el texto recibido desde Codex o la herramienta coordinadora.
 - **Actividad:** abre el historial del mismo flujo.
+- **I/O** en cada tarea: abre sus entradas, salidas, tipos, orígenes y valores.
+- **Logs** en cada nodo: abre sus eventos y las trazas públicas compartidas por el agente.
 - **Responder / Revisar y aprobar:** abre el popup del nodo correspondiente. Envía la respuesta o decisión allí; al guardarla vuelves al canvas.
 - **Mis flujos:** permite elegir otra ejecución desde un popup.
 - **Escape** o el botón de cierre regresa al canvas sin enviar una decisión.
@@ -191,6 +213,10 @@ HYPERION_AGENT_ID=codex npm run hyperion -- wait RUN_ID REVISION 30
 ```
 
 Las aprobaciones se realizan en la interfaz. Ni CLI ni MCP ofrecen un comando para suplantar la decisión humana.
+
+## Procesos con compuertas y contrato de datos
+
+El [contrato de procesos](process-contract.md) describe inicio/fin, las compuertas `+`, `X`, `○`, el tipado de inputs/outputs y las trazas públicas. El ejemplo [process-review.json](../examples/process-review.json) permite elegir documentación, código o ambos; la compuerta inclusiva activa lo elegido y la unión espera esas ramas. Si no eliges ninguna, se ejecuta una ruta por defecto explícita. Todo se responde desde popups del mismo canvas.
 
 ## 7. Resolver problemas
 

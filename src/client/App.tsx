@@ -12,6 +12,7 @@ import {
   Controls,
   Handle,
   Position,
+  MarkerType,
   useReactFlow,
   useStore,
   getNodesBounds,
@@ -22,6 +23,10 @@ import {
 } from '@xyflow/react';
 import {
   ArrowUpRight,
+  ArrowRightLeft,
+  ListTree,
+  Circle,
+  Plus,
   Bot,
   Check,
   CheckCheck,
@@ -53,6 +58,7 @@ const labels: Record<StepStatus, string> = {
   completed: 'Completado',
   failed: 'Falló',
   rejected: 'Rechazado',
+  skipped: 'Omitido',
 };
 const runLabels: Record<Run['status'], string> = {
   active: 'En progreso',
@@ -65,9 +71,13 @@ const kindLabels = {
   agent: 'Agente',
   manual: 'Intervención manual',
   approval: 'Aprobación',
+  start: 'Inicio',
+  end: 'Fin',
+  gateway: 'Compuerta',
 };
 const eventLabels: Record<string, string> = {
   created: 'Plan registrado',
+  route: 'Motor de proceso',
   start: 'Comenzó un paso',
   complete: 'Completó un paso',
   fail: 'Reportó un error',
@@ -107,56 +117,231 @@ function StatusIcon({
   if (status === 'blocked') return <LockKeyhole size={size} />;
   return <Play size={size} />;
 }
+type StepView = 'step' | 'io' | 'trace';
+const isControl = (step: Step) =>
+  ['start', 'end', 'gateway'].includes(step.kind);
+const gatewayLabels = {
+  parallel: 'Paralela',
+  exclusive: 'Exclusiva',
+  inclusive: 'Inclusiva',
+};
+const traceLabels = {
+  summary: 'Resumen de decisión',
+  action: 'Acción',
+  observation: 'Observación',
+};
 type StepNodeData = {
   step: Step;
   index: number;
   coordinator: string;
   selected: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, view?: StepView) => void;
 };
 function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
   const { step } = data;
-  return (
-    <>
-      <Handle type="target" position={Position.Top} />
+  const tools = (
+    <div className="node-tools">
       <button
-        className={`step-node ${step.status} ${data.selected ? 'selected' : ''}`}
-        aria-label={`Ver paso: ${step.title}`}
+        aria-label={`Ver datos: ${step.title}`}
+        title="Entradas y salidas"
+        onClick={() => data.onSelect(step.id, 'io')}
         aria-haspopup="dialog"
-        onClick={() => data.onSelect(step.id)}
       >
-        <div className="node-top">
-          <span className="node-number">
-            {String(data.index + 1).padStart(2, '0')}
-          </span>
-          <span className={`status-tag ${step.status}`}>
-            <StatusIcon status={step.status} />
-            {labels[step.status]}
-          </span>
-        </div>
-        <strong>{step.title}</strong>
-        <div className="node-owner">
-          {step.kind === 'agent' ? (
-            <Bot size={14} />
-          ) : step.kind === 'approval' ? (
-            <ShieldCheck size={14} />
-          ) : (
-            <UserRound size={14} />
-          )}{' '}
-          {step.kind === 'agent' ? titleCase(data.coordinator) : 'Tú'}
-          <span>· {kindLabels[step.kind]}</span>
-        </div>
-        <span className="node-action">
-          {step.status === 'waiting'
-            ? step.kind === 'approval'
-              ? 'Revisar y aprobar'
-              : 'Responder'
-            : 'Abrir detalle'}{' '}
-          <ArrowUpRight size={12} />
+        <ArrowRightLeft size={13} />
+        <span>
+          I/O {step.inputs?.length || 0}/{step.outputs?.length || 0}
         </span>
       </button>
-      <Handle type="source" position={Position.Bottom} />
+      <button
+        aria-label={`Ver trazas: ${step.title}`}
+        title="Logs y trazas públicas"
+        onClick={() => data.onSelect(step.id, 'trace')}
+        aria-haspopup="dialog"
+      >
+        <ListTree size={14} />
+        <span>Logs</span>
+      </button>
+    </div>
+  );
+  return (
+    <>
+      {step.kind !== 'start' && (
+        <Handle type="target" position={Position.Top} />
+      )}
+      {isControl(step) ? (
+        <div className={`control-node ${step.status}`}>
+          <button
+            className="control-main"
+            aria-label={`Ver paso: ${step.title}`}
+            aria-haspopup="dialog"
+            onClick={() => data.onSelect(step.id)}
+          >
+            <span
+              className={
+                step.kind === 'gateway'
+                  ? 'bpmn-gateway'
+                  : `bpmn-event ${step.kind}`
+              }
+            >
+              {step.gateway && (
+                <span>
+                  {step.gateway.type === 'parallel' ? (
+                    <Plus size={23} />
+                  ) : step.gateway.type === 'exclusive' ? (
+                    <X size={23} />
+                  ) : (
+                    <Circle size={22} />
+                  )}
+                </span>
+              )}
+              {step.kind === 'end' && <span className="end-dot" />}
+            </span>
+            <strong>{step.title}</strong>
+            <small>
+              {step.gateway
+                ? `${gatewayLabels[step.gateway.type]} · ${step.gateway.direction === 'split' ? 'dividir' : 'unir'}`
+                : labels[step.status]}
+            </small>
+          </button>
+          {tools}
+        </div>
+      ) : (
+        <div
+          className={`step-node ${step.status} ${data.selected ? 'selected' : ''}`}
+        >
+          <button
+            className="node-main"
+            aria-label={`Ver paso: ${step.title}`}
+            aria-haspopup="dialog"
+            onClick={() => data.onSelect(step.id)}
+          >
+            <div className="node-top">
+              <span className="node-number">
+                {String(data.index + 1).padStart(2, '0')}
+              </span>
+              <span className={`status-tag ${step.status}`}>
+                <StatusIcon status={step.status} />
+                {labels[step.status]}
+              </span>
+            </div>
+            {step.phase && <span className="node-phase">{step.phase}</span>}
+            <strong>{step.title}</strong>
+            <div className="node-owner">
+              {step.kind === 'agent' ? (
+                <Bot size={14} />
+              ) : step.kind === 'approval' ? (
+                <ShieldCheck size={14} />
+              ) : (
+                <UserRound size={14} />
+              )}{' '}
+              {step.kind === 'agent' ? titleCase(data.coordinator) : 'Tú'}
+              <span>· {kindLabels[step.kind]}</span>
+            </div>
+            <span className="node-action">
+              {step.status === 'waiting'
+                ? step.kind === 'approval'
+                  ? 'Revisar y aprobar'
+                  : 'Responder'
+                : 'Abrir detalle'}
+              <ArrowUpRight size={12} />
+            </span>
+          </button>
+          {tools}
+        </div>
+      )}
+      {step.kind !== 'end' && (
+        <Handle type="source" position={Position.Bottom} />
+      )}
     </>
+  );
+}
+function ContractView({ step }: { step: Step }) {
+  return (
+    <div className="step-detail contract-view">
+      <h2 id="popup-title">Entradas y salidas</h2>
+      <p className="muted">{step.title} · Contrato Hyperion v1</p>
+      {(['inputs', 'outputs'] as const).map((direction) => (
+        <section key={direction}>
+          <h3>
+            {direction === 'inputs' ? 'Inputs · Entradas' : 'Outputs · Salidas'}
+          </h3>
+          {!(step[direction] || []).length ? (
+            <p className="muted">Sin campos declarados.</p>
+          ) : (
+            (step[direction] || []).map((port) => {
+              const source =
+                direction === 'inputs'
+                  ? step.inputs?.find((input) => input.name === port.name)
+                      ?.source
+                  : undefined;
+              const values =
+                direction === 'inputs' ? step.inputValues : step.outputValues;
+              const present = values && Object.hasOwn(values, port.name);
+              return (
+                <article key={port.name} className="port">
+                  <div>
+                    <strong>{port.name}</strong>
+                    <code>{port.type}</code>
+                    <span>{port.required ? 'Obligatorio' : 'Opcional'}</span>
+                  </div>
+                  {port.description && <p>{port.description}</p>}
+                  <small>
+                    {source
+                      ? `Origen: ${source.stepId}.${source.output}`
+                      : direction === 'inputs'
+                        ? 'Origen: valor del plan'
+                        : 'Origen: resultado de la tarea'}
+                  </small>
+                  <pre>
+                    {present
+                      ? JSON.stringify(values[port.name], null, 2)
+                      : 'Sin valor registrado'}
+                  </pre>
+                </article>
+              );
+            })
+          )}
+        </section>
+      ))}
+    </div>
+  );
+}
+function TraceView({ step, run }: { step: Step; run: Run }) {
+  const events = run.events.filter((e) => e.stepId === step.id);
+  return (
+    <div className="step-detail trace-view">
+      <h2 id="popup-title">Trazas del paso</h2>
+      <p>{step.title}</p>
+      <p className="muted">
+        Resumen público → acción → observación. Se muestra lo que el agente o el
+        motor registra.
+      </p>
+      {step.result && isControl(step) && (
+        <div className="result">
+          <p>{step.result}</p>
+        </div>
+      )}
+      {events.length ? (
+        events.map((event) => (
+          <article className="trace-event" key={event.sequence}>
+            <div>
+              <strong>
+                {event.trace
+                  ? traceLabels[event.trace.kind]
+                  : eventLabels[event.type] || event.type}
+              </strong>
+              <small>
+                {event.actor} · {time(event.at)}
+              </small>
+            </div>
+            {event.trace?.tool && <code>{event.trace.tool}</code>}
+            <p>{event.message || 'Cambio de estado registrado'}</p>
+          </article>
+        ))
+      ) : (
+        <p className="muted">Todavía no hay trazas registradas.</p>
+      )}
+    </div>
   );
 }
 const nodeTypes = { step: StepNode };
@@ -254,7 +439,7 @@ function Modal({
         if (event.key !== 'Tab') return;
         const items = Array.from(
           root.current?.querySelectorAll<HTMLElement>(
-            'button:not(:disabled),textarea,a[href],[tabindex="0"]',
+            'button:not(:disabled),textarea,select,input,a[href],[tabindex="0"]',
           ) || [],
         );
         const first = items[0];
@@ -280,12 +465,13 @@ export function App() {
   );
   const [stepId, setStepId] = useState('');
   const [popup, setPopup] = useState<
-    'step' | 'activity' | 'request' | 'runs' | null
+    StepView | 'activity' | 'request' | 'runs' | null
   >(null);
   const [online, setOnline] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
   const [answer, setAnswer] = useState('');
+  const [outputDraft, setOutputDraft] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [help, setHelp] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -338,6 +524,7 @@ export function App() {
   }, [refresh]);
   useEffect(() => {
     setAnswer('');
+    setOutputDraft({});
     setError('');
     setConfirmation(null);
   }, [step?.id, run?.id]);
@@ -347,9 +534,9 @@ export function App() {
     setPopup(null);
     history.replaceState(null, '', id ? `/?run=${id}` : '/');
   };
-  const selectStep = useCallback((id: string) => {
+  const selectStep = useCallback((id: string, view: StepView = 'step') => {
     setStepId(id);
-    setPopup('step');
+    setPopup(view);
   }, []);
   const graph = useMemo(() => {
     if (!run) return { nodes: [], edges: [] };
@@ -369,6 +556,12 @@ export function App() {
       const depth = levels.get(item.id)!;
       groups.set(depth, [...(groups.get(depth) || []), item]);
     }
+    const offsets = new Map<number, number>();
+    let offset = 0;
+    for (const [depth, items] of [...groups].sort(([a], [b]) => a - b)) {
+      offsets.set(depth, offset);
+      offset += items.some((item) => !isControl(item)) ? 230 : 155;
+    }
     const nodes: Node<StepNodeData>[] = run.steps.map((item, index) => {
       const depth = levels.get(item.id)!;
       const group = groups.get(depth)!;
@@ -376,14 +569,19 @@ export function App() {
         id: item.id,
         type: 'step',
         position: {
-          x: (group.indexOf(item) - (group.length - 1) / 2) * 285 + 280,
-          y: depth * 190,
+          x:
+            (group.indexOf(item) - (group.length - 1) / 2) * 310 +
+            280 +
+            (isControl(item) ? 44 : 0),
+          y: offsets.get(depth)!,
         },
         data: {
           step: item,
           index,
           coordinator: run.coordinator,
-          selected: popup === 'step' && step?.id === item.id,
+          selected:
+            ['step', 'io', 'trace'].includes(popup || '') &&
+            step?.id === item.id,
           onSelect: selectStep,
         },
         draggable: false,
@@ -396,6 +594,19 @@ export function App() {
         source: id,
         target: item.id,
         type: 'smoothstep',
+        markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 },
+        label: (() => {
+          const source = run.steps.find((s) => s.id === id);
+          const route = source?.gateway?.routes?.find(
+            (r) => r.target === item.id,
+          );
+          return route?.when
+            ? `${route.when.output} = ${String(route.when.equals)}${source?.gateway?.defaultTarget === item.id ? ' / defecto' : ''}`
+            : source?.gateway?.defaultTarget === item.id
+              ? 'Por defecto'
+              : undefined;
+        })(),
+        labelStyle: { fontSize: 10, fill: '#55546a' },
         animated: item.status === 'running',
         style: {
           stroke:
@@ -403,6 +614,8 @@ export function App() {
               ? '#857af0'
               : '#d0d5df',
           strokeWidth: 1.8,
+          strokeDasharray: item.status === 'skipped' ? '5 5' : undefined,
+          opacity: item.status === 'skipped' ? 0.45 : 1,
         },
       })),
     );
@@ -413,8 +626,27 @@ export function App() {
     setBusy(true);
     setError('');
     try {
+      const outputs =
+        step && ['submit', 'approve'].includes(type) && step.outputs?.length
+          ? Object.fromEntries(
+              step.outputs
+                .filter(
+                  (port) =>
+                    outputDraft[port.name] !== undefined &&
+                    outputDraft[port.name] !== '',
+                )
+                .map((port) => {
+                  const raw = outputDraft[port.name]!;
+                  return [
+                    port.name,
+                    port.type === 'string' ? raw : JSON.parse(raw),
+                  ];
+                }),
+            )
+          : undefined;
       await api(`/api/runs/${run.id}/commands`, {
         type,
+        ...(outputs ? { outputs } : {}),
         ...(target ? { stepId: target } : {}),
         ...(answer.trim() ? { message: answer.trim() } : {}),
         commandId: crypto.randomUUID(),
@@ -449,6 +681,7 @@ export function App() {
   }
   const completed =
     run?.steps.filter((s) => s.status === 'completed').length || 0;
+  const skipped = run?.steps.filter((s) => s.status === 'skipped').length || 0;
   const running = run?.steps.filter((s) => s.status === 'running').length || 0;
   const waiting = run?.steps.filter((s) => s.status === 'waiting').length || 0;
   const ready = run?.steps.filter((s) => s.status === 'ready').length || 0;
@@ -689,7 +922,7 @@ export function App() {
                 </span>
                 <span>
                   {completed}/{run.steps.length} completados · {running} en
-                  curso
+                  curso{skipped > 0 ? ` · ${skipped} omitidos` : ''}
                 </span>
                 <span className="canvas-tip">
                   Pulsa un nodo para ver información y acciones
@@ -709,7 +942,7 @@ export function App() {
           onClose={() => setPopup(null)}
         >
           <section
-            className={`modal canvas-popup ${popup === 'step' || popup === 'activity' ? 'step-popup' : ''}`}
+            className={`modal canvas-popup ${['step', 'activity', 'io', 'trace'].includes(popup || '') ? 'step-popup' : ''}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="popup-title"
@@ -726,266 +959,349 @@ export function App() {
                 {error}
               </p>
             )}
-            {(popup === 'step' || popup === 'activity') && run && (
-              <>
-                <div className="inspector-tabs">
-                  <button
-                    className={popup === 'step' ? 'active' : ''}
-                    onClick={() => setPopup('step')}
-                  >
-                    <Layers3 size={15} />
-                    Detalle del paso
-                  </button>
-                  <button
-                    className={popup === 'activity' ? 'active' : ''}
-                    onClick={() => setPopup('activity')}
-                  >
-                    <History size={15} />
-                    Actividad
-                  </button>
-                </div>
-                {popup === 'step' && step ? (
-                  <div className="step-detail">
-                    <div className="detail-eyebrow">
-                      PASO{' '}
-                      {String(run.steps.indexOf(step) + 1).padStart(2, '0')}
-                      <span className={`status-tag ${step.status}`}>
-                        <StatusIcon status={step.status} />
-                        {labels[step.status]}
-                      </span>
-                    </div>
-                    <h2 id="popup-title">{step.title}</h2>
-                    <p className="step-description">
-                      {step.description ||
-                        (step.kind === 'manual'
-                          ? 'Comparte la información que necesita el agente para avanzar.'
-                          : step.kind === 'approval'
-                            ? 'Revisa los resultados anteriores y decide si el proceso puede continuar.'
-                            : 'El agente ejecutará este paso y registrará su resultado aquí.')}
-                    </p>
-                    <dl className="step-meta">
-                      <div>
-                        <dt>Responsable</dt>
-                        <dd>
-                          {step.kind === 'agent' ? (
-                            <Bot size={14} />
-                          ) : (
-                            <UserRound size={14} />
-                          )}{' '}
-                          {step.kind === 'agent'
-                            ? titleCase(run.coordinator)
-                            : 'Tú'}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Tipo de paso</dt>
-                        <dd>{kindLabels[step.kind]}</dd>
-                      </div>
-                      {step.attempt > 0 && (
-                        <div>
-                          <dt>Intento</dt>
-                          <dd>#{step.attempt}</dd>
-                        </div>
-                      )}
-                    </dl>
-                    {step.dependencies.length > 0 && (
-                      <div className="dependencies">
-                        <h3>Depende de</h3>
-                        {step.dependencies.map((id) => {
-                          const dependency = run.steps.find(
-                            (s) => s.id === id,
-                          )!;
-                          return (
-                            <button key={id} onClick={() => selectStep(id)}>
-                              <span
-                                className={`dependency-icon ${dependency.status}`}
-                              >
-                                <StatusIcon
-                                  status={dependency.status}
-                                  size={13}
-                                />
-                              </span>
-                              <span>{dependency.title}</span>
-                              <ChevronRight size={13} />
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                    {step.result && (
-                      <div className="result">
-                        <h3>
-                          <CheckCheck size={15} />
-                          {step.status === 'failed'
-                            ? 'Error registrado'
-                            : 'Resultado registrado'}
-                        </h3>
-                        <p>{step.result}</p>
-                      </div>
-                    )}
-                    {step.status === 'blocked' && (
-                      <div className="step-hint">
-                        <LockKeyhole size={16} />
-                        <p>
-                          Este paso se habilitará cuando termine:{' '}
-                          {blockedReason}.
-                        </p>
-                      </div>
-                    )}
-                    {step.status === 'running' && (
-                      <div className="step-hint">
-                        <LoaderCircle className="spin" size={17} />
-                        <p>
-                          El agente tiene este paso en curso. Puedes revisar sus
-                          avances en Actividad.
-                        </p>
-                      </div>
-                    )}
-                    {step.status === 'ready' && live && (
-                      <div className="step-hint">
-                        <Bot size={17} />
-                        <p>
-                          El paso está habilitado. Pide a{' '}
-                          {titleCase(run.coordinator)} que continúe desde el
-                          chat.
-                        </p>
-                      </div>
-                    )}
-                    {step.status === 'waiting' && live && (
-                      <div className="human-action">
-                        <div className="action-title">
-                          {step.kind === 'manual' ? (
-                            <MessageSquareText size={18} />
-                          ) : (
-                            <ShieldCheck size={18} />
-                          )}
-                          <strong>
-                            {step.kind === 'manual'
-                              ? 'Comparte tu respuesta'
-                              : 'Tu aprobación es necesaria'}
-                          </strong>
-                        </div>
-                        <label htmlFor="human-answer">
-                          {step.kind === 'manual'
-                            ? 'Tu respuesta'
-                            : 'Comentario (opcional al aprobar)'}
-                        </label>
-                        <textarea
-                          id="human-answer"
-                          value={answer}
-                          onChange={(e) => setAnswer(e.target.value)}
-                          maxLength={8000}
-                          rows={4}
-                          placeholder={
-                            step.kind === 'manual'
-                              ? 'Escribe aquí lo que quieres conseguir…'
-                              : 'Añade contexto a tu decisión…'
-                          }
-                        />
-                        <button
-                          className="primary full"
-                          disabled={
-                            busy ||
-                            !online ||
-                            (step.kind === 'manual' && !answer.trim())
-                          }
-                          onClick={() =>
-                            void act(
-                              step.kind === 'manual' ? 'submit' : 'approve',
-                              step.id,
-                            )
-                          }
-                        >
-                          {busy ? (
-                            <LoaderCircle className="spin" size={16} />
-                          ) : (
-                            <Check size={16} />
-                          )}{' '}
-                          {step.kind === 'manual'
-                            ? 'Enviar respuesta'
-                            : 'Aprobar paso'}
-                        </button>
-                        {step.kind === 'approval' && (
-                          <button
-                            className="text-button reject"
-                            disabled={busy || !online}
-                            onClick={() => setConfirmation('reject')}
-                          >
-                            Rechazar y detener este flujo
-                          </button>
-                        )}
-                        <small>
-                          Tu decisión quedará en el historial del proceso.
-                        </small>
-                      </div>
-                    )}
-                    {step.status === 'failed' && live && (
-                      <button
-                        className="secondary full"
-                        disabled={busy || !online}
-                        onClick={() => void act('retry', step.id)}
-                      >
-                        Habilitar otro intento
-                      </button>
-                    )}
-                    <div className="step-history">
-                      <h3>Actividad de este paso</h3>
-                      {run.events
-                        .filter((e) => e.stepId === step.id)
-                        .slice(-4)
-                        .reverse()
-                        .map((e) => (
-                          <div key={e.sequence}>
-                            <span className="history-dot" />
-                            <p>
-                              <strong>{eventLabels[e.type] || e.type}</strong>
-                              <small>
-                                {e.actor} · {time(e.at)}
-                              </small>
-                              {e.message && <span>{e.message}</span>}
-                            </p>
-                          </div>
-                        ))}
-                      {!run.events.some((e) => e.stepId === step.id) && (
-                        <p className="muted">
-                          Todavía no hay actividad registrada.
-                        </p>
-                      )}
-                    </div>
+            {['step', 'activity', 'io', 'trace'].includes(popup || '') &&
+              run && (
+                <>
+                  <div className="inspector-tabs">
+                    <button
+                      className={popup === 'step' ? 'active' : ''}
+                      onClick={() => setPopup('step')}
+                    >
+                      <Layers3 size={15} />
+                      Detalle
+                    </button>
+                    <button
+                      className={popup === 'activity' ? 'active' : ''}
+                      onClick={() => setPopup('activity')}
+                    >
+                      <History size={15} />
+                      Actividad
+                    </button>
+                    <button
+                      className={popup === 'io' ? 'active' : ''}
+                      onClick={() => setPopup('io')}
+                    >
+                      <ArrowRightLeft size={15} />
+                      I/O
+                    </button>
+                    <button
+                      className={popup === 'trace' ? 'active' : ''}
+                      onClick={() => setPopup('trace')}
+                    >
+                      <ListTree size={15} />
+                      Logs
+                    </button>
                   </div>
-                ) : (
-                  <div className="activity-list">
-                    <h2 id="popup-title">Historial del flujo</h2>
-                    <p className="muted">Decisiones y acciones observables.</p>
-                    {[...run.events].reverse().map((e) => (
-                      <article key={e.sequence}>
-                        <span
-                          className={`activity-symbol ${e.type === 'submit' || e.type === 'approve' ? 'human' : ''}`}
-                        >
-                          {['submit', 'approve', 'reject'].includes(e.type) ? (
-                            <UserRound size={14} />
-                          ) : (
-                            <Bot size={14} />
-                          )}
+                  {popup === 'io' && step ? (
+                    <ContractView step={step} />
+                  ) : popup === 'trace' && step ? (
+                    <TraceView step={step} run={run} />
+                  ) : popup === 'step' && step ? (
+                    <div className="step-detail">
+                      <div className="detail-eyebrow">
+                        PASO{' '}
+                        {String(run.steps.indexOf(step) + 1).padStart(2, '0')}
+                        <span className={`status-tag ${step.status}`}>
+                          <StatusIcon status={step.status} />
+                          {labels[step.status]}
                         </span>
+                      </div>
+                      <h2 id="popup-title">{step.title}</h2>
+                      <p className="step-description">
+                        {step.description ||
+                          (isControl(step)
+                            ? 'El motor aplica este nodo automáticamente al cumplirse sus condiciones y dependencias.'
+                            : step.kind === 'manual'
+                              ? 'Comparte la información que necesita el agente para avanzar.'
+                              : step.kind === 'approval'
+                                ? 'Revisa los resultados anteriores y decide si el proceso puede continuar.'
+                                : 'El agente ejecutará este paso y registrará su resultado aquí.')}
+                      </p>
+                      <dl className="step-meta">
                         <div>
-                          <strong>{eventLabels[e.type] || e.type}</strong>
-                          <small>
-                            {e.actor} · {time(e.at)}
-                          </small>
-                          {e.stepId && (
-                            <button onClick={() => selectStep(e.stepId!)}>
-                              {run.steps.find((s) => s.id === e.stepId)?.title}
+                          <dt>Responsable</dt>
+                          <dd>
+                            {step.kind === 'agent' ? (
+                              <Bot size={14} />
+                            ) : (
+                              <UserRound size={14} />
+                            )}{' '}
+                            {isControl(step)
+                              ? 'Hyperion'
+                              : step.kind === 'agent'
+                                ? titleCase(run.coordinator)
+                                : 'Tú'}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Tipo de paso</dt>
+                          <dd>{kindLabels[step.kind]}</dd>
+                        </div>
+                        {step.attempt > 0 && (
+                          <div>
+                            <dt>Intento</dt>
+                            <dd>#{step.attempt}</dd>
+                          </div>
+                        )}
+                      </dl>
+                      {step.dependencies.length > 0 && (
+                        <div className="dependencies">
+                          <h3>Depende de</h3>
+                          {step.dependencies.map((id) => {
+                            const dependency = run.steps.find(
+                              (s) => s.id === id,
+                            )!;
+                            return (
+                              <button key={id} onClick={() => selectStep(id)}>
+                                <span
+                                  className={`dependency-icon ${dependency.status}`}
+                                >
+                                  <StatusIcon
+                                    status={dependency.status}
+                                    size={13}
+                                  />
+                                </span>
+                                <span>{dependency.title}</span>
+                                <ChevronRight size={13} />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {step.result && (
+                        <div className="result">
+                          <h3>
+                            <CheckCheck size={15} />
+                            {step.status === 'failed'
+                              ? 'Error registrado'
+                              : 'Resultado registrado'}
+                          </h3>
+                          <p>{step.result}</p>
+                        </div>
+                      )}
+                      {step.status === 'blocked' && (
+                        <div className="step-hint">
+                          <LockKeyhole size={16} />
+                          <p>
+                            Este paso se habilitará cuando termine:{' '}
+                            {blockedReason}.
+                          </p>
+                        </div>
+                      )}
+                      {step.status === 'running' && (
+                        <div className="step-hint">
+                          <LoaderCircle className="spin" size={17} />
+                          <p>
+                            El agente tiene este paso en curso. Puedes revisar
+                            sus avances en Actividad.
+                          </p>
+                        </div>
+                      )}
+                      {step.status === 'ready' && live && (
+                        <div className="step-hint">
+                          <Bot size={17} />
+                          <p>
+                            El paso está habilitado. Pide a{' '}
+                            {titleCase(run.coordinator)} que continúe desde el
+                            chat.
+                          </p>
+                        </div>
+                      )}
+                      {step.status === 'waiting' && live && (
+                        <div className="human-action">
+                          <div className="action-title">
+                            {step.kind === 'manual' ? (
+                              <MessageSquareText size={18} />
+                            ) : (
+                              <ShieldCheck size={18} />
+                            )}
+                            <strong>
+                              {step.kind === 'manual'
+                                ? 'Comparte tu respuesta'
+                                : 'Tu aprobación es necesaria'}
+                            </strong>
+                          </div>
+                          <label htmlFor="human-answer">
+                            {step.kind === 'manual'
+                              ? 'Tu respuesta'
+                              : 'Comentario (opcional al aprobar)'}
+                          </label>
+                          <textarea
+                            id="human-answer"
+                            value={answer}
+                            onChange={(e) => setAnswer(e.target.value)}
+                            maxLength={8000}
+                            rows={4}
+                            placeholder={
+                              step.kind === 'manual'
+                                ? 'Escribe aquí lo que quieres conseguir…'
+                                : 'Añade contexto a tu decisión…'
+                            }
+                          />
+                          {!!step.outputs?.length && (
+                            <fieldset className="output-fields">
+                              <legend>Salidas de esta tarea</legend>
+                              {step.outputs.map((port) => (
+                                <div key={port.name}>
+                                  <label htmlFor={`output-${port.name}`}>
+                                    {port.name} ({port.type})
+                                  </label>
+                                  {port.description && (
+                                    <p className="muted">{port.description}</p>
+                                  )}
+                                  {port.type === 'boolean' ? (
+                                    <select
+                                      id={`output-${port.name}`}
+                                      value={outputDraft[port.name] || ''}
+                                      onChange={(e) =>
+                                        setOutputDraft({
+                                          ...outputDraft,
+                                          [port.name]: e.target.value,
+                                        })
+                                      }
+                                    >
+                                      <option value="">
+                                        Selecciona una opción
+                                      </option>
+                                      <option value="true">Sí</option>
+                                      <option value="false">No</option>
+                                    </select>
+                                  ) : (
+                                    <textarea
+                                      id={`output-${port.name}`}
+                                      rows={2}
+                                      value={outputDraft[port.name] || ''}
+                                      placeholder={
+                                        port.type === 'object' ||
+                                        port.type === 'array'
+                                          ? 'JSON'
+                                          : port.type === 'number'
+                                            ? 'Número'
+                                            : 'Valor'
+                                      }
+                                      onChange={(e) =>
+                                        setOutputDraft({
+                                          ...outputDraft,
+                                          [port.name]: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                            </fieldset>
+                          )}
+                          <button
+                            className="primary full"
+                            disabled={
+                              busy ||
+                              !online ||
+                              (step.kind === 'manual' && !answer.trim())
+                            }
+                            onClick={() =>
+                              void act(
+                                step.kind === 'manual' ? 'submit' : 'approve',
+                                step.id,
+                              )
+                            }
+                          >
+                            {busy ? (
+                              <LoaderCircle className="spin" size={16} />
+                            ) : (
+                              <Check size={16} />
+                            )}{' '}
+                            {step.kind === 'manual'
+                              ? 'Enviar respuesta'
+                              : 'Aprobar paso'}
+                          </button>
+                          {step.kind === 'approval' && (
+                            <button
+                              className="text-button reject"
+                              disabled={busy || !online}
+                              onClick={() => setConfirmation('reject')}
+                            >
+                              Rechazar y detener este flujo
                             </button>
                           )}
-                          {e.message && <p>{e.message}</p>}
+                          <small>
+                            Tu decisión quedará en el historial del proceso.
+                          </small>
                         </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
+                      )}
+                      {step.status === 'failed' && live && (
+                        <button
+                          className="secondary full"
+                          disabled={busy || !online}
+                          onClick={() => void act('retry', step.id)}
+                        >
+                          Habilitar otro intento
+                        </button>
+                      )}
+                      <div className="step-history">
+                        <h3>Actividad de este paso</h3>
+                        {run.events
+                          .filter((e) => e.stepId === step.id)
+                          .slice(-4)
+                          .reverse()
+                          .map((e) => (
+                            <div key={e.sequence}>
+                              <span className="history-dot" />
+                              <p>
+                                <strong>{eventLabels[e.type] || e.type}</strong>
+                                <small>
+                                  {e.actor} · {time(e.at)}
+                                </small>
+                                {e.message && <span>{e.message}</span>}
+                              </p>
+                            </div>
+                          ))}
+                        {!run.events.some((e) => e.stepId === step.id) && (
+                          <p className="muted">
+                            Todavía no hay actividad registrada.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="activity-list">
+                      <h2 id="popup-title">Historial del flujo</h2>
+                      <p className="muted">
+                        Decisiones y acciones observables.
+                      </p>
+                      {[...run.events].reverse().map((e) => (
+                        <article key={e.sequence}>
+                          <span
+                            className={`activity-symbol ${e.type === 'submit' || e.type === 'approve' ? 'human' : ''}`}
+                          >
+                            {['submit', 'approve', 'reject'].includes(
+                              e.type,
+                            ) ? (
+                              <UserRound size={14} />
+                            ) : (
+                              <Bot size={14} />
+                            )}
+                          </span>
+                          <div>
+                            <strong>{eventLabels[e.type] || e.type}</strong>
+                            <small>
+                              {e.actor} · {time(e.at)}
+                            </small>
+                            {e.stepId && (
+                              <button onClick={() => selectStep(e.stepId!)}>
+                                {
+                                  run.steps.find((s) => s.id === e.stepId)
+                                    ?.title
+                                }
+                              </button>
+                            )}
+                            {e.message && <p>{e.message}</p>}
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             {popup === 'request' && run && (
               <div className="request-popup">
                 <span className="eyebrow">
@@ -1086,7 +1402,9 @@ export function App() {
               </li>
             </ol>
             <div className="code-note">
-              CLI: npm run hyperion -- --help
+              npm run hyperion -- setup codex
+              <br />
+              Sustituye codex por claude o cursor.
               <br />
               Codex, Claude, Cursor: consulta docs/manual-uso.md
             </div>

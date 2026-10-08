@@ -1,3 +1,4 @@
+import { VERSION } from '../version.js';
 import {
   createServer,
   type IncomingMessage,
@@ -74,7 +75,7 @@ export function createApp(options: Options) {
         );
       const url = new URL(req.url || '/', baseUrl);
       if (url.pathname === '/api/health' && req.method === 'GET') {
-        json(res, 200, { ok: true, version: '0.1.0' });
+        json(res, 200, { ok: true, version: VERSION });
         return;
       }
       if (url.pathname === '/api/session' && req.method === 'GET') {

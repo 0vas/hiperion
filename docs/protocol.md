@@ -1,6 +1,8 @@
-# Hyperion protocol v0.1
+# Hyperion protocol v0.2
 
-All requests use the loopback HTTP origin. JSON is validated strictly; unknown fields are rejected. Limits: 100 steps per plan, 128 KiB per request, 8,000 characters per result/log message. Plans are immutable, acyclic and contain unique step IDs.
+All requests use the loopback HTTP origin. JSON is validated strictly; unknown fields are rejected. Limits: 100 steps per plan, 128 KiB per request, 8,000 characters per result/log message. Plans are immutable, acyclic and contain unique step IDs. Task ports use bounded lists of up to 30 fields.
+
+Version 0.2 preserves legacy DAG plans and adds the optional `bpmn-lite` profile. See the [process contract](process-contract.md) for structured gateways, typed data and public traces.
 
 ## Authentication
 
@@ -47,7 +49,7 @@ The session bootstrap is protected by exact Host/Origin and Fetch Metadata check
 
 `request` is optional for backward compatibility, with a maximum of 8,000 characters. Request-driven clients should always supply the original user request; it persists with the immutable plan and is displayed in the UI.
 
-Step kinds: `agent`, `manual`, `approval`. Optional step `description` provides instructions. IDs contain letters, numbers, `_` or `-`, max 64 characters. The authenticated agent becomes the coordinator.
+Legacy step kinds: `agent`, `manual`, `approval`. The process profile adds `start`, `end`, `gateway`. Optional step `description` provides instructions. IDs contain letters, numbers, `_` or `-`, max 64 characters. The authenticated agent becomes the coordinator.
 
 ## Commands
 
@@ -81,7 +83,7 @@ Pausing prevents new starts and human step decisions. In-flight work may still l
 
 The server stores a receipt and updated snapshot in one SQLite transaction. Repeating the same command ID with identical parsed content and actor returns its original response. Reusing an ID for different content/actor returns 409. A failed command does not consume its key. A replayed response may be older than the latest state; use GET to refresh.
 
-The command ID provides request deduplication, not exactly-once external execution. Steps include attempt counts; events retain prior results. Run `revision` increases for each accepted mutation.
+The command ID provides request deduplication, not exactly-once external execution. Steps include attempt counts; events retain prior results. Run `revision` increases for each accepted command. Event `sequence` increases per recorded event: a process command may also produce automatic routing events.
 
 ## Errors
 

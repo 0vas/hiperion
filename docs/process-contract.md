@@ -1,0 +1,140 @@
+# Contrato de procesos Hyperion v1
+
+Hyperion 0.2 incorpora un perfil **basado en BPMN 2.0.2**: `profile: "bpmn-lite"`. La arquitectura del producto se sigue describiendo con ArchiMate; los símbolos BPMN describen el flujo que ejecuta el motor.
+
+## Elementos y comportamiento
+
+| Elemento  | Símbolo                 | Ejecución                                                                                                                  |
+| --------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Inicio    | Círculo de borde fino   | Activa el proceso automáticamente                                                                                          |
+| Fin       | Círculo de borde grueso | Finaliza cuando llega su ruta y todo el proceso está resuelto                                                              |
+| Tarea     | Caja                    | Trabajo de agente, respuesta manual o aprobación                                                                           |
+| Paralela  | Rombo `+`               | Activa todas las ramas; su unión espera todas                                                                              |
+| Exclusiva | Rombo `X`               | Elige la primera condición verdadera en el orden declarado; si ninguna coincide, usa la ruta por defecto                   |
+| Inclusiva | Rombo `○`               | Activa todas las condiciones verdaderas; si ninguna coincide, usa la ruta por defecto. Su unión espera las ramas activadas |
+
+Las rutas no seleccionadas pasan a `skipped` (Omitido). No pueden iniciarse mediante CLI, HTTP ni MCP. Los nodos estructurales son responsabilidad del motor: el agente no puede iniciarlos o completarlos manualmente. El estado y la selección de rutas persisten en SQLite.
+
+Este perfil se inspira en las compuertas y eventos de [OMG BPMN 2.0.2](https://www.omg.org/spec/BPMN/2.0.2/PDF). No afirma conformidad con BPMN completo. Solo admite grafos acíclicos estructurados: un inicio, un fin y bloques split/join emparejados del mismo tipo. Los bloques pueden anidarse, pero no cruzarse. Cada tarea tiene una entrada y una salida de control. No hay bucles, temporizadores, mensajes entre pools, compensación, actividades multiinstancia ni importación/exportación BPMN XML. Las fases se indican mediante `phase` en las tareas; no son subprocesos BPMN independientes.
+
+## Definir un bloque
+
+El plan usa `dependencies` como flujos de secuencia. Una división declara sus rutas y la unión declara `splitId`:
+
+```json
+{
+  "id": "decide",
+  "title": "Elegir revisiones",
+  "kind": "gateway",
+  "dependencies": ["scope"],
+  "gateway": {
+    "type": "inclusive",
+    "direction": "split",
+    "routes": [
+      {
+        "target": "docs",
+        "when": { "stepId": "scope", "output": "docs", "equals": true }
+      },
+      {
+        "target": "code",
+        "when": { "stepId": "scope", "output": "code", "equals": true }
+      },
+      { "target": "fallback" }
+    ],
+    "defaultTarget": "fallback"
+  }
+}
+```
+
+Cada ruta debe corresponder a una tarea o bloque sucesor real. La ruta por defecto no tiene condición. La compuerta paralela no tiene condiciones ni ruta por defecto. Se evalúa igualdad de un booleano, número o texto con una salida declarada de un predecesor. No se evalúa JavaScript, expresiones arbitrarias ni texto del modelo como código.
+
+```json
+{
+  "id": "join",
+  "title": "Reunir revisiones",
+  "kind": "gateway",
+  "dependencies": ["docs", "code", "fallback"],
+  "gateway": { "type": "inclusive", "direction": "join", "splitId": "decide" }
+}
+```
+
+El ejemplo completo está en [examples/process-review.json](../examples/process-review.json). El ejemplo [process-gateways.json](../examples/process-gateways.json) combina las tres compuertas con bloques anidados. En uso normal, el agente genera ese contrato desde la petición del usuario. Los planes anteriores, sin `profile`, conservan su semántica DAG de dependencias obligatorias.
+
+## Entradas y salidas
+
+Todas las tareas utilizan el mismo contrato, independientemente de su herramienta ejecutora:
+
+| Campo         | Significado                                                        |
+| ------------- | ------------------------------------------------------------------ |
+| `name`        | Identificador estable del dato                                     |
+| `type`        | `string`, `number`, `boolean`, `object` o `array`                  |
+| `required`    | Obligatoriedad, por defecto `false`                                |
+| `description` | Explicación para usuario y agente                                  |
+| `source`      | Solo entradas: referencia `{stepId, output}` a una salida anterior |
+| `value`       | Solo entradas: valor literal JSON, excluyente con `source`         |
+
+Las tareas pueden añadir `phase` como etiqueta de fase. Los objetos y arrays se validan por su tipo externo; el perfil actual no valida propiedades internas mediante un JSON Schema arbitrario.
+
+```json
+{
+  "id": "review",
+  "title": "Revisar el proyecto",
+  "kind": "agent",
+  "phase": "Revisión",
+  "dependencies": ["scope"],
+  "inputs": [
+    {
+      "name": "project",
+      "type": "string",
+      "required": true,
+      "value": "Hyperion"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "report",
+      "type": "string",
+      "required": true,
+      "description": "Resumen verificable de la revisión"
+    }
+  ]
+}
+```
+
+Los valores resueltos aparecen en `inputValues`; los resultados estructurados en `outputValues`. El motor rechaza campos de salida no declarados, tipos incorrectos y salidas obligatorias ausentes. No habilita el sucesor hasta que la tarea entregue un resultado válido. Una entrada obligatoria debe tener un origen garantizado: una salida de una rama condicional que podría omitirse debe ser opcional fuera de esa rama.
+
+Al completar, el agente envía el resultado público y los datos:
+
+```json
+{
+  "type": "complete",
+  "stepId": "review",
+  "message": "README y CONTRIBUTING revisados",
+  "outputs": {
+    "report": "Las instrucciones de contribución están documentadas."
+  },
+  "commandId": "review-complete-1"
+}
+```
+
+En la CLI: `npm run hyperion -- command RUN_ID COMMAND.json`. En MCP: `hyperion_step` con `action: "complete"` y `outputs`. Para tareas manuales, la persona rellena los campos tipados del popup. Los booleanos se presentan como Sí/No; objetos y arrays como JSON. Las aprobaciones siguen siendo exclusivamente humanas.
+
+## Logs y trazas públicas
+
+Cada tarea tiene dos accesos independientes: **I/O** para contratos/valores y **Logs** para actividad. El icono de Logs abre un popup del nodo; el botón Actividad abre el historial del proceso completo.
+
+El agente puede anotar un `log` mediante:
+
+```json
+{
+  "type": "log",
+  "stepId": "review",
+  "message": "Leí CONTRIBUTING.md para comprobar los comandos de validación.",
+  "trace": { "kind": "action", "tool": "read_file" },
+  "commandId": "review-read-contributing"
+}
+```
+
+`trace.kind` admite `summary` (resumen público de decisión), `action` u `observation`. Esta secuencia permite inspeccionar una traza al estilo ReAct. No extrae ni solicita el razonamiento privado del LLM. Solo presenta información que el agente comparte expresamente; Hyperion no intercepta automáticamente todas sus llamadas a herramientas. La secuencia de eventos registra causalidad y no debe confundirse con `run.revision`, que aumenta una vez por comando aceptado.
+
+No registres credenciales ni datos privados innecesarios en las trazas. El contenido queda guardado como parte del flujo local.

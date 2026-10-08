@@ -3,7 +3,11 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registerAgent } from '../server/config.js';
 
-export function generateConnection(agentId: string, directory?: string) {
+export function generateConnection(
+  agentId: string,
+  directory?: string,
+  autoStart = false,
+) {
   const credentials = registerAgent(agentId, directory);
   const root = fileURLToPath(new URL('../../', import.meta.url));
   const config = {
@@ -11,7 +15,14 @@ export function generateConnection(agentId: string, directory?: string) {
       hyperion: {
         type: 'stdio',
         command: process.execPath,
-        args: [resolve(root, 'dist/adapters/mcp.js')],
+        args: [
+          resolve(
+            root,
+            autoStart
+              ? 'dist/adapters/mcp-launcher.js'
+              : 'dist/adapters/mcp.js',
+          ),
+        ],
         env: {
           HYPERION_AGENT_ID: agentId,
           HYPERION_DATA_DIR: credentials.directory,

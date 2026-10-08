@@ -163,3 +163,9 @@ La participación humana se representa en el producto mediante pasos manuales y 
 El [ADR 0003](../decisions/0003-canvas-interaction.md) concentra la interacción en un canvas landscape y popups por nodo, sin añadir componentes ni cambiar las relaciones de la vista ArchiMate implementada.
 
 El [modelo XML editable](implemented.xml) contiene los cinco componentes y ocho relaciones de la vista implementada. Se verificaron el XML y sus referencias; la importación y validación XSD en una herramienta ArchiMate quedan pendientes.
+
+## Incremento 0.2: procesos y conexión
+
+El [ADR 0004](../decisions/0004-process-contract.md) extiende las responsabilidades existentes. `src/domain/process.ts` valida bloques estructurados, selecciona rutas y reúne ramas; `contracts.ts` define los datos y las trazas. El adaptador incorpora `setup.ts` para registrar clientes y `bootstrap.ts` para iniciar o reutilizar el servicio local. La relación de cooperación entre adaptadores, núcleo, persistencia e interfaz no cambia en la vista ArchiMate.
+
+El canvas utiliza símbolos basados en BPMN para representar el proceso; los diagramas ArchiMate siguen representando la arquitectura de aplicaciones. No se intercambian ambas notaciones. El [contrato del perfil](../process-contract.md) establece sus límites y evita afirmar conformidad con BPMN completo.

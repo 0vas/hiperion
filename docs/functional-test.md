@@ -80,3 +80,29 @@ Criterios y decisiones: [ADR 0003](decisions/0003-canvas-interaction.md). Recorr
 - Inspección visual de escritorio, móvil y popup. La captura del README usa únicamente datos sintéticos del navegador de pruebas.
 
 La prueba humana personal queda pendiente; no se simula su respuesta ni aprobación. La continuación desde Codex sigue siendo cooperativa mediante lectura del estado al retomar el chat.
+
+## Incremento: conexión simple, compuertas e I/O (2026-10-08)
+
+Criterios: [ADR 0004](decisions/0004-process-contract.md). Contrato: [perfil de procesos](process-contract.md). El ejemplo reproducible [process-gateways.json](../examples/process-gateways.json) tiene inicio, elección humana, un bloque paralelo que contiene bloques exclusivo e inclusivo, sus uniones, aprobación y fin.
+
+Para probarlo desde Codex, solicita:
+
+> Usa Hyperion para revisar este repositorio. Pídeme si quiero revisar documentación y código. Separa ambas fases en paralelo, usa una decisión exclusiva para documentación y una inclusiva para las verificaciones. Declara entradas y salidas, registra acciones y observaciones públicas y pide mi aprobación final.
+
+1. Codex genera y registra el plan desde la petición y devuelve su URL.
+2. En **Definir el alcance**, escribe tu respuesta y selecciona Sí/No para `docs` y `code`. Envía la respuesta.
+3. Observa las compuertas resueltas y las ramas omitidas. Pide en el chat «Continúa el flujo de Hyperion RUN_ID».
+4. Codex consulta el estado, ejecuta únicamente las tareas habilitadas y envía resultados tipados. Los iconos **I/O** y **Logs** muestran datos y trazas de cada nodo.
+5. Revisa los reportes y aprueba o rechaza desde el mismo canvas. El motor activa el fin tras aprobar.
+
+Evidencia de este incremento:
+
+- `npm run check`: correcto; **34 pruebas de lógica/integración**, **1 prueba de distribución compilada**, tipos, build y formato.
+- `npm run test:e2e`: **10 pruebas de navegador** aprobadas. Incluyen las tres compuertas, contratos, formularios booleanos, ramas omitidas, trazas y aprobación; axe WCAG AA también cubre el formulario nuevo.
+- El ciclo TDD comprobó fallos por contratos y configuración aún inexistentes y por el comando CLI de datos sin implementar; todos quedaron corregidos.
+- Se prueban combinaciones de condiciones, fallback, bloques anidados, pausa, rechazo de planes ambiguos, datos inválidos, persistencia, idempotencia y secuencia causal de eventos.
+- El arranque bajo demanda se comprueba con un proceso real y credenciales aisladas. La distribución compilada sirve HTML/assets y genera rutas MCP existentes.
+- El registro de Codex/Claude se prueba con ejecutores aislados, y Cursor con un directorio temporal que conserva otras entradas. MCP se prueba con el SDK y las tres identidades; no se afirma haber conectado las interfaces nativas de los tres productos.
+- Se reinició la instancia local conservando SQLite, se creó el caso desde Codex mediante CLI y se verificaron sus 15 nodos, 6 símbolos de compuerta y formulario humano, sin errores JavaScript. El inicio está completado y el alcance espera la respuesta real del usuario. Los planes anteriores siguen siendo legibles.
+
+El perfil es estructurado y acíclico; no implementa BPMN completo ni subprocesos independientes por fase. Las trazas contienen información pública enviada expresamente por el agente. La continuación de un chat sigue siendo cooperativa.

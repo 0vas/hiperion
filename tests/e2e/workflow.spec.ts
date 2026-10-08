@@ -377,3 +377,134 @@ test('rejection stays in the canvas popup and reports command errors before retr
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByTestId('run-status')).toHaveText('Rechazado');
 });
+
+test('BPMN nodes expose typed inputs/outputs and public traces through their own icons', async ({
+  page,
+  request,
+}) => {
+  const plan = JSON.parse(readFileSync('examples/process-review.json', 'utf8'));
+  const headers = { authorization: `Bearer ${token()}` };
+  const response = await request.post('/api/runs', {
+    headers,
+    data: { commandId: crypto.randomUUID(), plan },
+  });
+  expect(response.status()).toBe(201);
+  const run = await response.json();
+  await page.goto(`/?run=${run.id}`);
+  await expect(
+    page.getByRole('button', { name: 'Ver paso: Inicio', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('.bpmn-gateway')).toHaveCount(2);
+  await page
+    .getByRole('button', { name: 'Ver datos: Elegir revisiones', exact: true })
+    .click();
+  await expect(
+    page.getByRole('dialog', { name: 'Entradas y salidas' }),
+  ).toContainText('boolean');
+  await page.keyboard.press('Escape');
+  await page
+    .getByRole('button', { name: 'Ver paso: Elegir revisiones', exact: true })
+    .click();
+  await page
+    .getByLabel('Tu respuesta', { exact: true })
+    .fill('Solo documentación.');
+  const { default: AxeBuilder } = await import('@axe-core/playwright');
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page.getByLabel('docs (boolean)').selectOption('true');
+  await page.getByLabel('code (boolean)').selectOption('false');
+  await page.getByRole('button', { name: 'Enviar respuesta' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator('.react-flow__node[data-id="code"]')).toContainText(
+    'Omitido',
+  );
+  await page
+    .getByRole('button', {
+      name: 'Ver datos: Revisar documentación',
+      exact: true,
+    })
+    .click();
+  await expect(page.getByRole('dialog')).toContainText('Hyperion');
+  await page.keyboard.press('Escape');
+  const command = async (data: Record<string, unknown>) =>
+    request.post(`/api/runs/${run.id}/commands`, {
+      headers,
+      data: { commandId: crypto.randomUUID(), stepId: 'docs', ...data },
+    });
+  expect((await command({ type: 'start' })).status()).toBe(200);
+  expect(
+    (
+      await command({
+        type: 'log',
+        message: 'Lectura de README',
+        trace: { kind: 'action', tool: 'read_file' },
+      })
+    ).status(),
+  ).toBe(200);
+  expect(
+    (
+      await command({
+        type: 'complete',
+        message: 'Guía comprobada',
+        outputs: { report: 'README y CONTRIBUTING revisados' },
+      })
+    ).status(),
+  ).toBe(200);
+  await page
+    .getByRole('button', {
+      name: 'Ver trazas: Revisar documentación',
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole('dialog', { name: 'Trazas del paso' }),
+  ).toContainText('read_file');
+  await expect(page.getByRole('dialog')).toContainText('Lectura de README');
+  await page.screenshot({ path: 'test-results/process-traces.png' });
+  await page.keyboard.press('Escape');
+  await page
+    .getByRole('button', {
+      name: 'Ver datos: Aprobar la revisión',
+      exact: true,
+    })
+    .click();
+  await expect(page.getByRole('dialog')).toContainText(
+    'README y CONTRIBUTING revisados',
+  );
+  await page.keyboard.press('Escape');
+  await page
+    .getByRole('button', { name: 'Ver paso: Aprobar la revisión', exact: true })
+    .click();
+  await page.getByRole('button', { name: 'Aprobar paso', exact: true }).click();
+  await expect(page.getByTestId('run-status')).toHaveText('Completado');
+  await page.screenshot({ path: 'test-results/process-canvas.png' });
+});
+
+test('the canvas renders start/end and all three gateway symbols together', async ({
+  page,
+  request,
+}) => {
+  const response = await request.post('/api/runs', {
+    headers: { authorization: `Bearer ${token()}` },
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: JSON.parse(readFileSync('examples/process-gateways.json', 'utf8')),
+    },
+  });
+  expect(response.status()).toBe(201);
+  const run = await response.json();
+  await page.goto(`/?run=${run.id}`);
+  await expect(page.locator('.bpmn-gateway')).toHaveCount(6);
+  await expect(page.locator('.bpmn-event')).toHaveCount(2);
+  await page
+    .getByRole('button', { name: 'Ver datos: Definir el alcance', exact: true })
+    .click();
+  await expect(page.getByRole('dialog')).toContainText('docs');
+  await page.keyboard.press('Escape');
+  await page.screenshot({ path: 'test-results/process-gateways.png' });
+});
