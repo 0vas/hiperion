@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" identifier="hyperion-v01" version="0.1">
+  <name>Hyperion v0.1 — implemented cooperation</name>
+  <documentation>ArchiMate 3.2 subset. Five logical Application Components and directed Flow relationships. Diagram layout is provided separately in implemented.svg.</documentation>
+  <elements>
+    <element identifier="I1" xsi:type="ApplicationComponent">
+      <name>Interfaz web</name>
+      <documentation>React · decisiones humanas</documentation>
+    </element>
+    <element identifier="I2" xsi:type="ApplicationComponent">
+      <name>Adaptadores de agente</name>
+      <documentation>CLI y MCP stdio · cliente HTTP</documentation>
+    </element>
+    <element identifier="I3" xsi:type="ApplicationComponent">
+      <name>Límite HTTP</name>
+      <documentation>Sesión local · validación y roles</documentation>
+    </element>
+    <element identifier="I4" xsi:type="ApplicationComponent">
+      <name>Persistencia de ejecuciones</name>
+      <documentation>SQLite · transacciones y recibos</documentation>
+    </element>
+    <element identifier="I5" xsi:type="ApplicationComponent">
+      <name>Motor de workflow</name>
+      <documentation>DAG · estados · reglas puras</documentation>
+    </element>
+  </elements>
+  <relationships>
+    <relationship identifier="IF1" source="I1" target="I3" xsi:type="Flow">
+      <name>Comandos humanos</name>
+    </relationship>
+    <relationship identifier="IF2" source="I3" target="I1" xsi:type="Flow">
+      <name>Estado</name>
+    </relationship>
+    <relationship identifier="IF3" source="I2" target="I3" xsi:type="Flow">
+      <name>Plan y comandos</name>
+    </relationship>
+    <relationship identifier="IF4" source="I3" target="I2" xsi:type="Flow">
+      <name>Estado</name>
+    </relationship>
+    <relationship identifier="IF5" source="I3" target="I4" xsi:type="Flow">
+      <name>Operación validada</name>
+    </relationship>
+    <relationship identifier="IF6" source="I4" target="I3" xsi:type="Flow">
+      <name>Snapshot confirmado</name>
+    </relationship>
+    <relationship identifier="IF7" source="I4" target="I5" xsi:type="Flow">
+      <name>Estado y comando</name>
+    </relationship>
+    <relationship identifier="IF8" source="I5" target="I4" xsi:type="Flow">
+      <name>Nuevo estado</name>
+    </relationship>
+  </relationships>
+</model>

@@ -1,0 +1,92 @@
+#!/usr/bin/env node
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
+import { HyperionClient } from './client.js';
+import { planSchema } from '../domain/workflow.js';
+const client = new HyperionClient();
+const server = new McpServer(
+  { name: 'hyperion', version: '0.1.0' },
+  {
+    instructions:
+      'Create a plan and show its returned URL. Start only ready agent steps, execute actual work, then report evidence. Human input and approvals must happen in the Hyperion UI. Use get/wait to read decisions. Never impersonate the human or bypass a blocked step. This server does not execute the work for you.',
+  },
+);
+const output = (value: unknown) => ({
+  content: [{ type: 'text' as const, text: JSON.stringify(value, null, 2) }],
+});
+const safe = (action: () => Promise<unknown>) =>
+  action()
+    .then(output)
+    .catch((error: unknown) => ({
+      isError: true,
+      ...output({
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }),
+    }));
+server.registerTool(
+  'hyperion_create_run',
+  {
+    description:
+      'Create an immutable workflow plan and obtain a URL for the human. Use agent, manual and approval steps with dependencies. Reuse commandId on retries.',
+    inputSchema: { plan: planSchema, commandId: z.string().min(1).max(128) },
+  },
+  ({ plan, commandId }) =>
+    safe(async () => {
+      const run = await client.create(plan, commandId);
+      return { ...run, url: client.link(run) };
+    }),
+);
+server.registerTool(
+  'hyperion_list_runs',
+  {
+    description: 'List recent local workflow executions.',
+    inputSchema: {},
+    annotations: { readOnlyHint: true },
+  },
+  () => safe(() => client.list()),
+);
+server.registerTool(
+  'hyperion_get_run',
+  {
+    description:
+      'Read the current workflow, human input, approvals and evidence.',
+    inputSchema: { runId: z.string().uuid() },
+    annotations: { readOnlyHint: true },
+  },
+  ({ runId }) => safe(() => client.get(runId)),
+);
+server.registerTool(
+  'hyperion_step',
+  {
+    description:
+      'Start a ready agent step or report real progress/results. complete, fail and log require evidence in message. Human decisions are deliberately unavailable.',
+    inputSchema: {
+      runId: z.string().uuid(),
+      stepId: z.string(),
+      action: z.enum(['start', 'complete', 'fail', 'log', 'retry']),
+      message: z.string().max(8000).optional(),
+      commandId: z.string().min(1).max(128),
+    },
+  },
+  ({ runId, stepId, action, message, commandId }) =>
+    safe(() =>
+      client.command(runId, { type: action, stepId, message, commandId }),
+    ),
+);
+server.registerTool(
+  'hyperion_wait',
+  {
+    description:
+      'Wait up to 55 seconds for a revision change. A timeout does not mean approval. Resume only according to returned state.',
+    inputSchema: {
+      runId: z.string().uuid(),
+      afterRevision: z.number().int().nonnegative(),
+      timeoutSeconds: z.number().min(0).max(55).default(30),
+    },
+    annotations: { readOnlyHint: true },
+  },
+  ({ runId, afterRevision, timeoutSeconds }) =>
+    safe(() => client.wait(runId, afterRevision, timeoutSeconds)),
+);
+await server.connect(new StdioServerTransport());
