@@ -18,7 +18,7 @@ npm run hyperion -- install
 
 Reload skills or open a new agent session, then ask: **“Use Hyperion to guide my next release.”** The agent starts the canvas on demand, generates a plan from your request, performs ready work and waits for your decisions in the canvas. Local agents with Agent Skills and shell access do not need MCP setup. MCP and HTTP remain available for other integrations.
 
-For a standalone distribution, run `npm install --global ./hyperion-workflows-0.3.0.tgz`, then `hyperion install`. The archive includes the compiled server, UI and CLI. It is currently built locally with `npm pack`; this increment has not been published to npm or GitHub Releases. Node.js 22.13+ is required. [Installation, discovery and compatibility](docs/manual-uso.md).
+For a standalone distribution, run `npm install --global ./hyperion-workflows-0.3.0.tgz`, then `hyperion install`. The archive includes the compiled server, UI and CLI. It is currently built locally with `npm pack`; this increment has not been published to npm or GitHub Releases. Node.js 22.13+ is required. [Installation, discovery and compatibility](docs/conexion.md).
 
 ## Run from source
 
@@ -46,7 +46,7 @@ Open the returned URL, submit your objective, and ask your agent to read the run
 - An executable BPMN-based profile: start/end and structured parallel, exclusive and inclusive gateways.
 - Typed task inputs/outputs and public decision/action/observation traces, each available from node icons.
 - Dependency gates, independent parallel steps, and explicit coordinator ownership.
-- An edge-to-edge canvas with floating controls, aligned process branches and a focus-current-step control.
+- An edge-to-edge canvas with floating controls, task selection, focus and optional activity following. Manual navigation releases following; details, I/O and logs remain available in popups.
 - Node popups for human input, approvals, step details and evidence; buttons for the original request and activity.
 - Human input, approval/rejection, pause/resume, cancel, and retry after failure.
 - Transactional SQLite persistence and command idempotency.
@@ -63,7 +63,7 @@ MCP is an optional alternative to the portable skill. After `npm ci`, configure 
 npm run hyperion -- setup codex  # or claude / cursor
 ```
 
-The adapter starts Hyperion locally on demand. Reload MCP tools or start a new client session. No hand-written connection JSON is required. [Setup and manual alternatives](docs/manual-uso.md).
+The adapter starts Hyperion locally on demand. Reload MCP tools or start a new client session. No hand-written connection JSON is required. [Setup and manual alternatives](docs/conexion.md).
 
 The CLI works immediately from an existing Codex conversation with local shell access:
 

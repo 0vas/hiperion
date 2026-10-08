@@ -9,8 +9,6 @@ import {
 import {
   ReactFlow,
   Background,
-  Controls,
-  ControlButton,
   Handle,
   Position,
   MarkerType,
@@ -25,6 +23,7 @@ import {
 import {
   ArrowUpRight,
   Focus,
+  BookOpen,
   ArrowRightLeft,
   ListTree,
   Circle,
@@ -50,6 +49,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
+import { TaskNavigation, type FocusRequest } from './TaskNavigation';
 import { layoutSteps } from './layout';
 import type { Run, Step, StepStatus } from '../domain/workflow';
 
@@ -348,38 +348,6 @@ function TraceView({ step, run }: { step: Step; run: Run }) {
   );
 }
 const nodeTypes = { step: StepNode };
-function CanvasControls() {
-  const { getNodes, setCenter } = useReactFlow<Node<StepNodeData>>();
-  const focus = () => {
-    const nodes = getNodes();
-    const node =
-      nodes.find((n) => n.data.step.status === 'waiting') ||
-      nodes.find((n) => ['running', 'ready'].includes(n.data.step.status)) ||
-      nodes[0];
-    if (!node) return;
-    void setCenter(
-      node.position.x + (node.measured?.width || 280) / 2,
-      node.position.y + (node.measured?.height || 200) / 2,
-      {
-        zoom: 1,
-        duration: matchMedia('(prefers-reduced-motion: reduce)').matches
-          ? 0
-          : 280,
-      },
-    );
-  };
-  return (
-    <Controls showInteractive={false}>
-      <ControlButton
-        onClick={focus}
-        aria-label="Enfocar paso actual"
-        title="Enfocar paso actual"
-      >
-        <Focus size={17} style={{ fill: 'none' }} />
-      </ControlButton>
-    </Controls>
-  );
-}
 function FitCanvas() {
   const { getNodes, getInternalNode, setViewport } = useReactFlow();
   const initialized = useStore(
@@ -402,14 +370,14 @@ function FitCanvas() {
       const viewport = getViewportForBounds(
         bounds,
         width,
-        Math.max(180, height - (width <= 760 ? 395 : 200)),
+        Math.max(180, height - (width <= 760 ? 485 : 200)),
         0.15,
         1,
         0.12,
       );
       void setViewport({
         ...viewport,
-        y: viewport.y + (width <= 760 ? 165 : 115),
+        y: viewport.y + (width <= 760 ? 255 : 115),
       });
     }
   }, [getNodes, getInternalNode, setViewport, initialized, width, height]);
@@ -508,8 +476,12 @@ export function App() {
     new URLSearchParams(location.search).get('run') || '',
   );
   const [stepId, setStepId] = useState('');
+  const [following, setFollowing] = useState(false);
+  const [focusedStepId, setFocusedStepId] = useState('');
+  const [focusRequest, setFocusRequest] = useState<FocusRequest>(null);
+  const focusNonce = useRef(0);
   const [popup, setPopup] = useState<
-    StepView | 'activity' | 'request' | 'runs' | null
+    StepView | 'activity' | 'request' | 'runs' | 'guide' | null
   >(null);
   const [online, setOnline] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -523,6 +495,11 @@ export function App() {
     null,
   );
   const run = runId ? runs.find((r) => r.id === runId) : runs[0];
+  useEffect(() => {
+    setFollowing(false);
+    setFocusedStepId('');
+    setFocusRequest(null);
+  }, [run?.id]);
   const step =
     run?.steps.find((s) => s.id === stepId) ||
     run?.steps.find((s) => s.status === 'waiting') ||
@@ -595,8 +572,9 @@ export function App() {
           index,
           coordinator: run.coordinator,
           selected:
-            ['step', 'io', 'trace'].includes(popup || '') &&
-            step?.id === item.id,
+            focusedStepId === item.id ||
+            (['step', 'io', 'trace'].includes(popup || '') &&
+              step?.id === item.id),
           onSelect: selectStep,
         },
         draggable: false,
@@ -637,7 +615,7 @@ export function App() {
       })),
     );
     return { nodes, edges };
-  }, [run, step?.id, selectStep, popup]);
+  }, [run, step?.id, selectStep, popup, focusedStepId]);
   async function act(type: string, target?: string) {
     if (!run || busy) return;
     setBusy(true);
@@ -769,6 +747,14 @@ export function App() {
             )}
           </div>
           <div className="topbar-right">
+            <button
+              className="icon-button"
+              aria-label="Guía de uso"
+              aria-haspopup="dialog"
+              onClick={() => setPopup('guide')}
+            >
+              <BookOpen size={18} />
+            </button>
             <span className={`connection ${online ? 'online' : ''}`}>
               <span />
               {online ? 'Conectado' : loaded ? 'Sin conexión' : 'Conectando'}
@@ -897,10 +883,22 @@ export function App() {
                   nodesDraggable={false}
                   elementsSelectable
                   zoomOnDoubleClick={false}
+                  onMoveStart={(event) => {
+                    if (event) setFollowing(false);
+                  }}
                 >
                   <FitCanvas />
                   <Background color="#c6c0b2" gap={28} size={0.8} />
-                  <CanvasControls />
+                  <TaskNavigation
+                    run={run}
+                    following={following}
+                    onFollowing={setFollowing}
+                    suspended={dialogOpen}
+                    available={online}
+                    request={focusRequest}
+                    onSelect={selectStep}
+                    onFocused={setFocusedStepId}
+                  />
                 </ReactFlow>
                 {error && !dialogOpen && (
                   <div role="alert" className="canvas-alert popup-error">
@@ -1048,6 +1046,20 @@ export function App() {
                         </span>
                       </div>
                       <h2 id="popup-title">{step.title}</h2>
+                      <button
+                        className="text-button focus-detail"
+                        onClick={() => {
+                          setFollowing(false);
+                          setFocusRequest({
+                            id: step.id,
+                            nonce: ++focusNonce.current,
+                          });
+                          setPopup(null);
+                        }}
+                      >
+                        <Focus size={15} />
+                        Enfocar tarea
+                      </button>
                       <p className="step-description">
                         {step.description ||
                           (isControl(step)
@@ -1343,6 +1355,54 @@ export function App() {
                   )}
                 </>
               )}
+            {popup === 'guide' && (
+              <div className="usage-guide">
+                <span className="eyebrow">GUÍA DE USO</span>
+                <h2 id="popup-title">De la conversación al flujo</h2>
+                <ol>
+                  <li>
+                    <strong>Pide en tu chat</strong>
+                    <span>
+                      «Usa Hyperion para [actividad]». Tu agente crea el plan y
+                      comparte el enlace.
+                    </span>
+                  </li>
+                  <li>
+                    <strong>Enfoca una tarea</strong>
+                    <span>
+                      Elige en «Ir a tarea». Abre detalles, datos o logs desde
+                      sus botones. «Vista general» muestra todo el flujo.
+                    </span>
+                  </li>
+                  <li>
+                    <strong>Sigue el avance</strong>
+                    <span>
+                      Activa «Seguir actividad». La vista avanza a la tarea que
+                      requiere atención. Mover o ampliar el canvas vuelve a
+                      vista libre.
+                    </span>
+                  </li>
+                  <li>
+                    <strong>Participa</strong>
+                    <span>
+                      En «Tu turno», responde o aprueba. I/O muestra entradas y
+                      salidas; Logs muestra acciones y resultados.
+                    </span>
+                  </li>
+                  <li>
+                    <strong>Continúa en tu chat</strong>
+                    <span>
+                      «Continuar en…» copia una petición. Pégala en el mismo
+                      chat para que el agente retome el flujo.
+                    </span>
+                  </li>
+                </ol>
+                <p className="guide-note">
+                  El seguimiento mueve la vista. La ejecución continúa en tu
+                  herramienta de IA.
+                </p>
+              </div>
+            )}
             {popup === 'request' && run && (
               <div className="request-popup">
                 <span className="eyebrow">

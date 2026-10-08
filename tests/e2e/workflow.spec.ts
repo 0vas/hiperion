@@ -518,3 +518,196 @@ test('the canvas renders start/end and all three gateway symbols together', asyn
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.screenshot({ path: 'test-results/process-focus.png' });
 });
+
+test('follow tracks the next task, manual navigation releases it, and any task can be focused', async ({
+  page,
+  request,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const headers = { authorization: `Bearer ${token()}` };
+  const response = await request.post('/api/runs', {
+    headers,
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: {
+        title: 'Seguir mi tarea',
+        steps: [
+          { id: 'a', title: 'Revisar archivos', kind: 'agent' },
+          {
+            id: 'b',
+            title: 'Elegir siguiente acción',
+            kind: 'manual',
+            dependencies: ['a'],
+          },
+          {
+            id: 'c',
+            title: 'Entregar resultado',
+            kind: 'agent',
+            dependencies: ['b'],
+          },
+        ],
+      },
+    },
+  });
+  const run = await response.json();
+  await page.goto(`/?run=${run.id}`);
+  const follow = page.getByRole('button', {
+    name: 'Seguir actividad',
+    exact: true,
+  });
+  await follow.click();
+  await expect(follow).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('Ir a tarea')).toHaveValue('a');
+  const command = async (type: string, message: string) => {
+    expect(
+      (
+        await request.post(`/api/runs/${run.id}/commands`, {
+          headers,
+          data: { type, stepId: 'a', message, commandId: crypto.randomUUID() },
+        })
+      ).ok(),
+    ).toBeTruthy();
+  };
+  await command('start', 'Revisión iniciada');
+  await expect(page.getByLabel('Ir a tarea')).toContainText('En curso');
+  const camera = await page
+    .locator('.react-flow__viewport')
+    .getAttribute('style');
+  await command('log', 'Inspección registrada');
+  await page.getByRole('button', { name: 'Logs de la tarea enfocada' }).click();
+  await expect(page.getByRole('dialog')).toContainText('Inspección registrada');
+  expect(
+    await page.locator('.react-flow__viewport').getAttribute('style'),
+  ).toBe(camera);
+  await command('complete', 'Archivos revisados');
+  await expect(page.getByRole('dialog')).toContainText('Archivos revisados');
+  expect(
+    await page.locator('.react-flow__viewport').getAttribute('style'),
+  ).toBe(camera);
+  await page.keyboard.press('Escape');
+  await expect(page.getByLabel('Ir a tarea')).toHaveValue('b');
+  const box = (await page
+    .locator('.react-flow__node[data-id="b"]')
+    .boundingBox())!;
+  expect(box.width).toBeGreaterThan(270);
+  await page
+    .getByRole('button', { name: 'Datos de la tarea enfocada' })
+    .click();
+  await expect(
+    page.getByRole('dialog', { name: 'Entradas y salidas' }),
+  ).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.mouse.move(1000, 450);
+  await page.mouse.down();
+  await page.mouse.move(1080, 480, { steps: 5 });
+  await page.mouse.up();
+  await expect(follow).toHaveAttribute('aria-pressed', 'false');
+  await page.getByLabel('Ir a tarea').selectOption('a');
+  await expect(page.getByLabel('Ir a tarea')).toHaveValue('a');
+  await page.getByRole('button', { name: 'Abrir tarea enfocada' }).click();
+  await expect(
+    page.getByRole('dialog', { name: 'Revisar archivos' }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Enfocar tarea', exact: true })
+    .click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page
+    .getByRole('button', { name: 'Vista general', exact: true })
+    .click();
+  await expect(follow).toHaveAttribute('aria-pressed', 'false');
+  await page.getByRole('button', { name: 'Guía de uso', exact: true }).click();
+  await expect(
+    page.getByRole('dialog', { name: 'De la conversación al flujo' }),
+  ).toContainText('Seguir actividad');
+  await page.keyboard.press('Escape');
+  await page.screenshot({ path: 'test-results/task-follow.png' });
+  await follow.click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(follow).toHaveAttribute('aria-pressed', 'true');
+  const mobileTask = page.locator('.react-flow__node[data-id="b"]');
+  await expect
+    .poll(async () => (await mobileTask.boundingBox())!.width)
+    .toBeGreaterThan(270);
+  const mobileBox = (await mobileTask.boundingBox())!;
+  expect(mobileBox.y).toBeGreaterThan(240);
+  expect(mobileBox.y + mobileBox.height).toBeLessThan(620);
+  await page.screenshot({ path: 'test-results/task-follow-mobile.png' });
+  const { default: AxeBuilder } = await import('@axe-core/playwright');
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page.getByRole('button', { name: 'Guía de uso', exact: true }).click();
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+});
+
+test('following survives a paused agent completion and resumes on the next task', async ({
+  page,
+  request,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const headers = { authorization: `Bearer ${token()}` };
+  const response = await request.post('/api/runs', {
+    headers,
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: {
+        title: 'Pausa de seguimiento',
+        steps: [
+          { id: 'work', title: 'Comprobar cambios', kind: 'agent' },
+          {
+            id: 'review',
+            title: 'Validar cambios',
+            kind: 'approval',
+            dependencies: ['work'],
+          },
+        ],
+      },
+    },
+  });
+  const run = await response.json();
+  const command = async (type: string) =>
+    request.post(`/api/runs/${run.id}/commands`, {
+      headers,
+      data: {
+        type,
+        stepId: 'work',
+        message: 'Cambios comprobados',
+        commandId: crypto.randomUUID(),
+      },
+    });
+  expect((await command('start')).ok()).toBeTruthy();
+  await page.goto(`/?run=${run.id}`);
+  const follow = page.getByRole('button', {
+    name: 'Seguir actividad',
+    exact: true,
+  });
+  await follow.click();
+  await expect(page.getByLabel('Ir a tarea')).toHaveValue('work');
+  await page.getByRole('button', { name: 'Pausar', exact: true }).click();
+  await expect(page.getByTestId('run-status')).toHaveText('En pausa');
+  const camera = await page
+    .locator('.react-flow__viewport')
+    .getAttribute('style');
+  expect((await command('complete')).ok()).toBeTruthy();
+  await expect(page.locator('.react-flow__node[data-id="work"]')).toContainText(
+    'Completado',
+  );
+  await expect(follow).toHaveAttribute('aria-pressed', 'true');
+  expect(
+    await page.locator('.react-flow__viewport').getAttribute('style'),
+  ).toBe(camera);
+  await page.getByRole('button', { name: 'Reanudar', exact: true }).click();
+  await expect(page.getByLabel('Ir a tarea')).toHaveValue('review');
+  await expect(follow).toHaveAttribute('aria-pressed', 'true');
+});

@@ -683,3 +683,167 @@ textarea::placeholder {
     background: #292d29e6;
   }
 }
+
+/* Task navigation floats over the canvas; follow is an explicit viewing mode. */
+.task-navigation {
+  position: absolute;
+  z-index: 5;
+  left: 28px;
+  top: 152px;
+  width: 292px;
+  padding: 12px;
+  background: var(--glass);
+  border: 1px solid #fffefa;
+  border-radius: 18px;
+  box-shadow:
+    0 8px 30px #292d290a,
+    0 0 0 1px #d2cec84d;
+  backdrop-filter: blur(18px);
+  color: var(--ink);
+}
+.task-navigation-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.task-navigation-heading label {
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0;
+  color: #4d5549;
+}
+.task-navigation-heading span {
+  font-size: 10px;
+  color: #62675b;
+}
+.task-navigation select {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px;
+  font: inherit;
+  font-size: 12px;
+  border: 1px solid #d7d8cb;
+  background: #fffefa;
+  color: #343b31;
+  border-radius: 10px;
+}
+.task-navigation-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-top: 8px;
+}
+.task-navigation-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 9px;
+  min-width: 32px;
+  min-height: 34px;
+  padding: 6px;
+  color: #56604d;
+}
+.task-navigation-actions .follow-toggle {
+  margin-right: auto;
+  font-size: 11px;
+}
+.task-navigation-actions button:hover {
+  background: #ececdf;
+}
+.task-navigation-actions button[aria-pressed='true'] {
+  background: #e2ebdf;
+  color: #34533e;
+}
+.focus-detail {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: #705623;
+  padding: 8px 10px;
+  background: #f4efdf;
+  border-radius: 9px;
+}
+.usage-guide ol {
+  margin-bottom: 18px;
+}
+.usage-guide li strong {
+  font-size: 14px;
+  color: #303a2d;
+}
+.usage-guide li span {
+  font-size: 13px;
+  color: #535e4c;
+}
+.usage-guide .guide-note {
+  background: #f2f1e6;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .task-navigation {
+    top: 155px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    padding: 8px 10px;
+    border-radius: 14px;
+  }
+  .task-navigation-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .task-navigation select {
+    min-height: 32px;
+    padding: 6px;
+    font-size: 12px;
+  }
+  .task-navigation-actions {
+    margin-top: 4px;
+  }
+  .task-navigation-actions button {
+    min-height: 30px;
+  }
+  .task-navigation-actions .follow-toggle {
+    font-size: 11px;
+  }
+  .topbar-right {
+    gap: 0;
+    padding-left: 6px;
+  }
+  .topbar-right .icon-button {
+    min-width: 30px;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .task-navigation {
+    background: #fffefa;
+    backdrop-filter: none;
+    border-color: #8a8c7e;
+  }
+}
+/* Keep the floating title readable as nodes pass underneath it. */
+.canvas-workspace::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 150px;
+  z-index: 4;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    #f6f5f0 0%,
+    #f6f5f0f5 65%,
+    #f6f5f000 100%
+  );
+}
+.canvas-footer {
+  z-index: 5;
+}

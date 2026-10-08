@@ -121,3 +121,13 @@ Criterios: [ADR 0005](decisions/0005-portable-invocation-and-canvas.md).
 - El modelo ArchiMate XML/SVG se actualizó a 0.3, manteniendo cinco componentes y ocho relaciones verificadas. La importación en un editor ArchiMate sigue sin comprobarse.
 
 No se ha publicado el paquete ni enviado la rama. La elección automática de la skill en nuevas conversaciones nativas de Codex, Claude o Cursor requiere recargar esos clientes y sigue pendiente de una prueba humana. La ejecución aislada del script demuestra el contrato y el arranque, no garantiza el comportamiento de todos los hosts.
+
+## Incremento: enfoque y seguimiento de tareas (2026-10-08)
+
+Criterios: [ADR 0006](decisions/0006-task-focus.md). Guías: [uso diario](manual-uso.md) e [instalación](conexion.md).
+
+- `npm run check`: 37 pruebas de lógica/integración, 2 de distribución, tipos, build y formato correctos.
+- `npm run test:e2e`: 12 recorridos aprobados. El seguimiento cambia de tarea ante una transición real y conserva el foco entre tareas paralelas de igual prioridad. Los logs no cambian la cámara.
+- Abrir un popup suspende el movimiento; navegar manualmente desactiva el seguimiento. La pausa conserva el modo, incluso si el agente completa un trabajo iniciado, y la reanudación centra la siguiente tarea.
+- Se verificaron selector, foco desde popup, acceso a datos/logs, vista general, guía integrada, movimiento reducido, viewport móvil y axe WCAG AA. El ciclo TDD detectó controles ausentes y una etiqueta oculta en móvil; ambos casos quedaron corregidos.
+- Capturas inspeccionadas en escritorio y móvil. El canvas y sus acciones humanas conservan el mismo flujo. La continuación del agente sigue siendo cooperativa; «Seguir actividad» controla únicamente la vista.
