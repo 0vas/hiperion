@@ -1,71 +1,67 @@
-# Manual de uso de Hyperion
+# Hyperion: del chat al flujo
 
-**Pide en tu chat. Sigue el trabajo en el canvas. Decide cuando sea tu turno.**
+**Tú describes la actividad en el chat. La IA conecta Hyperion, crea el plan y ejecuta sus pasos. Tú sigues el avance y decides en el canvas.**
 
-La conversación permanece en Codex, Cursor, Claude Desktop u otro harness conectado. Su agente genera el plan y ejecuta herramientas; Hyperion muestra el proceso, guarda sus avances y recoge tus decisiones.
+## Invocarlo desde esta conversación
 
-## Uso diario
+Escribe, por ejemplo:
 
-1. **Pide:** «Usa Hyperion para [actividad]. Muéstrame el plan y pídeme aprobación antes de [acción]».
-2. **Abre** el enlace que devuelve el agente. Cada caja es una tarea; las líneas y compuertas indican el orden.
-3. **Enfoca:** elige una tarea en **Ir a tarea**, o abre su popup y pulsa **Enfocar tarea**.
-4. **Sigue:** activa **Seguir actividad**. La vista acompaña la tarea que requiere atención.
-5. **Participa:** cuando aparezca **Tu turno**, responde, entrega el resultado manual o aprueba/rechaza.
-6. **Continúa:** pulsa **Continuar en [herramienta]** y pega la petición copiada en el mismo chat.
+> Usa Hyperion para preparar una guía de bienvenida a mi proyecto. Organiza el trabajo por trabajos y pasos. Pregúntame a quién va dirigida y espera mi aprobación antes de darla por terminada.
 
-No necesitas escribir JSON. El agente crea el flujo desde tu petición.
+Eso es todo. En este entorno la conexión ya está preparada: no tienes que instalar nada, abrir una terminal ni escribir comandos. Codex crea un flujo específico y te entrega su enlace.
 
-## Controles del canvas
+Si solo dices «Quiero usar Hyperion», el agente te preguntará qué actividad quieres realizar. El plan nace de tu respuesta.
 
-| Control                             | Para qué sirve                                        |
-| ----------------------------------- | ----------------------------------------------------- |
-| **Ir a tarea**                      | Elegir y centrar cualquier tarea, incluso completada  |
-| **Tarea actual** (icono de enfoque) | Ir al paso que requiere atención                      |
-| **Seguir actividad**                | Avanzar el foco conforme cambia el trabajo            |
-| **Vista general**                   | Ver todo el flujo y dejar de seguir                   |
-| **Abrir tarea** ↗                   | Ver instrucciones, estado y acciones                  |
-| **Datos** / **I/O**                 | Revisar entradas, salidas, tipos y valores            |
-| **Logs**                            | Leer acciones, observaciones y resultados registrados |
-| **Petición original**               | Consultar el contexto que originó el plan             |
-| **Actividad**                       | Ver el historial completo                             |
-| **Guía de uso** (libro)             | Abrir esta guía breve dentro del canvas               |
+## Qué pasa después
 
-**El seguimiento controla la vista.** No inicia tareas ni despierta al agente. Prioriza fallos, tu intervención, trabajo en curso y tareas listas. Conserva el foco entre ramas de igual prioridad. Al terminar, se detiene en la última tarea.
+1. **Abre el enlace.** «Petición original» conserva lo que pediste.
+2. **Revisa el plan.** «Ver trabajos» resume las fases. Pulsa un trabajo para desplegar los pasos en el canvas. Cada paso conserva su responsable, estado, datos y logs.
+3. **Enfoca el trabajo.** Selecciona un paso en «Ir a tarea» y activa «Seguir actividad». La vista acompaña el avance; al arrastrar o cambiar el zoom puedes explorar libremente.
+4. **Decide cuando diga «Tu turno».** Abre el paso: verás qué se te pregunta, por qué hace falta y qué sucederá después. Elige los valores y pulsa «Guardar elección», o revisa el resultado y aprueba/rechaza.
+5. **Vuelve a este chat y escribe:** «Continúa mi flujo de Hyperion». Codex leerá tu decisión y retomará los pasos habilitados del mismo flujo.
 
-Arrastrar, cambiar el zoom, elegir una tarea o pulsar **Vista general** vuelve a **Vista libre**. Mientras revisas un popup, el flujo está pausado o no hay conexión, el seguimiento no mueve la cámara. Cierra el popup con **Escape** para volver sin enviar una decisión.
+Si tienes varios flujos, pulsa «Continuar en Codex» dentro del que quieres retomar y pega aquí el texto copiado. Ese botón copia la petición; no envía mensajes por ti.
 
-## Qué hacer según el estado
+## Un ejemplo completo
 
-| Estado         | Siguiente acción                     |
-| -------------- | ------------------------------------ |
-| **En espera**  | Revisar las dependencias             |
-| **Lista**      | Pedir al agente que continúe         |
-| **En curso**   | Consultar los logs                   |
-| **Tu turno**   | Responder o decidir en el popup      |
-| **Falló**      | Revisar el error con el agente       |
-| **Completada** | Consultar el resultado y las salidas |
-| **Omitida**    | Rama no elegida por la compuerta     |
+**Tú, aquí:** «Usa Hyperion para preparar mi guía de bienvenida».
 
-Si el agente terminó su turno, vuelve al mismo chat: «Continúa el flujo de Hyperion [ID]». Tu respuesta queda guardada. La reanudación automática depende del harness y no está implementada en esta edición.
+**Codex:** conecta el canvas, crea los trabajos «Definir la guía», «Redactar» y «Revisar», con sus pasos, y comparte el enlace.
 
-## Conectar tu herramienta
+**Hyperion, en tu turno:** «¿La guía es para personas sin experiencia técnica?». Explica que esta elección adapta el vocabulario. Seleccionas Sí o No y guardas.
 
-La configuración se realiza una vez. Después, cada actividad comienza desde el chat.
+**Tú, aquí:** «Continúa mi flujo de Hyperion».
 
-| Herramienta local                        | Conexión                           |
-| ---------------------------------------- | ---------------------------------- |
-| Codex, Cursor o Claude Code con terminal | Skill portable: `hyperion install` |
-| Claude Desktop                           | Servidor MCP local                 |
-| Otro harness                             | Skill con terminal, MCP o API HTTP |
+**Codex:** lee la elección, redacta la guía, registra el resultado y deja la revisión final para ti. Apruebas solo después de leerla.
 
-En este checkout: `npm run hyperion -- install`. Recarga las skills o abre una sesión nueva. Para Claude Desktop, el paquete instalable y otras opciones, consulta [Instalar y conectar Hyperion](conexion.md).
+Los títulos y decisiones se generan para tu actividad; este ejemplo no es una plantilla obligatoria.
 
-## Prueba rápida
+## Controles útiles
 
-En el harness escribe:
+| Control                    | Uso                                                          |
+| -------------------------- | ------------------------------------------------------------ |
+| Ver trabajos / Ver pasos   | Alternar resumen y detalle del mismo proceso                 |
+| Ir a tarea / Enfocar tarea | Centrar un paso, incluso si ya terminó                       |
+| Seguir actividad           | Acompañar la tarea que requiere atención                     |
+| Vista general              | Volver al flujo completo                                     |
+| I/O                        | Ver lo que recibe y entrega un paso                          |
+| Logs                       | Consultar acciones y resultados que registró el agente       |
+| Actividad                  | Revisar el historial del proceso                             |
+| Ajustes                    | Elegir tema, reducir movimiento, vista y seguimiento inicial |
+| Pausar                     | Evitar que se inicien nuevas tareas hasta reanudar           |
 
-> Usa Hyperion para revisar este repositorio. Pídeme si quiero revisar documentación o código. Muéstrame los pasos, registra los resultados y pide mi aprobación final.
+Los ajustes se guardan en este navegador. No alteran tus decisiones ni conceden permisos al agente. Escape cierra un popup sin responder.
 
-Abre el enlace, activa **Seguir actividad**, responde en **Tu turno** y vuelve al chat para continuar. Revisa **Datos** y **Logs** antes de aprobar.
+## Qué significa el estado
 
-[Contrato de procesos e I/O](process-contract.md) · [Pruebas y límites verificados](functional-test.md)
+**En espera:** falta un paso previo. **Listo:** la IA puede ejecutarlo. **En curso:** la IA registró que empezó. **Tu turno:** necesita tu decisión. **Completado:** hay un resultado. **Omitido:** esa rama no fue elegida. **Falló:** abre los logs y pide al agente que lo revise.
+
+Inicio y fin marcan los límites. Las compuertas indican todas las ramas (`+`), una sola (`X`) o las que cumplen una condición (`○`). El agente las usa solo cuando aportan sentido al proceso.
+
+## Codex, Cursor y Claude
+
+La misma petición funciona en un harness que tenga Hyperion conectado. Hyperion acepta skills, MCP o su API; el flujo no depende de una marca de IA. Esta conversación de Codex ya dispone de la skill.
+
+En otra herramienta puedes pedir: «Conecta Hyperion y úsalo para [actividad]». Si aún no tiene acceso a Hyperion, necesitará que su integración esté habilitada; reconocer el nombre no instala una aplicación por sí solo. La [guía de conexión para integradores](conexion.md) contiene esa configuración, separada del uso diario.
+
+En esta versión, al guardar una decisión debes volver al chat para continuar. El canvas no despierta conversaciones cerradas ni ejecuta por sí mismo las herramientas de la IA.

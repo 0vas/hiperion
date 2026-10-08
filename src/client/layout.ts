@@ -3,6 +3,7 @@ const control = (s: Step) => ['start', 'end', 'gateway'].includes(s.kind);
 /** Structured blocks retain their lanes through nested splits and matching joins. */
 export function layoutSteps(
   steps: Step[],
+  structured = true,
 ): Record<string, { x: number; y: number }> {
   const byId = new Map(steps.map((s) => [s.id, s]));
   const depth = new Map<string, number>();
@@ -34,7 +35,7 @@ export function layoutSteps(
   const centers = new Map<string, number>();
   const start = steps.find((s) => s.kind === 'start');
   const end = steps.find((s) => s.kind === 'end');
-  if (start && end) {
+  if (structured && start && end) {
     const next = (id: string) =>
       steps.find((s) => s.dependencies.includes(id))!.id;
     const joinFor = (id: string) =>

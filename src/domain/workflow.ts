@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { validateJobs } from './jobs.js';
 
 import {
   identifier,
@@ -20,6 +21,15 @@ export const stepSchema = z
     title: z.string().trim().min(1).max(160),
     description: z.string().trim().max(4000).default(''),
     kind: z.enum(['agent', 'manual', 'approval', 'start', 'end', 'gateway']),
+    jobId: identifier.optional(),
+    interaction: z
+      .object({
+        question: z.string().trim().min(1).max(500),
+        context: z.string().trim().min(1).max(1000),
+        next: z.string().trim().min(1).max(1000),
+      })
+      .strict()
+      .optional(),
     phase: z.string().trim().min(1).max(100).optional(),
     inputs: z.array(inputSchema).max(30).optional(),
     outputs: z.array(portSchema).max(30).optional(),
@@ -33,6 +43,19 @@ export const planSchema = z
     profile: z.literal('bpmn-lite').optional(),
     request: z.string().trim().min(1).max(8000).optional(),
     description: z.string().trim().max(4000).default(''),
+    jobs: z
+      .array(
+        z
+          .object({
+            id: identifier,
+            title: z.string().trim().min(1).max(160),
+            description: z.string().trim().max(1000).optional(),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(30)
+      .optional(),
     steps: z.array(stepSchema).min(1).max(100),
   })
   .strict();
@@ -91,6 +114,7 @@ export type RunEvent = {
   message: string;
 };
 export type Run = {
+  jobs?: Plan['jobs'];
   profile?: 'bpmn-lite';
   request?: string;
   id: string;
@@ -175,6 +199,15 @@ export function createRun(input: unknown, coordinator: string): Run {
   }
   plan.steps.forEach((step) => visit(step.id));
   validateProcess(plan);
+  try {
+    validateJobs(plan);
+  } catch (error) {
+    throw new WorkflowError(
+      'INVALID_PLAN',
+      error instanceof Error ? error.message : 'Invalid jobs',
+      400,
+    );
+  }
   const now = new Date().toISOString();
   const run: Run = {
     ...plan,
@@ -208,7 +241,8 @@ export function transition(
   actor: Principal,
 ): Run {
   const command = commandSchema.parse(input);
-  const { type, stepId, message = '' } = command;
+  const { type, stepId } = command;
+  let message = command.message || '';
   requireCondition(
     !command.outputs || ['complete', 'submit', 'approve'].includes(type),
     'INVALID_COMMAND',
@@ -303,6 +337,13 @@ export function transition(
         'INVALID_KIND',
         'This action requires an agent step',
       );
+    if (
+      type === 'submit' &&
+      !message &&
+      step.outputs?.length &&
+      Object.keys(command.outputs || {}).length
+    )
+      message = 'Decisión guardada en los datos del paso.';
     if (['complete', 'fail', 'submit', 'reject', 'log'].includes(type))
       requireCondition(
         message.length > 0,

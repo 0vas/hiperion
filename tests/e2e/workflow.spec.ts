@@ -303,9 +303,7 @@ test('the workflow is a landscape canvas with information and human actions in a
     .fill('El canvas funciona y mantiene mi contexto.');
   await page.getByRole('button', { name: 'Cerrar popup' }).focus();
   await page.keyboard.press('Shift+Tab');
-  await expect(
-    page.getByRole('button', { name: 'Enviar respuesta' }),
-  ).toBeFocused();
+  await expect(page.getByRole('dialog').locator('button').last()).toBeFocused();
   await page.getByRole('button', { name: 'Enviar respuesta' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(node).toBeFocused();
@@ -407,9 +405,7 @@ test('BPMN nodes expose typed inputs/outputs and public traces through their own
   await page
     .getByRole('button', { name: 'Ver paso: Elegir revisiones', exact: true })
     .click();
-  await page
-    .getByLabel('Tu respuesta', { exact: true })
-    .fill('Solo documentación.');
+  await expect(page.locator('#human-answer')).toHaveCount(0);
   const { default: AxeBuilder } = await import('@axe-core/playwright');
   expect(
     (
@@ -418,9 +414,9 @@ test('BPMN nodes expose typed inputs/outputs and public traces through their own
         .analyze()
     ).violations,
   ).toEqual([]);
-  await page.getByLabel('docs (boolean)').selectOption('true');
-  await page.getByLabel('code (boolean)').selectOption('false');
-  await page.getByRole('button', { name: 'Enviar respuesta' }).click();
+  await page.locator('#output-docs').selectOption('true');
+  await page.locator('#output-code').selectOption('false');
+  await page.getByRole('button', { name: 'Guardar elección' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.locator('.react-flow__node[data-id="code"]')).toContainText(
     'Omitido',
@@ -710,4 +706,151 @@ test('following survives a paused agent completion and resumes on the next task'
   await page.getByRole('button', { name: 'Reanudar', exact: true }).click();
   await expect(page.getByLabel('Ir a tarea')).toHaveValue('review');
   await expect(follow).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('jobs, concrete decisions and preferences work from a conversation-generated plan', async ({
+  page,
+  request,
+}) => {
+  const response = await request.post('/api/runs', {
+    headers: { authorization: `Bearer ${token()}` },
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: {
+        title: 'Preparar mi guía de Hyperion',
+        request: 'Usa Hyperion para preparar mi guía con ejemplos.',
+        jobs: [
+          { id: 'preferences', title: 'Personalizar guía' },
+          { id: 'writing', title: 'Redactar guía' },
+        ],
+        steps: [
+          {
+            id: 'examples',
+            jobId: 'preferences',
+            title: 'Elegir ejemplos',
+            kind: 'manual',
+            interaction: {
+              question: '¿Incluimos ejemplos de peticiones?',
+              context: 'La guía se adaptará a tu elección.',
+              next: 'Codex redactará la guía con el formato elegido.',
+            },
+            outputs: [
+              {
+                name: 'examples',
+                type: 'boolean',
+                required: true,
+                description: 'Incluir ejemplos de peticiones',
+              },
+            ],
+          },
+          {
+            id: 'write',
+            jobId: 'writing',
+            title: 'Escribir la guía',
+            kind: 'agent',
+            dependencies: ['examples'],
+          },
+          {
+            id: 'verify',
+            jobId: 'writing',
+            title: 'Comprobar la guía',
+            kind: 'agent',
+            dependencies: ['write'],
+          },
+        ],
+      },
+    },
+  });
+  expect(response.status()).toBe(201);
+  const run = await response.json();
+  await page.goto(`/?run=${run.id}`);
+  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await page.getByLabel('Tema', { exact: true }).selectOption('dark');
+  await page.getByLabel('Reducir movimiento').check();
+  await page.getByLabel('Seguir al abrir un flujo').check();
+  await page.getByLabel('Vista del flujo').selectOption('jobs');
+  await page.keyboard.press('Escape');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(
+    page.getByRole('button', { name: 'Seguir actividad' }),
+  ).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.job-node')).toHaveCount(2);
+  const { default: CanvasAxe } = await import('@axe-core/playwright');
+  expect(
+    (
+      await new CanvasAxe({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page.screenshot({ path: 'test-results/jobs-dark.png' });
+  await page
+    .getByRole('button', { name: 'Ver pasos: Personalizar guía' })
+    .click();
+  await expect(
+    page.getByRole('button', { name: 'Ver paso: Elegir ejemplos' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Ver paso: Elegir ejemplos' }).click();
+  await expect(
+    page.getByText('¿Incluimos ejemplos de peticiones?', { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('#human-answer')).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Guardar elección' }),
+  ).toBeDisabled();
+  await page.getByLabel('Incluir ejemplos de peticiones').selectOption('true');
+  await expect(page.locator('.decision-next')).toContainText(
+    'Codex redactará la guía con el formato elegido.',
+  );
+  const { default: AxeBuilder } = await import('@axe-core/playwright');
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page.screenshot({ path: 'test-results/decision-dark.png' });
+  await page.getByRole('button', { name: 'Guardar elección' }).click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Elección guardada' }),
+  ).toBeVisible();
+  const updated = await (
+    await request.get(`/api/runs/${run.id}`, {
+      headers: { authorization: `Bearer ${token()}` },
+    })
+  ).json();
+  expect(updated.steps[0].outputValues).toEqual({ examples: true });
+  expect(updated.steps[1].status).toBe('ready');
+  await page.getByLabel('Ir a tarea').selectOption('examples');
+  for (const name of [
+    'Datos de la tarea enfocada',
+    'Logs de la tarea enfocada',
+  ]) {
+    await page.getByRole('button', { name, exact: true }).click();
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    await page.keyboard.press('Escape');
+  }
+
+  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await expect(page.getByLabel('Reducir movimiento')).toBeChecked();
+  await page.getByLabel('Tema', { exact: true }).selectOption('light');
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page.screenshot({ path: 'test-results/settings-mobile.png' });
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'Guía de uso' })).toBeVisible();
 });

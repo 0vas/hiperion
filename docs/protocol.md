@@ -1,8 +1,10 @@
-# Hyperion protocol v0.2
+# Hyperion protocol v0.4
 
 All requests use the loopback HTTP origin. JSON is validated strictly; unknown fields are rejected. Limits: 100 steps per plan, 128 KiB per request, 8,000 characters per result/log message. Plans are immutable, acyclic and contain unique step IDs. Task ports use bounded lists of up to 30 fields.
 
 Version 0.2 preserves legacy DAG plans and adds the optional `bpmn-lite` profile. See the [process contract](process-contract.md) for structured gateways, typed data and public traces.
+
+Version 0.4 adds optional `jobs`/`step.jobId` and human `interaction` (question, context, next). Jobs summarize executable steps; they accept no commands. A typed human submission does not require duplicate free text. See the process contract for validation and compatibility.
 
 ## Authentication
 

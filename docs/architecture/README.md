@@ -1,6 +1,6 @@
 # Hyperion — contexto y propuesta de arquitectura
 
-Estado: arquitectura de referencia y evolución hasta el incremento 0.3. Propuesta original: 2026-10-07, America/Lima.
+Estado: arquitectura de referencia y evolución hasta el incremento 0.4. Propuesta original: 2026-10-07, America/Lima.
 
 El usuario autorizó posteriormente iniciar la implementación en el repositorio y probarla con Codex. El [ADR 0001](../decisions/0001-functional-increment.md) concreta ese incremento; el [protocolo](../protocol.md) describe su comportamiento implementado.
 Nombre del producto: Hyperion. Nombre actual del repositorio: `hiperion`.
@@ -175,3 +175,9 @@ El canvas utiliza símbolos basados en BPMN para representar el proceso; los dia
 El [ADR 0005](../decisions/0005-portable-invocation-and-canvas.md) añade una skill portable como artefacto de instrucciones consumido por el agente externo. El instalador y la CLI compilada pertenecen al componente Adaptadores de agente: registran una identidad arbitraria y arrancan/reutilizan el servicio. MCP es opcional cuando el host puede descubrir skills y ejecutar comandos locales. No se delega la interpretación de peticiones al servidor ni se añade dependencia de un modelo.
 
 El paquete npm contiene los componentes ejecutables y la interfaz compilados; el almacenamiento persiste fuera del paquete. La vista ArchiMate conserva cinco componentes y ocho relaciones, actualizando sus responsabilidades a 0.3. El canvas ocupa el viewport y coloca los controles sobre el contenido. Las compuertas anidadas conservan carriles y centros; el zoom de enfoque facilita la lectura de tareas.
+
+## Incremento 0.4: trabajos y decisiones explícitas
+
+El [ADR 0007](../decisions/0007-jobs-and-decisions.md) añade agrupación `jobs`/`jobId` y la descripción de intervenciones humanas. El motor valida la jerarquía y deriva el progreso de los trabajos desde pasos reales; no agrega otro ejecutor ni otro estado persistido. La interfaz proyecta el mismo plan como trabajos o pasos y guarda preferencias de apariencia/navegación en el navegador. La sesión, las decisiones y los recibos permanecen en SQLite.
+
+La vista ArchiMate implementada mantiene cinco componentes y ocho relaciones Flow. Actualiza responsabilidades de Interfaz web y Motor de workflow; no confunde la agrupación visual de trabajos con subprocesos BPMN completos. La invocación sigue siendo agente → adaptador → HTTP → motor/persistencia → canvas.

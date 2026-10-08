@@ -138,3 +138,33 @@ El agente puede anotar un `log` mediante:
 `trace.kind` admite `summary` (resumen público de decisión), `action` u `observation`. Esta secuencia permite inspeccionar una traza al estilo ReAct. No extrae ni solicita el razonamiento privado del LLM. Solo presenta información que el agente comparte expresamente; Hyperion no intercepta automáticamente todas sus llamadas a herramientas. La secuencia de eventos registra causalidad y no debe confundirse con `run.revision`, que aumenta una vez por comando aceptado.
 
 No registres credenciales ni datos privados innecesarios en las trazas. El contenido queda guardado como parte del flujo local.
+
+## Trabajos y decisiones (0.4)
+
+`jobs` es un array opcional de `{id, title, description?}`. Un paso puede declarar `jobId`. Los identificadores de trabajos son únicos, deben tener miembros y no pueden referenciarse trabajos inexistentes. El grafo contraído de trabajos debe ser acíclico: si una fase aparece otra vez después de salir de ella, divídela en dos trabajos. Los nodos estructurales también pueden pertenecer a un trabajo.
+
+Los pasos conservan toda la semántica de ejecución e I/O. Un trabajo no acepta comandos: muestra progreso y estado derivados de sus pasos. Fallos/rechazos y decisiones pendientes tienen prioridad sobre ejecución; después vienen tareas listas y bloqueadas. Los pasos omitidos se contabilizan aparte. «Ver trabajos» contrae rutas internas; «Ver pasos» recupera los nodos y compuertas originales. Al abrir un trabajo se muestra el detalle del flujo y se centra uno de sus pasos que requiere atención.
+
+Las tareas humanas pueden añadir:
+
+```json
+{
+  "interaction": {
+    "question": "¿Incluimos ejemplos de peticiones?",
+    "context": "La guía se adaptará a tu elección.",
+    "next": "Codex redactará la guía con el formato elegido."
+  },
+  "outputs": [
+    {
+      "name": "examples",
+      "type": "boolean",
+      "required": true,
+      "description": "Incluir ejemplos de peticiones"
+    }
+  ]
+}
+```
+
+`question`, `context` y `next` son obligatorios dentro de `interaction`. Se admiten solo en pasos manuales/de aprobación. `description` de cada salida se usa como etiqueta humana; su nombre/tipo se conserva en I/O. Un `submit` con salidas tipadas válidas y al menos un valor no requiere `message` redundante; el motor registra «Decisión guardada en los datos del paso». Las respuestas sin puertos siguen requiriendo texto. La validación de tipos, campos obligatorios y roles no cambia. Usa campos simples para usuarios no técnicos; no conviertas una decisión cotidiana en un formulario JSON.
+
+Los campos nuevos son opcionales, sin valores predeterminados añadidos a planes anteriores, para preservar los recibos de idempotencia existentes.

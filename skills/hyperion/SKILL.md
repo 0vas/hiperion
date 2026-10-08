@@ -26,7 +26,11 @@ Read [the protocol](references/protocol.md) for commands and [the process contra
 node /absolute/path/to/this/skill/scripts/hyperion.mjs --agent YOUR_AGENT_ID create /absolute/path/plan.json UNIQUE_REQUEST_ID
 ```
 
-Always preserve the original text in `plan.request`. Prefer `bpmn-lite` for process flows: start/end, structured split/join blocks only when meaningful, typed task ports and short clear phase names. Do not substitute a canned example for the requested activity. Share the returned URL. The agent writes JSON; the user does not.
+Always preserve the original text in `plan.request`. Prefer `bpmn-lite` for process flows: start/end, structured split/join blocks only when meaningful, typed task ports and short clear phase names. Do not substitute a canned example for the requested activity. Share the returned URL. The agent writes JSON; the user does not. Do not give installation commands as the daily usage path when this skill is already available. Connect the service yourself, create the flow, and return its link.
+
+Group a multi-stage activity with `jobs: [{id, title, description?}]` and assign steps using `jobId`. Each step is independently executable with its own evidence and I/O; a job only summarizes them. Keep each job contiguous in the dependency graph (no reentry after leaving it). Group internal gateways with their job when needed. The canvas can show jobs or their steps.
+
+For human steps, declare `interaction: {question, context, next}`: the exact decision, why it matters, and what follows. Use clear output descriptions as field labels. Prefer simple booleans, text or numbers for nontechnical users; do not make them author JSON. Typed fields are the response: do not ask for the same information again in free text. Do not add artificial approvals or choices unrelated to the request.
 
 ## Execute and resume
 

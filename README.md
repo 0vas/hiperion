@@ -4,9 +4,15 @@
 
 Hyperion is an independent, MIT-licensed module. It can accompany Codex or another compatible agent through HTTP, a CLI, or MCP. It has no dependency on Olimpo and does not require an AI API key.
 
-> **v0.3 — local cooperative preview.** One trusted user and one external coordinator per execution. Hyperion manages workflow state; your agent performs the actual work. Multi-agent dispatch, hosted multi-user operation, and automatic conversation wakeups are future work.
+> **v0.4 — local cooperative preview.** One trusted user and one external coordinator per execution. Hyperion manages workflow state; your agent performs the actual work. Multi-agent dispatch, hosted multi-user operation, and automatic conversation wakeups are future work.
 
 ![Hyperion landscape canvas with interactive workflow nodes](docs/images/workflow.png)
+
+## Start in your conversation
+
+Say **“Usa Hyperion para [tu actividad]”** to a connected agent. It starts Hyperion, creates jobs and executable steps from the request, and shares the canvas. Choose between the job overview and detailed steps; focus or follow the active task. Human decisions show a concrete question, context and next action. Appearance and navigation preferences live in **Ajustes**.
+
+For daily use, follow the [Spanish user manual](docs/manual-uso.md). The installation instructions below are for setting up a new environment; the user does not run them for each activity.
 
 ## Say “use Hyperion”
 
@@ -18,7 +24,7 @@ npm run hyperion -- install
 
 Reload skills or open a new agent session, then ask: **“Use Hyperion to guide my next release.”** The agent starts the canvas on demand, generates a plan from your request, performs ready work and waits for your decisions in the canvas. Local agents with Agent Skills and shell access do not need MCP setup. MCP and HTTP remain available for other integrations.
 
-For a standalone distribution, run `npm install --global ./hyperion-workflows-0.3.0.tgz`, then `hyperion install`. The archive includes the compiled server, UI and CLI. It is currently built locally with `npm pack`; this increment has not been published to npm or GitHub Releases. Node.js 22.13+ is required. [Installation, discovery and compatibility](docs/conexion.md).
+For a standalone distribution, run `npm install --global ./hyperion-workflows-0.4.0.tgz`, then `hyperion install`. The archive includes the compiled server, UI and CLI. It is currently built locally with `npm pack`; this increment has not been published to npm or GitHub Releases. Node.js 22.13+ is required. [Installation, discovery and compatibility](docs/conexion.md).
 
 ## Run from source
 

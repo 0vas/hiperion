@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" identifier="hyperion-v03" version="0.3">
-  <name>Hyperion v0.3 — implemented cooperation</name>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" identifier="hyperion-v04" version="0.4">
+  <name>Hyperion v0.4 — implemented cooperation</name>
   <documentation>ArchiMate 3.2 subset. Five logical Application Components and directed Flow relationships. Diagram layout is provided separately in implemented.svg.</documentation>
   <elements>
     <element identifier="I1" xsi:type="ApplicationComponent">
       <name>Interfaz web</name>
-      <documentation>Canvas · decisiones humanas</documentation>
+      <documentation>Canvas · trabajos · preferencias</documentation>
     </element>
     <element identifier="I2" xsi:type="ApplicationComponent">
       <name>Adaptadores de agente</name>
@@ -21,7 +21,7 @@
     </element>
     <element identifier="I5" xsi:type="ApplicationComponent">
       <name>Motor de workflow</name>
-      <documentation>DAG · compuertas · datos tipados</documentation>
+      <documentation>Pasos · compuertas · decisiones</documentation>
     </element>
   </elements>
   <relationships>

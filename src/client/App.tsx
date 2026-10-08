@@ -21,6 +21,7 @@ import {
   type Edge,
 } from '@xyflow/react';
 import {
+  Settings2,
   ArrowUpRight,
   Focus,
   BookOpen,
@@ -50,6 +51,10 @@ import {
   XCircle,
 } from 'lucide-react';
 import { TaskNavigation, type FocusRequest } from './TaskNavigation';
+import { jobProgress, projectJobs } from '../domain/jobs';
+import { JobNode } from './JobNode';
+import { Settings } from './Settings';
+import { usePreferences } from './preferences';
 import { layoutSteps } from './layout';
 import type { Run, Step, StepStatus } from '../domain/workflow';
 
@@ -137,6 +142,7 @@ type StepNodeData = {
   step: Step;
   index: number;
   coordinator: string;
+  jobTitle?: string;
   selected: boolean;
   onSelect: (id: string, view?: StepView) => void;
 };
@@ -227,7 +233,9 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
                 {labels[step.status]}
               </span>
             </div>
-            {step.phase && <span className="node-phase">{step.phase}</span>}
+            {(data.jobTitle || step.phase) && (
+              <span className="node-phase">{data.jobTitle || step.phase}</span>
+            )}
             <strong>{step.title}</strong>
             <div className="node-owner">
               {step.kind === 'agent' ? (
@@ -347,8 +355,8 @@ function TraceView({ step, run }: { step: Step; run: Run }) {
     </div>
   );
 }
-const nodeTypes = { step: StepNode };
-function FitCanvas() {
+const nodeTypes = { step: StepNode, job: JobNode };
+function FitCanvas({ view }: { view: string }) {
   const { getNodes, getInternalNode, setViewport } = useReactFlow();
   const initialized = useStore(
     (state) =>
@@ -361,7 +369,7 @@ function FitCanvas() {
   const width = useStore((state) => state.width);
   const height = useStore((state) => state.height);
   useEffect(() => {
-    const size = `${width}:${height}`;
+    const size = `${view}:${width}:${height}`;
     if (initialized && fittedSize.current !== size) {
       fittedSize.current = size;
       const bounds = getNodesBounds(
@@ -380,7 +388,15 @@ function FitCanvas() {
         y: viewport.y + (width <= 760 ? 255 : 115),
       });
     }
-  }, [getNodes, getInternalNode, setViewport, initialized, width, height]);
+  }, [
+    getNodes,
+    getInternalNode,
+    setViewport,
+    initialized,
+    width,
+    height,
+    view,
+  ]);
   return null;
 }
 async function api<T>(path: string, data?: unknown): Promise<T> {
@@ -470,6 +486,8 @@ function Modal({
   );
 }
 export function App() {
+  const [preferences, setPreferences] = usePreferences();
+  const [notice, setNotice] = useState('');
   const popupTrigger = useRef<HTMLElement | null>(null);
   const [runs, setRuns] = useState<Run[]>([]);
   const [runId, setRunId] = useState(
@@ -481,7 +499,7 @@ export function App() {
   const [focusRequest, setFocusRequest] = useState<FocusRequest>(null);
   const focusNonce = useRef(0);
   const [popup, setPopup] = useState<
-    StepView | 'activity' | 'request' | 'runs' | 'guide' | null
+    StepView | 'activity' | 'request' | 'runs' | 'guide' | 'settings' | null
   >(null);
   const [online, setOnline] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -496,10 +514,11 @@ export function App() {
   );
   const run = runId ? runs.find((r) => r.id === runId) : runs[0];
   useEffect(() => {
-    setFollowing(false);
+    setFollowing(preferences.follow);
+    setNotice('');
     setFocusedStepId('');
     setFocusRequest(null);
-  }, [run?.id]);
+  }, [run?.id, preferences.follow]);
   const step =
     run?.steps.find((s) => s.id === stepId) ||
     run?.steps.find((s) => s.status === 'waiting') ||
@@ -561,8 +580,36 @@ export function App() {
   }, []);
   const graph = useMemo(() => {
     if (!run) return { nodes: [], edges: [] };
-    const positions = layoutSteps(run.steps);
-    const nodes: Node<StepNodeData>[] = run.steps.map((item, index) => {
+    const collapsed = preferences.view === 'jobs' && !!run.jobs?.length;
+    const displayed = collapsed ? projectJobs(run) : run.steps;
+    const positions = layoutSteps(displayed, !collapsed);
+    const nodes: Node[] = displayed.map((item, index) => {
+      if (item.id.startsWith('job:')) {
+        const id = item.id.slice(4);
+        const progress = jobProgress(run, id);
+        return {
+          id: item.id,
+          type: 'job',
+          position: positions[item.id]!,
+          draggable: false,
+          focusable: false,
+          data: {
+            title: item.title,
+            ...progress,
+            statusLabel: labels[progress.status],
+            onExpand: () => {
+              setPreferences((p) => ({ ...p, view: 'steps' }));
+              setFollowing(false);
+              const child =
+                progress.steps.find((s) =>
+                  ['waiting', 'running', 'ready', 'failed'].includes(s.status),
+                ) || progress.steps[0];
+              if (child)
+                setFocusRequest({ id: child.id, nonce: ++focusNonce.current });
+            },
+          },
+        };
+      }
       return {
         id: item.id,
         type: 'step',
@@ -571,6 +618,7 @@ export function App() {
           step: item,
           index,
           coordinator: run.coordinator,
+          jobTitle: run.jobs?.find((j) => j.id === item.jobId)?.title,
           selected:
             focusedStepId === item.id ||
             (['step', 'io', 'trace'].includes(popup || '') &&
@@ -581,7 +629,7 @@ export function App() {
         focusable: false,
       };
     });
-    const edges: Edge[] = run.steps.flatMap((item) =>
+    const edges: Edge[] = displayed.flatMap((item) =>
       item.dependencies.map((id) => ({
         id: `${id}-${item.id}`,
         source: id,
@@ -602,7 +650,7 @@ export function App() {
         labelStyle: { fontSize: 11, fill: '#655e50' },
         labelBgStyle: { fill: '#f7f5ef', fillOpacity: 0.95 },
         pathOptions: { borderRadius: 20 },
-        animated: item.status === 'running',
+        animated: item.status === 'running' && !preferences.reduceMotion,
         style: {
           stroke:
             run.steps.find((s) => s.id === id)?.status === 'completed'
@@ -615,7 +663,15 @@ export function App() {
       })),
     );
     return { nodes, edges };
-  }, [run, step?.id, selectStep, popup, focusedStepId]);
+  }, [
+    run,
+    step?.id,
+    selectStep,
+    popup,
+    focusedStepId,
+    preferences.view,
+    preferences.reduceMotion,
+  ]);
   async function act(type: string, target?: string) {
     if (!run || busy) return;
     setBusy(true);
@@ -648,6 +704,10 @@ export function App() {
         expectedRevision: run.revision,
       });
       setAnswer('');
+      if (['submit', 'approve'].includes(type))
+        setNotice(
+          `Elección guardada. Vuelve al chat y pide a ${titleCase(run.coordinator)} continuar este flujo.`,
+        );
       setConfirmation(null);
       if (['submit', 'approve', 'reject', 'cancel', 'retry'].includes(type))
         setPopup(null);
@@ -664,7 +724,7 @@ export function App() {
       await navigator.clipboard.writeText(
         run
           ? `Continúa el flujo de Hyperion ${run.id}. Lee su estado y mi respuesta; ejecuta solo los pasos habilitados y registra resultados reales.`
-          : 'Usa Hyperion para guiarme paso a paso. Crea un flujo con tareas automáticas, una tarea manual y una aprobación.',
+          : 'Quiero usar Hyperion. Pregúntame qué actividad quiero realizar y crea el flujo desde mi respuesta.',
       );
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -747,6 +807,14 @@ export function App() {
             )}
           </div>
           <div className="topbar-right">
+            <button
+              className="icon-button"
+              aria-label="Ajustes"
+              aria-haspopup="dialog"
+              onClick={() => setPopup('settings')}
+            >
+              <Settings2 size={18} />
+            </button>
             <button
               className="icon-button"
               aria-label="Guía de uso"
@@ -837,6 +905,22 @@ export function App() {
                   </button>
                 </div>
                 <div className="canvas-tools-group">
+                  {!!run.jobs?.length && (
+                    <button
+                      className="secondary"
+                      onClick={() =>
+                        setPreferences((p) => ({
+                          ...p,
+                          view: p.view === 'steps' ? 'jobs' : 'steps',
+                        }))
+                      }
+                    >
+                      <Layers3 size={15} />
+                      {preferences.view === 'steps'
+                        ? 'Ver trabajos'
+                        : 'Ver pasos'}
+                    </button>
+                  )}
                   <button
                     className="secondary continue-button"
                     onClick={copyPrompt}
@@ -887,10 +971,11 @@ export function App() {
                     if (event) setFollowing(false);
                   }}
                 >
-                  <FitCanvas />
+                  <FitCanvas view={preferences.view} />
                   <Background color="#c6c0b2" gap={28} size={0.8} />
                   <TaskNavigation
                     run={run}
+                    view={preferences.view}
                     following={following}
                     onFollowing={setFollowing}
                     suspended={dialogOpen}
@@ -900,6 +985,18 @@ export function App() {
                     onFocused={setFocusedStepId}
                   />
                 </ReactFlow>
+                {notice && !dialogOpen && (
+                  <div className="canvas-notice" role="status">
+                    <Check size={16} />
+                    <span>{notice}</span>
+                    <button
+                      aria-label="Cerrar aviso"
+                      onClick={() => setNotice('')}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
                 {error && !dialogOpen && (
                   <div role="alert" className="canvas-alert popup-error">
                     {error}
@@ -1038,6 +1135,9 @@ export function App() {
                   ) : popup === 'step' && step ? (
                     <div className="step-detail">
                       <div className="detail-eyebrow">
+                        {step.jobId
+                          ? `${run.jobs?.find((j) => j.id === step.jobId)?.title} · `
+                          : ''}
                         PASO{' '}
                         {String(run.steps.indexOf(step) + 1).padStart(2, '0')}
                         <span className={`status-tag ${step.status}`}>
@@ -1060,16 +1160,164 @@ export function App() {
                         <Focus size={15} />
                         Enfocar tarea
                       </button>
-                      <p className="step-description">
-                        {step.description ||
-                          (isControl(step)
-                            ? 'El motor aplica este nodo automáticamente al cumplirse sus condiciones y dependencias.'
-                            : step.kind === 'manual'
-                              ? 'Comparte la información que necesita el agente para avanzar.'
-                              : step.kind === 'approval'
-                                ? 'Revisa los resultados anteriores y decide si el proceso puede continuar.'
-                                : 'El agente ejecutará este paso y registrará su resultado aquí.')}
-                      </p>
+                      {!step.interaction && (
+                        <p className="step-description">
+                          {step.description ||
+                            (isControl(step)
+                              ? 'El motor aplica este nodo automáticamente al cumplirse sus condiciones y dependencias.'
+                              : step.kind === 'manual'
+                                ? 'Comparte la información que necesita el agente para avanzar.'
+                                : step.kind === 'approval'
+                                  ? 'Revisa los resultados anteriores y decide si el proceso puede continuar.'
+                                  : 'El agente ejecutará este paso y registrará su resultado aquí.')}
+                        </p>
+                      )}
+                      {step.status === 'waiting' && live && (
+                        <div className="human-action">
+                          <div className="action-title">
+                            {step.kind === 'manual' ? (
+                              <MessageSquareText size={18} />
+                            ) : (
+                              <ShieldCheck size={18} />
+                            )}
+                            <strong>
+                              {step.interaction?.question ||
+                                (step.kind === 'manual'
+                                  ? step.title
+                                  : '¿Apruebas este resultado?')}
+                            </strong>
+                          </div>
+                          <p className="decision-context">
+                            {step.interaction?.context ||
+                              step.description ||
+                              'Este dato permite preparar el siguiente paso.'}
+                          </p>
+                          {(step.kind === 'approval' ||
+                            !step.outputs?.length) && (
+                            <>
+                              <label htmlFor="human-answer">
+                                {step.kind === 'manual'
+                                  ? step.interaction?.question || 'Tu respuesta'
+                                  : 'Comentario (opcional al aprobar)'}
+                              </label>
+                              <textarea
+                                id="human-answer"
+                                value={answer}
+                                onChange={(e) => setAnswer(e.target.value)}
+                                maxLength={8000}
+                                rows={3}
+                                placeholder={
+                                  step.kind === 'manual'
+                                    ? step.title
+                                    : 'Añade contexto a tu decisión…'
+                                }
+                              />
+                            </>
+                          )}
+                          {!!step.outputs?.length && (
+                            <fieldset className="output-fields">
+                              <legend>Tu elección</legend>
+                              {step.outputs.map((port) => (
+                                <div key={port.name}>
+                                  <label htmlFor={`output-${port.name}`}>
+                                    {port.description || port.name}
+                                    {!port.required && ' (opcional)'}
+                                  </label>
+                                  {port.type === 'boolean' ? (
+                                    <select
+                                      id={`output-${port.name}`}
+                                      value={outputDraft[port.name] || ''}
+                                      onChange={(e) =>
+                                        setOutputDraft({
+                                          ...outputDraft,
+                                          [port.name]: e.target.value,
+                                        })
+                                      }
+                                    >
+                                      <option value="">
+                                        Selecciona una opción
+                                      </option>
+                                      <option value="true">Sí</option>
+                                      <option value="false">No</option>
+                                    </select>
+                                  ) : (
+                                    <textarea
+                                      id={`output-${port.name}`}
+                                      rows={2}
+                                      value={outputDraft[port.name] || ''}
+                                      placeholder={
+                                        port.type === 'object' ||
+                                        port.type === 'array'
+                                          ? 'JSON'
+                                          : port.type === 'number'
+                                            ? 'Número'
+                                            : 'Valor'
+                                      }
+                                      onChange={(e) =>
+                                        setOutputDraft({
+                                          ...outputDraft,
+                                          [port.name]: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                            </fieldset>
+                          )}
+                          <button
+                            className="primary full"
+                            disabled={
+                              busy ||
+                              !online ||
+                              (step.kind === 'manual' &&
+                                !step.outputs?.length &&
+                                !answer.trim()) ||
+                              !!step.outputs?.some(
+                                (p) =>
+                                  p.required && !outputDraft[p.name]?.trim(),
+                              ) ||
+                              (step.kind === 'manual' &&
+                                !!step.outputs?.length &&
+                                !Object.values(outputDraft).some((v) =>
+                                  v.trim(),
+                                ))
+                            }
+
+                            onClick={() =>
+                              void act(
+                                step.kind === 'manual' ? 'submit' : 'approve',
+                                step.id,
+                              )
+                            }
+                          >
+                            {busy ? (
+                              <LoaderCircle className="spin" size={16} />
+                            ) : (
+                              <Check size={16} />
+                            )}{' '}
+                            {step.kind === 'manual'
+                              ? step.outputs?.length
+                                ? 'Guardar elección'
+                                : 'Enviar respuesta'
+                              : 'Aprobar paso'}
+                          </button>
+                          {step.kind === 'approval' && (
+                            <button
+                              className="text-button reject"
+                              disabled={busy || !online}
+                              onClick={() => setConfirmation('reject')}
+                            >
+                              Rechazar y detener este flujo
+                            </button>
+                          )}
+                          <p className="decision-next">
+                            <strong>Después</strong>{' '}
+                            {step.interaction?.next ||
+                              `Se habilitará el siguiente paso. Vuelve a ${titleCase(run.coordinator)} y pide continuar este flujo.`}
+                          </p>
+                        </div>
+                      )}
                       <dl className="step-meta">
                         <div>
                           <dt>Responsable</dt>
@@ -1160,127 +1408,6 @@ export function App() {
                           </p>
                         </div>
                       )}
-                      {step.status === 'waiting' && live && (
-                        <div className="human-action">
-                          <div className="action-title">
-                            {step.kind === 'manual' ? (
-                              <MessageSquareText size={18} />
-                            ) : (
-                              <ShieldCheck size={18} />
-                            )}
-                            <strong>
-                              {step.kind === 'manual'
-                                ? 'Comparte tu respuesta'
-                                : 'Tu aprobación es necesaria'}
-                            </strong>
-                          </div>
-                          <label htmlFor="human-answer">
-                            {step.kind === 'manual'
-                              ? 'Tu respuesta'
-                              : 'Comentario (opcional al aprobar)'}
-                          </label>
-                          <textarea
-                            id="human-answer"
-                            value={answer}
-                            onChange={(e) => setAnswer(e.target.value)}
-                            maxLength={8000}
-                            rows={4}
-                            placeholder={
-                              step.kind === 'manual'
-                                ? 'Escribe aquí lo que quieres conseguir…'
-                                : 'Añade contexto a tu decisión…'
-                            }
-                          />
-                          {!!step.outputs?.length && (
-                            <fieldset className="output-fields">
-                              <legend>Salidas de esta tarea</legend>
-                              {step.outputs.map((port) => (
-                                <div key={port.name}>
-                                  <label htmlFor={`output-${port.name}`}>
-                                    {port.name} ({port.type})
-                                  </label>
-                                  {port.description && (
-                                    <p className="muted">{port.description}</p>
-                                  )}
-                                  {port.type === 'boolean' ? (
-                                    <select
-                                      id={`output-${port.name}`}
-                                      value={outputDraft[port.name] || ''}
-                                      onChange={(e) =>
-                                        setOutputDraft({
-                                          ...outputDraft,
-                                          [port.name]: e.target.value,
-                                        })
-                                      }
-                                    >
-                                      <option value="">
-                                        Selecciona una opción
-                                      </option>
-                                      <option value="true">Sí</option>
-                                      <option value="false">No</option>
-                                    </select>
-                                  ) : (
-                                    <textarea
-                                      id={`output-${port.name}`}
-                                      rows={2}
-                                      value={outputDraft[port.name] || ''}
-                                      placeholder={
-                                        port.type === 'object' ||
-                                        port.type === 'array'
-                                          ? 'JSON'
-                                          : port.type === 'number'
-                                            ? 'Número'
-                                            : 'Valor'
-                                      }
-                                      onChange={(e) =>
-                                        setOutputDraft({
-                                          ...outputDraft,
-                                          [port.name]: e.target.value,
-                                        })
-                                      }
-                                    />
-                                  )}
-                                </div>
-                              ))}
-                            </fieldset>
-                          )}
-                          <button
-                            className="primary full"
-                            disabled={
-                              busy ||
-                              !online ||
-                              (step.kind === 'manual' && !answer.trim())
-                            }
-                            onClick={() =>
-                              void act(
-                                step.kind === 'manual' ? 'submit' : 'approve',
-                                step.id,
-                              )
-                            }
-                          >
-                            {busy ? (
-                              <LoaderCircle className="spin" size={16} />
-                            ) : (
-                              <Check size={16} />
-                            )}{' '}
-                            {step.kind === 'manual'
-                              ? 'Enviar respuesta'
-                              : 'Aprobar paso'}
-                          </button>
-                          {step.kind === 'approval' && (
-                            <button
-                              className="text-button reject"
-                              disabled={busy || !online}
-                              onClick={() => setConfirmation('reject')}
-                            >
-                              Rechazar y detener este flujo
-                            </button>
-                          )}
-                          <small>
-                            Tu decisión quedará en el historial del proceso.
-                          </small>
-                        </div>
-                      )}
                       {step.status === 'failed' && live && (
                         <button
                           className="secondary full"
@@ -1355,6 +1482,9 @@ export function App() {
                   )}
                 </>
               )}
+            {popup === 'settings' && (
+              <Settings value={preferences} onChange={setPreferences} />
+            )}
             {popup === 'guide' && (
               <div className="usage-guide">
                 <span className="eyebrow">GUÍA DE USO</span>
@@ -1365,6 +1495,14 @@ export function App() {
                     <span>
                       «Usa Hyperion para [actividad]». Tu agente crea el plan y
                       comparte el enlace.
+                    </span>
+                  </li>
+                  <li>
+                    <strong>Explora trabajos y pasos</strong>
+                    <span>
+                      «Ver trabajos» resume el plan. Pulsa un trabajo para
+                      desplegar el detalle. «Ajustes» permite elegir tema y
+                      navegación.
                     </span>
                   </li>
                   <li>
@@ -1385,8 +1523,9 @@ export function App() {
                   <li>
                     <strong>Participa</strong>
                     <span>
-                      En «Tu turno», responde o aprueba. I/O muestra entradas y
-                      salidas; Logs muestra acciones y resultados.
+                      En «Tu turno», lee la pregunta y guarda tu elección. I/O
+                      muestra entradas y salidas; Logs muestra acciones y
+                      resultados.
                     </span>
                   </li>
                   <li>
@@ -1503,11 +1642,9 @@ export function App() {
               </li>
             </ol>
             <div className="code-note">
-              hyperion install
-              <br />
-              Instala una vez. Después: «Usa Hyperion para…».
-              <br />
-              Recarga las skills de tu agente. MCP es opcional.
+              Escribe en tu chat: «Usa Hyperion para [tu actividad]». El agente
+              conecta el canvas y crea el plan. Aquí no necesitas escribir
+              comandos.
             </div>
             <p className="muted">
               Esta versión coordina a un agente externo. No inicia agentes ni

@@ -24,10 +24,10 @@ La frase por sí sola no instala capacidades en una herramienta que nunca ha car
 
 ### Instalar el paquete sin clonar el repositorio
 
-Con el archivo de distribución `hyperion-workflows-0.3.0.tgz`:
+Con el archivo de distribución `hyperion-workflows-0.4.0.tgz`:
 
 ```sh
-npm install --global ./hyperion-workflows-0.3.0.tgz
+npm install --global ./hyperion-workflows-0.4.0.tgz
 hyperion install
 ```
 

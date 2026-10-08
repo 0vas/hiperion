@@ -17,6 +17,7 @@ import {
   LocateFixed,
 } from 'lucide-react';
 import type { Run, Step } from '../domain/workflow';
+import { motionDuration } from './preferences';
 import { attentionStep } from './attention';
 const statuses: Record<string, string> = {
   blocked: 'En espera',
@@ -31,6 +32,7 @@ const statuses: Record<string, string> = {
 export type FocusRequest = { id: string; nonce: number } | null;
 export function TaskNavigation({
   run,
+  view,
   following,
   onFollowing,
   suspended,
@@ -40,6 +42,7 @@ export function TaskNavigation({
   onFocused,
 }: {
   run: Run;
+  view: string;
   following: boolean;
   onFollowing: (value: boolean) => void;
   suspended: boolean;
@@ -70,7 +73,10 @@ export function TaskNavigation({
   const lastRequest = useRef(-1);
   const focus = useCallback(
     (id: string) => {
-      const n = getNode(id);
+      const child = run.steps.find((s) => s.id === id);
+      const n =
+        getNode(id) ||
+        (child?.jobId ? getNode(`job:${child.jobId}`) : undefined);
       if (!n) return;
       const nodeWidth = n.measured?.width || 280,
         nodeHeight = n.measured?.height || 200;
@@ -92,15 +98,13 @@ export function TaskNavigation({
           zoom,
         },
         {
-          duration: matchMedia('(prefers-reduced-motion: reduce)').matches
-            ? 0
-            : 240,
+          duration: motionDuration(),
         },
       );
       setFocused(id);
       onFocused(id);
     },
-    [getNode, setViewport, width, height, onFocused],
+    [getNode, setViewport, width, height, onFocused, run.steps],
   );
   useEffect(() => {
     if (!following) {
@@ -122,13 +126,14 @@ export function TaskNavigation({
       !initialized
     )
       return;
-    const target = `${current.id}:${width}:${height}`;
+    const target = `${view}:${current.id}:${width}:${height}`;
     if (lastFollow.current !== target) {
       lastFollow.current = target;
       focus(current.id);
     }
   }, [
     following,
+    view,
     suspended,
     available,
     run.status,
@@ -167,9 +172,7 @@ export function TaskNavigation({
     void setViewport(
       { ...viewport, y: viewport.y + (width <= 760 ? 255 : 115) },
       {
-        duration: matchMedia('(prefers-reduced-motion: reduce)').matches
-          ? 0
-          : 240,
+        duration: motionDuration(),
       },
     );
   };
@@ -223,6 +226,9 @@ export function TaskNavigation({
           {!tasks.length && <option value="">Sin tareas</option>}
           {tasks.map((s) => (
             <option key={s.id} value={s.id}>
+              {s.jobId
+                ? `${run.jobs?.find((j) => j.id === s.jobId)?.title} / `
+                : ''}
               {s.title} · {statuses[s.status]}
             </option>
           ))}

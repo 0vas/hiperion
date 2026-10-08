@@ -131,3 +131,15 @@ Criterios: [ADR 0006](decisions/0006-task-focus.md). Guías: [uso diario](manual
 - Abrir un popup suspende el movimiento; navegar manualmente desactiva el seguimiento. La pausa conserva el modo, incluso si el agente completa un trabajo iniciado, y la reanudación centra la siguiente tarea.
 - Se verificaron selector, foco desde popup, acceso a datos/logs, vista general, guía integrada, movimiento reducido, viewport móvil y axe WCAG AA. El ciclo TDD detectó controles ausentes y una etiqueta oculta en móvil; ambos casos quedaron corregidos.
 - Capturas inspeccionadas en escritorio y móvil. El canvas y sus acciones humanas conservan el mismo flujo. La continuación del agente sigue siendo cooperativa; «Seguir actividad» controla únicamente la vista.
+
+## Incremento 0.4 — trabajos, decisiones y ajustes
+
+Criterios definidos en ADR 0007. Test rojo inicial: el contrato rechazaba `jobs`/`interaction` y no existía la proyección de trabajos. Después, la prueba de navegador detectó la falta de ajustes y problemas de contraste en el modo oscuro. Se corrigieron antes de validar.
+
+- Dominio: trabajos con referencias válidas, sin duplicados, vacíos ni reentrada; estados/progreso derivados; dependencias al contraer; envío humano tipado sin texto redundante; rechazo de suplantación del usuario.
+- UI: vista de trabajos/pasos, foco, pregunta con contexto y consecuencia, elección Sí/No, confirmación tras guardar, tema persistente, movimiento reducido y seguimiento inicial. Se mantienen los escenarios anteriores de compuertas y cooperación.
+- Verificación automatizada: 40 tests de dominio/adaptadores/persistencia; 2 de distribución compilada; 13 Playwright, con comprobaciones axe WCAG AA y pantallas de escritorio/móvil. Typecheck, build y formato.
+- Verificación local desde Codex: skill instalada invocada fuera del checkout, servicio 0.4, creación de un flujo con tres trabajos desde la petición real; inspección visual de temas, datos y navegación. Las evidencias reales permanecen en `.hyperion/`, fuera de Git. No se completó ni aprobó ninguna intervención humana real.
+- La skill portable se validó y actualizó. La arquitectura ArchiMate conserva cinco componentes y ocho relaciones. La interacción real en Cursor/Claude no se abrió en esta prueba; sus adaptadores MCP se comprueban mediante tests de protocolo, no mediante una sesión de esos productos.
+
+Capturas automatizadas: `test-results/jobs-dark.png`, `decision-dark.png`, `settings-mobile.png`. La revisión humana del caso real queda pendiente en su canvas. Guardar una elección aún requiere volver al chat para continuar.
