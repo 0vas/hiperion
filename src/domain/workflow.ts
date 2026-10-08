@@ -13,6 +13,7 @@ export const stepSchema = z
 export const planSchema = z
   .object({
     title: z.string().trim().min(1).max(180),
+    request: z.string().trim().min(1).max(8000).optional(),
     description: z.string().trim().max(4000).default(''),
     steps: z.array(stepSchema).min(1).max(100),
   })
@@ -65,6 +66,7 @@ export type RunEvent = {
   message: string;
 };
 export type Run = {
+  request?: string;
   id: string;
   title: string;
   description: string;

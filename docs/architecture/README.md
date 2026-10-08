@@ -158,6 +158,6 @@ La vista `cooperacion.svg` conserva la arquitectura de referencia, incluyendo el
 | Motor de estados              | `src/domain/workflow.ts` | Implementado; transiciones puras y DAG       |
 | Coordinador delegado autónomo | Ninguno                  | Extensión pendiente                          |
 
-La participación humana se representa en el producto mediante pasos manuales y de aprobación. El agente que usa CLI/MCP conserva la responsabilidad de ejecutar acciones externas.
+La participación humana se representa en el producto mediante pasos manuales y de aprobación. El agente que usa CLI/MCP conserva la responsabilidad de ejecutar acciones externas. El [ADR 0002](../decisions/0002-request-driven-integrations.md) añade la petición original, la vista vertical y un registro de identidades de integración con credenciales propias. Los clientes comparten el núcleo y almacenamiento; cada ejecución conserva un coordinador.
 
 El [modelo XML editable](implemented.xml) contiene los cinco componentes y ocho relaciones de la vista implementada. Se verificaron el XML y sus referencias; la importación y validación XSD en una herramienta ArchiMate quedan pendientes.

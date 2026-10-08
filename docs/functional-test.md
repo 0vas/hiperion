@@ -53,3 +53,15 @@ La integración utilizada en esta conversación es la CLI HTTP. MCP se valida co
 - CI configurado en GitHub Actions; no se ha enviado la rama al remoto ni ejecutado CI remoto.
 
 Los ciclos TDD detectaron fallos antes de sus correcciones: módulos aún inexistentes, nodos que no recibían clics, contraste insuficiente, espera con argumentos inválidos y selección incorrecta ante enlaces inexistentes. La validación automática de accesibilidad cubre las pantallas probadas; no es una auditoría exhaustiva del producto.
+
+## Incremento: petición original y múltiples clientes (2026-10-08)
+
+El [manual de uso](manual-uso.md) añade un caso completo generado desde una petición, con elección manual, dos revisiones independientes y aprobación previa a la entrega. El ejemplo reproducible es `examples/first-contribution.plan.json`. La instancia creada desde Codex queda esperando la elección humana; no se ha simulado esa respuesta.
+
+- `npm run check`: correcto; 20 pruebas de lógica, persistencia, HTTP, credenciales y MCP aprobadas, además de tipos, build y formato.
+- `npm run test:e2e`: 6 pruebas aprobadas. La nueva prueba compara posiciones de nodos para verificar dependencias verticales y ramas en el mismo nivel; también comprueba la petición original visible.
+- El mismo contrato MCP se ejecuta con identidades Codex, Claude y Cursor usando el cliente del SDK. La API comprueba además un cliente genérico, separación de autoridad y registro de credenciales con el servidor en marcha. No se afirma haber ejecutado Claude o Cursor nativos.
+- La generación de configuración comprueba rutas absolutas y ausencia de secretos. Las credenciales existentes se conservan.
+- La instancia local actualizada muestra los cinco nodos del nuevo caso y la petición original, sin errores JavaScript en la comprobación de navegador.
+
+El ciclo TDD observó primero el fallo por la operación de registro aún inexistente, después implementó el registro y sus adaptadores, y terminó verificando API, MCP e interfaz.

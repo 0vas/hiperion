@@ -1,0 +1,1 @@
+Usa Hyperion para ayudarme a preparar mi primera contribución a este repositorio open source. Pregúntame si quiero contribuir a documentación o código; luego revisa las instrucciones y las verificaciones disponibles en paralelo. Muéstrame una propuesta y pide mi aprobación antes de crear una checklist personalizada.

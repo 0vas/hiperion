@@ -1454,3 +1454,26 @@ textarea::placeholder {
     color: #6147a0;
   }
 }
+
+.request-context {
+  margin: -6px 0 22px;
+  border: 1px solid #e1e5ed;
+  border-radius: 8px;
+  background: white;
+  padding: 12px 16px;
+  color: #5c6680;
+  font-size: 12px;
+}
+.request-context summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+.request-context p {
+  margin-top: 12px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

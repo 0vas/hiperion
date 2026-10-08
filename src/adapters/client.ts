@@ -4,7 +4,14 @@ import type { Run, Command } from '../domain/workflow.js';
 export class HyperionClient {
   readonly url: string;
   private token: string;
-  constructor(options: { url?: string; token?: string } = {}) {
+  constructor(
+    options: {
+      url?: string;
+      token?: string;
+      directory?: string;
+      agentId?: string;
+    } = {},
+  ) {
     this.url =
       options.url || process.env.HYPERION_URL || 'http://127.0.0.1:4317';
     const target = new URL(this.url);
@@ -14,16 +21,38 @@ export class HyperionClient {
       this.token = options.token || process.env.HYPERION_TOKEN!;
     else {
       try {
-        this.token = JSON.parse(
+        const credentials = JSON.parse(
           readFileSync(
             resolve(
-              process.env.HYPERION_DATA_DIR || '.hyperion',
+              options.directory || process.env.HYPERION_DATA_DIR || '.hyperion',
               'credentials.json',
             ),
             'utf8',
           ),
-        ).agentToken;
-      } catch {
+        ) as {
+          agentToken: string;
+          agentId?: string;
+          agents?: Record<string, string>;
+        };
+        const primary = credentials.agentId || 'codex';
+        const id = options.agentId || process.env.HYPERION_AGENT_ID || primary;
+        const token =
+          id === primary
+            ? credentials.agentToken
+            : credentials.agents && Object.hasOwn(credentials.agents, id)
+              ? credentials.agents[id]
+              : undefined;
+        if (!token)
+          throw new Error(
+            `Unregistered agent: ${id}. Run npm run hyperion -- connect ${id}`,
+          );
+        this.token = token;
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.startsWith('Unregistered agent')
+        )
+          throw error;
         throw new Error(
           'Start Hyperion first, or set HYPERION_DATA_DIR / HYPERION_TOKEN.',
         );

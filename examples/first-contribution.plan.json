@@ -1,0 +1,41 @@
+{
+  "title": "Preparar mi primera contribución",
+  "description": "Un caso nacido de una petición: elige tu aporte, revisa la propuesta y aprueba la entrega.",
+  "request": "Usa Hyperion para ayudarme a preparar mi primera contribución a este repositorio open source. Pregúntame si quiero contribuir a documentación o código; luego revisa las instrucciones y las verificaciones disponibles en paralelo. Muéstrame una propuesta y pide mi aprobación antes de crear una checklist personalizada.",
+  "steps": [
+    {
+      "id": "choose",
+      "title": "Elegir el tipo de contribución",
+      "kind": "manual",
+      "description": "Escribe «documentación» o «código». Puedes añadir el tema que te interesa. Tu respuesta definirá la checklist. Después pide al agente continuar este flujo."
+    },
+    {
+      "id": "instructions",
+      "title": "Revisar instrucciones",
+      "kind": "agent",
+      "dependencies": ["choose"],
+      "description": "Lee la respuesta del usuario y las guías README, CONTRIBUTING y AGENTS. Propón los pasos de preparación y entrega relevantes. Registra archivos consultados y una propuesta concreta."
+    },
+    {
+      "id": "checks",
+      "title": "Revisar verificaciones",
+      "kind": "agent",
+      "dependencies": ["choose"],
+      "description": "Examina package.json y las pruebas disponibles. Identifica las verificaciones pertinentes al aporte elegido y justifica cuáles incluir en la checklist. Esta inspección es independiente de la revisión de instrucciones."
+    },
+    {
+      "id": "approve",
+      "title": "Aprobar la checklist propuesta",
+      "kind": "approval",
+      "dependencies": ["instructions", "checks"],
+      "description": "Abre ambos resultados, comprueba el alcance propuesto y aprueba para crear la checklist. Si algo no corresponde, rechaza con una explicación para preparar un nuevo plan."
+    },
+    {
+      "id": "deliver",
+      "title": "Crear la checklist personalizada",
+      "kind": "agent",
+      "dependencies": ["approve"],
+      "description": "Tras leer la aprobación, crea una checklist específica para la contribución elegida en docs/checklists/first-contribution.md. Comprueba sus comandos y referencias; registra la ruta y el resultado de esa verificación."
+    }
+  ]
+}

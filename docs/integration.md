@@ -2,12 +2,14 @@
 
 Hyperion runs separately from the agent and owns workflow state. The agent proposes a plan, claims ready work, performs it with its own tools, and reports evidence. The human participates through the web interface.
 
+For setup in Codex, Claude Code, Claude Desktop, Cursor and other local clients, follow the [Spanish user manual](manual-uso.md). The user starts with a natural-language request; the host agent generates the plan and includes its original text in `plan.request`. Do not ask the user to author JSON.
+
 ## This Codex conversation
 
 Use the repository CLI. New MCP configuration does not automatically inject tools into an already running conversation.
 
 1. Read `npm run hyperion -- --help`.
-2. Write a JSON plan using the [protocol](protocol.md) and create it with `npm run hyperion -- create PLAN.json UNIQUE_REQUEST_ID`.
+2. Generate a JSON plan from the user’s request using the [protocol](protocol.md) and create it with `npm run hyperion -- create PLAN.json UNIQUE_REQUEST_ID`.
 3. Show the returned URL to the user.
 4. Read `get RUN_ID`. Start only agent steps whose status is `ready` while the run is `active`.
 5. Execute real work. Report progress with `log`; report an actual result with `complete`, or a failure with `fail`.
@@ -19,15 +21,17 @@ Independent ready steps may be active together. Only do this when the underlying
 
 ## MCP stdio
 
-Build and start the HTTP server first. Register the adapter in a compatible MCP client:
+Build and start the HTTP server first. Run `npm run hyperion -- connect CLIENT_ID` to register an identity and generate an absolute-path MCP configuration without credentials. Register the adapter in a compatible MCP client:
 
 ```json
 {
   "mcpServers": {
     "hyperion": {
+      "type": "stdio",
       "command": "node",
       "args": ["/absolute/path/to/hiperion/dist/adapters/mcp.js"],
       "env": {
+        "HYPERION_AGENT_ID": "codex",
         "HYPERION_DATA_DIR": "/absolute/path/to/hiperion/.hyperion",
         "HYPERION_URL": "http://127.0.0.1:4317"
       }
@@ -42,6 +46,7 @@ For Codex, the CLI supports registering stdio servers:
 
 ```sh
 codex mcp add hyperion \
+  --env HYPERION_AGENT_ID=codex \
   --env HYPERION_DATA_DIR=/absolute/path/to/hiperion/.hyperion \
   --env HYPERION_URL=http://127.0.0.1:4317 \
   -- node /absolute/path/to/hiperion/dist/adapters/mcp.js
@@ -63,4 +68,4 @@ Create/step tools require `commandId`. Reuse it when retrying a transport reques
 
 An agent with HTTP or shell access can use the same protocol. MCP support alone does not guarantee that an agent can remain alive waiting for a decision or wake a conversation. Document those capabilities per integration. A remote/cloud agent cannot reach `127.0.0.1` on your laptop; remote access is outside this release.
 
-Changing `HYPERION_AGENT_ID` after credential creation does not rename an existing coordinator. Use a separate data directory for another test identity. Agent IDs in this release identify the trusted coordinator, not individually authenticated delegated workers.
+Set `HYPERION_AGENT_ID` to a registered identity when using CLI/MCP. Each identity has its own credential and can coexist in the same data directory; registration preserves existing credentials and is picked up by the running server. A run retains its original coordinator. Identities share read access within this trusted local deployment, but cannot mutate another coordinator’s agent steps. These are integration identities, not an isolation boundary against programs running as the same OS user.

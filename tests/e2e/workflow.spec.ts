@@ -161,3 +161,63 @@ test('an unknown run URL never silently selects a different workflow', async ({
     page.getByRole('button', { name: 'Aprobar paso' }),
   ).not.toBeVisible();
 });
+
+test('request-derived plans flow top to bottom with parallel branches and retain the original request', async ({
+  page,
+  request,
+}) => {
+  const original =
+    'Usa Hyperion para revisar un proyecto: pregúntame el alcance, revisa documentación y pruebas en paralelo, y pide mi aprobación.';
+  const response = await request.post('/api/runs', {
+    headers: { authorization: `Bearer ${token()}` },
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: {
+        title: 'Plan generado desde una petición',
+        request: original,
+        steps: [
+          { id: 'scope', title: 'Definir alcance', kind: 'manual' },
+          {
+            id: 'docs',
+            title: 'Revisar documentación',
+            kind: 'agent',
+            dependencies: ['scope'],
+          },
+          {
+            id: 'tests',
+            title: 'Revisar pruebas',
+            kind: 'agent',
+            dependencies: ['scope'],
+          },
+          {
+            id: 'approve',
+            title: 'Aprobar propuesta',
+            kind: 'approval',
+            dependencies: ['docs', 'tests'],
+          },
+        ],
+      },
+    },
+  });
+  expect(response.status()).toBe(201);
+  const run = await response.json();
+  await page.goto(`/?run=${run.id}`);
+  await expect(page.getByText('Flujo vertical', { exact: true })).toBeVisible();
+  await page.getByText('Petición original', { exact: true }).click();
+  await expect(page.getByText(original, { exact: true })).toBeVisible();
+  const bounds = async (name: string) =>
+    (await page
+      .getByRole('button', { name: `Ver paso: ${name}` })
+      .boundingBox())!;
+  const scope = await bounds('Definir alcance');
+  const docs = await bounds('Revisar documentación');
+  const tests = await bounds('Revisar pruebas');
+  const approval = await bounds('Aprobar propuesta');
+  expect(docs.y).toBeGreaterThan(scope.y + scope.height);
+  expect(Math.abs(docs.y - tests.y)).toBeLessThan(2);
+  expect(approval.y).toBeGreaterThan(docs.y + docs.height);
+  await page.screenshot({
+    path: 'test-results/request-vertical.png',
+    fullPage: true,
+  });
+});

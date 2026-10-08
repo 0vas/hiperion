@@ -4,7 +4,7 @@ All requests use the loopback HTTP origin. JSON is validated strictly; unknown f
 
 ## Authentication
 
-CLI/MCP send `Authorization: Bearer <agentToken>`. The local browser obtains an HttpOnly, SameSite=Strict session cookie from the same-origin UI. Human and agent operations are distinct. This is a single trusted OS-user deployment; see [the security boundary](../SECURITY.md).
+CLI/MCP send `Authorization: Bearer <agentToken>`. Each registered integration has its own token; the authenticated identity owns runs it creates. All registered integrations can read local runs, while only the owning coordinator can mutate agent steps. The local browser obtains an HttpOnly, SameSite=Strict session cookie from the same-origin UI. Human and agent operations are distinct. This is a single trusted OS-user deployment; see [the security boundary](../SECURITY.md).
 
 Never commit or include `.hyperion/credentials.json` in a report. The agent integration reads only the agent credential. The data directory is created with owner-only permissions on POSIX systems.
 
@@ -27,6 +27,7 @@ The session bootstrap is protected by exact Host/Origin and Fetch Metadata check
 {
   "title": "Review a change",
   "description": "Optional context",
+  "request": "Use Hyperion to review this change and ask for my approval.",
   "steps": [
     {
       "id": "inspect",
@@ -43,6 +44,8 @@ The session bootstrap is protected by exact Host/Origin and Fetch Metadata check
   ]
 }
 ```
+
+`request` is optional for backward compatibility, with a maximum of 8,000 characters. Request-driven clients should always supply the original user request; it persists with the immutable plan and is displayed in the UI.
 
 Step kinds: `agent`, `manual`, `approval`. Optional step `description` provides instructions. IDs contain letters, numbers, `_` or `-`, max 64 characters. The authenticated agent becomes the coordinator.
 
@@ -86,4 +89,4 @@ Errors have `{error, message}`. Common statuses: 400 invalid input, 401 missing 
 
 ## Current limits
 
-Snapshots include the full event history and are retained locally without automated expiration. The UI polls once per second; this implementation targets small local workflows. Large-scale event storage, pagination, per-agent credentials, cancellation signalling to executors, streaming updates, plan edits and distributed orchestration need later protocol versions and tests.
+Snapshots include the full event history and are retained locally without automated expiration. The UI polls once per second; this implementation targets small local workflows. Large-scale event storage, pagination, remote identity management, cancellation signalling to executors, streaming updates, plan edits and distributed orchestration need later protocol versions and tests.

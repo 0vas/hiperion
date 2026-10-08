@@ -9,7 +9,7 @@ const server = new McpServer(
   { name: 'hyperion', version: '0.1.0' },
   {
     instructions:
-      'Create a plan and show its returned URL. Start only ready agent steps, execute actual work, then report evidence. Human input and approvals must happen in the Hyperion UI. Use get/wait to read decisions. Never impersonate the human or bypass a blocked step. This server does not execute the work for you.',
+      'Turn the given request into a specific plan, preserve the original text in plan.request, and show the returned URL. Do not require the human to write JSON or reuse a canned demo. Start only ready agent steps, execute actual work, then report evidence. Human input and approvals must happen in the Hyperion UI. Use get/wait to read decisions. Never impersonate the human or bypass a blocked step. This server does not execute the work for you.',
   },
 );
 const output = (value: unknown) => ({
@@ -28,7 +28,7 @@ server.registerTool(
   'hyperion_create_run',
   {
     description:
-      'Create an immutable workflow plan and obtain a URL for the human. Use agent, manual and approval steps with dependencies. Reuse commandId on retries.',
+      'Create a workflow derived from the user request. Include the original text in plan.request; generate the steps yourself and obtain a URL for the human. Use agent, manual and approval steps with dependencies. Reuse commandId on retries.',
     inputSchema: { plan: planSchema, commandId: z.string().min(1).max(128) },
   },
   ({ plan, commandId }) =>

@@ -2,8 +2,10 @@
 import { readFileSync } from 'node:fs';
 import { HyperionClient } from './client.js';
 import { commandSchema } from '../domain/workflow.js';
+import { generateConnection } from './connections.js';
 const [operation, first, second, ...rest] = process.argv.slice(2);
 const help = `Hyperion — cooperative workflow adapter
+  connect <client-id>  # codex, claude, cursor, or your own ID
   create <plan.json> [idempotency-key]
   list
   get <run-id>
@@ -14,6 +16,8 @@ Human approvals and manual input belong in the web interface.
 Set HYPERION_URL and HYPERION_DATA_DIR to target another local instance.`;
 try {
   if (!operation || operation === '--help') console.log(help);
+  else if (operation === 'connect' && first)
+    console.log(JSON.stringify(generateConnection(first), null, 2));
   else {
     const client = new HyperionClient();
     let result: unknown;

@@ -9,6 +9,7 @@ const root = resolve(fileURLToPath(new URL('../../', import.meta.url)));
 const app = createApp({
   store,
   ...config,
+  getAgentTokens: () => loadCredentials(config.directory).agents,
   publicDir: resolve(root, 'dist/client'),
 });
 const port = Number(process.env.HYPERION_PORT || 4317);

@@ -82,7 +82,12 @@ const time = (value: string) =>
     hour: '2-digit',
     minute: '2-digit',
   });
-const titleCase = (value: string) => (value === 'codex' ? 'Codex' : value);
+const clientLabels = new Map([
+  ['codex', 'Codex'],
+  ['claude', 'Claude'],
+  ['cursor', 'Cursor'],
+]);
+const titleCase = (value: string) => clientLabels.get(value) || value;
 function StatusIcon({
   status,
   size = 15,
@@ -534,6 +539,15 @@ export function App() {
                   </span>
                 </div>
               </section>
+              {run.request && (
+                <details className="request-context">
+                  <summary>
+                    <MessageSquareText size={15} />
+                    Petición original
+                  </summary>
+                  <p>{run.request}</p>
+                </details>
+              )}
               <section className="metrics">
                 <div>
                   <span className="metric-icon purple">
@@ -660,7 +674,7 @@ export function App() {
                   <div className="panel-toolbar">
                     <div>
                       <GitBranch size={17} />
-                      <strong>Vista del flujo</strong>
+                      <strong>Flujo vertical</strong>
                       <span className="subtle-chip">
                         {run.steps.length} pasos
                       </span>
@@ -1041,8 +1055,9 @@ export function App() {
             </span>
             <h2 id="help-title">Tu agente, conectado a Hyperion.</h2>
             <p>
-              Haz la petición en Codex. El agente registra un plan y ejecuta sus
-              tareas; tú respondes y apruebas aquí.
+              Haz la petición en Codex, Claude, Cursor o tu herramienta
+              conectada. El agente registra un plan y ejecuta sus tareas; tú
+              respondes y apruebas aquí.
             </p>
             <ol>
               <li>
@@ -1056,14 +1071,14 @@ export function App() {
               <li>
                 <strong>Continúa en el chat</strong>
                 <span>
-                  Tras responder, pide a Codex que lea el estado y continúe.
+                  Tras responder, pide al agente que lea el estado y continúe.
                 </span>
               </li>
             </ol>
             <div className="code-note">
               CLI: npm run hyperion -- --help
               <br />
-              MCP: consulta docs/integration.md
+              Codex, Claude, Cursor: consulta docs/manual-uso.md
             </div>
             <p className="muted">
               Esta versión coordina a un agente externo. No inicia agentes ni
@@ -1071,7 +1086,7 @@ export function App() {
             </p>
             <button className="primary full" onClick={copyPrompt}>
               <Copy size={16} />
-              {copied ? 'Petición copiada' : 'Copiar petición para Codex'}
+              {copied ? 'Petición copiada' : 'Copiar petición para mi agente'}
             </button>
           </section>
         </Modal>

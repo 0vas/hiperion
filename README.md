@@ -32,7 +32,7 @@ Open the returned URL, submit your objective, and ask your agent to read the run
 
 - Directed acyclic plans with agent, manual, and approval steps.
 - Dependency gates, independent parallel steps, and explicit coordinator ownership.
-- A visual graph, step details, result evidence, and an activity timeline.
+- A vertical graph with parallel branches, the original request, step details, evidence, and an activity timeline.
 - Human input, approval/rejection, pause/resume, cancel, and retry after failure.
 - Transactional SQLite persistence and command idempotency.
 - Version checks that reject stale human decisions.
@@ -52,7 +52,9 @@ npm run hyperion -- start RUN_ID STEP_ID
 npm run hyperion -- complete RUN_ID STEP_ID 'What was done and how it was verified'
 ```
 
-For MCP clients, run `node /absolute/path/to/hiperion/dist/adapters/mcp.js` with `HYPERION_DATA_DIR` pointing at the server's absolute data directory. See [integration instructions](docs/integration.md) for Codex configuration, exact tools, and the human handoff protocol.
+Start with a natural-language request: “Use Hyperion to guide me through…”. The connected agent generates the plan and records the request; users do not need to write JSON.
+
+Run `npm run hyperion -- connect codex` (or `claude`, `cursor`, or your client ID) to generate its MCP connection configuration. Follow the [manual in Spanish](docs/manual-uso.md) for each application, a complete request-driven test case, and troubleshooting. See the [agent integration contract](docs/integration.md) for exact tools and the human handoff protocol.
 
 ## Develop and verify
 
@@ -77,17 +79,17 @@ src/adapters/     HTTP client, CLI, MCP stdio server
 src/client/       React UI and graph
 ```
 
-[Architecture context and ArchiMate view](docs/architecture/README.md) · [First increment decision](docs/decisions/0001-functional-increment.md) · [Protocol](docs/protocol.md) · [Functional test with Codex](docs/functional-test.md)
+[Architecture context and ArchiMate view](docs/architecture/README.md) · [First increment decision](docs/decisions/0001-functional-increment.md) · [Request-driven integrations](docs/decisions/0002-request-driven-integrations.md) · [Protocol](docs/protocol.md) · [Functional test with Codex](docs/functional-test.md)
 
 ## Configuration
 
-| Variable            | Default                           | Purpose                                                 |
-| ------------------- | --------------------------------- | ------------------------------------------------------- |
-| `HYPERION_PORT`     | `4317`                            | Local server port                                       |
-| `HYPERION_DATA_DIR` | `.hyperion`                       | SQLite and credentials directory                        |
-| `HYPERION_AGENT_ID` | `codex`                           | Coordinator identity when credentials are first created |
-| `HYPERION_URL`      | `http://127.0.0.1:4317`           | CLI/MCP target                                          |
-| `HYPERION_TOKEN`    | Agent token from credentials file | Optional CLI/MCP credential override                    |
+| Variable            | Default                           | Purpose                                                   |
+| ------------------- | --------------------------------- | --------------------------------------------------------- |
+| `HYPERION_PORT`     | `4317`                            | Local server port                                         |
+| `HYPERION_DATA_DIR` | `.hyperion`                       | SQLite and credentials directory                          |
+| `HYPERION_AGENT_ID` | `codex`                           | Registered CLI/MCP identity; also initial server identity |
+| `HYPERION_URL`      | `http://127.0.0.1:4317`           | CLI/MCP target                                            |
+| `HYPERION_TOKEN`    | Agent token from credentials file | Optional CLI/MCP credential override                      |
 
 Use `127.0.0.1` in browser URLs, not `localhost`; Host and Origin are checked against the bound address. The local edition deliberately binds only to loopback. Do not expose it through a public tunnel or reverse proxy without adding a suitable authentication and authorization design.
 

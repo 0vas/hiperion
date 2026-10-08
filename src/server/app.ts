@@ -16,6 +16,7 @@ type Options = {
   humanToken: string;
   agentId: string;
   publicDir?: string;
+  getAgentTokens?: () => Record<string, string>;
 };
 const createSchema = z
   .object({ plan: z.unknown(), commandId: z.string().min(1).max(128) })
@@ -92,9 +93,14 @@ export function createApp(options: Options) {
             .map((c) => c.trim())
             .find((c) => c.startsWith('hyperion_session='))
             ?.slice('hyperion_session='.length) || '';
+        const agents = options.getAgentTokens?.() || {
+          [options.agentId]: options.agentToken,
+        };
+        const agent = Object.entries(agents).find(([, token]) =>
+          equal(bearer, token),
+        );
         let actor: Principal;
-        if (equal(bearer, options.agentToken))
-          actor = { role: 'agent', id: options.agentId };
+        if (agent) actor = { role: 'agent', id: agent[0] };
         else if (
           equal(bearer, options.humanToken) ||
           equal(cookie, options.humanToken)
