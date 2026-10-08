@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   useRef,
@@ -21,6 +22,8 @@ import {
   type Edge,
 } from '@xyflow/react';
 import {
+  Ellipsis,
+  ExternalLink,
   Flag,
   Route,
   Settings2,
@@ -37,7 +40,6 @@ import {
   ChevronRight,
   CircleHelp,
   Copy,
-  GitBranch,
   History,
   Layers3,
   LoaderCircle,
@@ -60,6 +62,7 @@ import {
   flowLabels,
   type FlowState,
 } from './flow-visuals';
+import { canvasInsets } from './viewport';
 import { FlowLegend } from './FlowLegend';
 import { JobNode } from './JobNode';
 import { Settings } from './Settings';
@@ -401,15 +404,16 @@ function FitCanvas({ view }: { view: string }) {
       );
       const viewport = getViewportForBounds(
         bounds,
-        width,
-        Math.max(180, height - (width <= 760 ? 485 : 200)),
+        width - canvasInsets.side * 2,
+        Math.max(100, height - canvasInsets.top - canvasInsets.bottom),
         0.15,
         1,
         0.12,
       );
       void setViewport({
         ...viewport,
-        y: viewport.y + (width <= 760 ? 255 : 115),
+        x: viewport.x + canvasInsets.side,
+        y: viewport.y + canvasInsets.top,
       });
     }
   }, [
@@ -530,8 +534,13 @@ export function App() {
     | 'guide'
     | 'settings'
     | 'legend'
+    | 'options'
     | null
   >(null);
+  useLayoutEffect(() => {
+    if (popup && document.activeElement === document.body)
+      document.querySelector<HTMLButtonElement>('.modal-close')?.focus();
+  }, [popup]);
   const [online, setOnline] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
@@ -786,6 +795,88 @@ export function App() {
     .map((id) => run?.steps.find((s) => s.id === id)?.title)
     .join(', ');
 
+  const openPanel = (panel: typeof popup) => {
+    setPopup(panel);
+  };
+  const openWindow = () => {
+    const detached = window.open(
+      location.href,
+      'hyperion-workspace',
+      'popup=yes,width=1200,height=820',
+    );
+    if (!detached) {
+      setError(
+        'El navegador bloqueó la ventana. Permite abrir ventanas para Hyperion y vuelve a intentarlo.',
+      );
+      return;
+    }
+    detached.opener = null;
+    setPopup(null);
+  };
+  const runTools = run && (
+    <div className="canvas-tools">
+      <div className="canvas-tools-group">
+        <button
+          className="secondary"
+          aria-haspopup="dialog"
+          onClick={() => openPanel('request')}
+        >
+          <MessageSquareText size={15} />
+          Petición original
+        </button>
+        <button
+          className="secondary"
+          aria-haspopup="dialog"
+          onClick={() => openPanel('activity')}
+        >
+          <History size={15} />
+          Actividad
+        </button>
+      </div>
+      <div className="canvas-tools-group">
+        {!!run.jobs?.length && (
+          <button
+            className="secondary"
+            onClick={() =>
+              setPreferences((p) => ({
+                ...p,
+                view: p.view === 'steps' ? 'jobs' : 'steps',
+              }))
+            }
+          >
+            <Layers3 size={15} />
+            {preferences.view === 'steps' ? 'Ver trabajos' : 'Ver pasos'}
+          </button>
+        )}
+        <button className="secondary continue-button" onClick={copyPrompt}>
+          <Copy size={15} />
+          {copied ? 'Copiado' : `Continuar en ${titleCase(run.coordinator)}`}
+        </button>
+        {(live || run.status === 'paused') && (
+          <>
+            <button
+              className="secondary"
+              disabled={busy || !online}
+              onClick={() => void act(live ? 'pause' : 'resume')}
+            >
+              {live ? <Pause size={14} /> : <Play size={14} />}
+              {live ? 'Pausar' : 'Reanudar'}
+            </button>
+            <button
+              className="secondary icon-button"
+              aria-label="Cancelar flujo"
+              aria-haspopup="dialog"
+              disabled={busy || !online}
+              onClick={() => setConfirmation('cancel')}
+            >
+              <Square size={14} />
+              <span className="options-only">Cancelar flujo</span>
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
   const dialogOpen = Boolean(popup || help || confirmation);
   return (
     <div className="app-shell canvas-app" data-connected={online}>
@@ -831,22 +922,38 @@ export function App() {
               <span className="brand-word">hyperion</span>
             </a>
             <button
-              className="secondary"
+              className="secondary flows-button"
+              aria-label="Mis flujos"
+              title="Mis flujos"
               aria-haspopup="dialog"
               onClick={() => setPopup('runs')}
             >
-              <Workflow size={15} /> Mis flujos
+              <Workflow size={15} />
+              <span className="flows-label">Mis flujos</span>
             </button>
             {run && (
               <div className="canvas-title">
-                <h1>{run.title}</h1>
-                <span>
-                  Un recorrido compartido · {titleCase(run.coordinator)}
+                <h1 title={run.title}>{run.title}</h1>
+                <span
+                  className={`run-status ${run.status}`}
+                  data-testid="run-status"
+                >
+                  <span className="tiny-dot" />
+                  {runLabels[run.status]}
                 </span>
               </div>
             )}
           </div>
           <div className="topbar-right">
+            <button
+              className="icon-button more-options"
+              aria-label="Más opciones"
+              title="Más opciones"
+              aria-haspopup="dialog"
+              onClick={() => setPopup('options')}
+            >
+              <Ellipsis size={19} />
+            </button>
             <button
               className="icon-button"
               aria-label="Ajustes"
@@ -918,81 +1025,7 @@ export function App() {
               className="canvas-workspace"
               aria-label="Canvas del workflow"
             >
-              <div className="canvas-tools">
-                <div className="canvas-tools-group">
-                  <span
-                    className={`run-status ${run.status}`}
-                    data-testid="run-status"
-                  >
-                    <span className="tiny-dot" />
-                    {runLabels[run.status]}
-                  </span>
-                  <button
-                    className="secondary"
-                    aria-haspopup="dialog"
-                    onClick={() => setPopup('request')}
-                  >
-                    <MessageSquareText size={15} />
-                    Petición original
-                  </button>
-                  <button
-                    className="secondary"
-                    aria-haspopup="dialog"
-                    onClick={() => setPopup('activity')}
-                  >
-                    <History size={15} />
-                    Actividad
-                  </button>
-                </div>
-                <div className="canvas-tools-group">
-                  {!!run.jobs?.length && (
-                    <button
-                      className="secondary"
-                      onClick={() =>
-                        setPreferences((p) => ({
-                          ...p,
-                          view: p.view === 'steps' ? 'jobs' : 'steps',
-                        }))
-                      }
-                    >
-                      <Layers3 size={15} />
-                      {preferences.view === 'steps'
-                        ? 'Ver trabajos'
-                        : 'Ver pasos'}
-                    </button>
-                  )}
-                  <button
-                    className="secondary continue-button"
-                    onClick={copyPrompt}
-                  >
-                    <Copy size={15} />
-                    {copied
-                      ? 'Copiado'
-                      : `Continuar en ${titleCase(run.coordinator)}`}
-                  </button>
-                  {(live || run.status === 'paused') && (
-                    <>
-                      <button
-                        className="secondary"
-                        disabled={busy || !online}
-                        onClick={() => void act(live ? 'pause' : 'resume')}
-                      >
-                        {live ? <Pause size={14} /> : <Play size={14} />}
-                        {live ? 'Pausar' : 'Reanudar'}
-                      </button>
-                      <button
-                        className="secondary icon-button"
-                        aria-label="Cancelar flujo"
-                        aria-haspopup="dialog"
-                        disabled={busy || !online}
-                        onClick={() => setConfirmation('cancel')}
-                      >
-                        <Square size={14} />
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
+              {runTools}
               <div className="graph">
                 <ReactFlow
                   key={run.id}
@@ -1083,39 +1116,6 @@ export function App() {
                   </button>
                 )}
               </div>
-              <nav className="mobile-steps" aria-label="Pasos del flujo">
-                {run.steps.map((item) => (
-                  <button key={item.id} onClick={() => selectStep(item.id)}>
-                    <StatusIcon status={item.status} />
-                    {item.title}
-                  </button>
-                ))}
-              </nav>
-              <footer className="canvas-footer">
-                <span>
-                  <GitBranch size={14} />
-                  Flujo vertical
-                </span>
-                <span>
-                  {completed}/{run.steps.length} completados · {running} en
-                  curso{skipped > 0 ? ` · ${skipped} omitidos` : ''}
-                </span>
-                <button
-                  className="legend-button"
-                  onClick={() => setPopup('legend')}
-                  aria-haspopup="dialog"
-                >
-                  <Route size={13} />
-                  Colores del flujo
-                </button>
-                <span className="canvas-tip">
-                  Pulsa un nodo para ver información y acciones
-                </span>
-                <span className="canvas-coordinator">
-                  <Bot size={14} />
-                  {titleCase(run.coordinator)}
-                </span>
-              </footer>
             </section>
           )}
         </main>
@@ -1530,6 +1530,46 @@ export function App() {
                   )}
                 </>
               )}
+            {popup === 'options' && (
+              <div className="options-panel">
+                <span className="eyebrow">ESPACIO DE TRABAJO</span>
+                <h2 id="popup-title">Más opciones</h2>
+                {run && (
+                  <p className="muted">
+                    {completed}/{run.steps.length} completados · {running} en
+                    curso{skipped > 0 ? ` · ${skipped} omitidos` : ''}
+                  </p>
+                )}
+                {runTools}
+                <div className="workspace-options">
+                  <button onClick={() => openPanel('legend')}>
+                    <Route size={17} />
+                    Colores del flujo
+                  </button>
+                  <button onClick={() => openPanel('guide')}>
+                    <BookOpen size={17} />
+                    Guía de uso
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPopup(null);
+                      setHelp(true);
+                    }}
+                  >
+                    <CircleHelp size={17} />
+                    Ayuda de conexión
+                  </button>
+                  <button onClick={openWindow}>
+                    <ExternalLink size={17} />
+                    Abrir en ventana
+                  </button>
+                </div>
+                <p className="muted">
+                  La ventana independiente mantiene este mismo flujo. Puedes
+                  dejarla junto a tu chat.
+                </p>
+              </div>
+            )}
             {popup === 'legend' && <FlowLegend />}
             {popup === 'settings' && (
               <Settings value={preferences} onChange={setPreferences} />
@@ -1549,9 +1589,9 @@ export function App() {
                   <li>
                     <strong>Explora trabajos y pasos</strong>
                     <span>
-                      «Ver trabajos» resume el plan. Pulsa un trabajo para
-                      desplegar el detalle. «Ajustes» permite elegir tema y
-                      navegación.
+                      En «Más opciones», «Ver trabajos» resume el plan. Pulsa un
+                      trabajo para desplegar el detalle. «Ajustes» permite
+                      elegir tema y navegación.
                     </span>
                   </li>
                   <li>

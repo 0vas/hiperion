@@ -221,7 +221,7 @@ test('request-derived plans flow top to bottom with parallel branches and retain
   expect(response.status()).toBe(201);
   const run = await response.json();
   await page.goto(`/?run=${run.id}`);
-  await expect(page.getByText('Flujo vertical', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Ir a tarea')).toBeVisible();
   await page.getByText('Petición original', { exact: true }).click();
   await expect(page.getByText(original, { exact: true })).toBeVisible();
   await page.keyboard.press('Escape');
@@ -637,6 +637,7 @@ test('follow tracks the next task, manual navigation releases it, and any task c
         .analyze()
     ).violations,
   ).toEqual([]);
+  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
   await page.getByRole('button', { name: 'Guía de uso', exact: true }).click();
   expect(
     (
@@ -852,6 +853,7 @@ test('jobs, concrete decisions and preferences work from a conversation-generate
   ).toEqual([]);
   await page.screenshot({ path: 'test-results/settings-mobile.png' });
   await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Guía de uso' })).toBeVisible();
 });
 
@@ -967,6 +969,7 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
     'animation-name',
     'none',
   );
+  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
   await page
     .getByRole('button', { name: 'Colores del flujo', exact: true })
     .click();
@@ -1000,8 +1003,108 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   ).toEqual([]);
   await page.screenshot({ path: 'test-results/flow-colors-dark.png' });
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Colores del flujo', exact: true }),
   ).toBeVisible();
   await page.screenshot({ path: 'test-results/flow-colors-mobile.png' });
+});
+
+test('split windows reserve the canvas, keep focus clear and expose secondary actions on demand', async ({
+  page,
+  request,
+}) => {
+  const response = await request.post('/api/runs', {
+    headers: { authorization: `Bearer ${token()}` },
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: {
+        title:
+          'Un flujo con un título largo para trabajar junto a la conversación',
+        steps: [
+          {
+            id: 'review',
+            title: 'Revisar el resultado y decidir el siguiente paso',
+            kind: 'manual',
+          },
+        ],
+      },
+    },
+  });
+  expect(response.status()).toBe(201);
+  const run = await response.json();
+  await page.goto(`/?run=${run.id}`);
+  for (const size of [
+    { width: 540, height: 720 },
+    { width: 720, height: 620 },
+    { width: 390, height: 600 },
+    { width: 1440, height: 900 },
+  ]) {
+    await page.setViewportSize(size);
+    await page.getByLabel('Ir a tarea').click();
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Enfocar paso actual' }).click();
+    await expect
+      .poll(() =>
+        page
+          .locator('.task-navigation')
+          .evaluate((el) => el.getBoundingClientRect().bottom),
+      )
+      .toBeLessThanOrEqual(108);
+    await expect
+      .poll(() =>
+        page
+          .locator('[data-id="review"] .step-node')
+          .evaluate((el) => el.getBoundingClientRect().top),
+      )
+      .toBeGreaterThan(108);
+    await expect
+      .poll(() =>
+        page
+          .locator('[data-id="review"] .step-node')
+          .evaluate((el) => el.getBoundingClientRect().bottom),
+      )
+      .toBeLessThan(size.height - 58);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(size.width);
+    await expect(page.locator('.mobile-steps')).toHaveCount(0);
+    if (size.width <= 1100)
+      await expect(
+        page.locator('.canvas-workspace > .canvas-tools'),
+      ).toBeHidden();
+    await page.screenshot({ path: `test-results/workspace-${size.width}.png` });
+  }
+  await page.setViewportSize({ width: 540, height: 720 });
+  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
+  await expect(
+    page.getByRole('dialog', { name: 'Más opciones' }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Petición original', exact: true })
+    .click();
+  await expect(
+    page.getByRole('dialog', { name: 'Petición original' }),
+  ).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(
+    page.getByRole('button', { name: 'Más opciones', exact: true }),
+  ).toBeFocused();
+  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
+  const popupPromise = page.waitForEvent('popup');
+  await page
+    .getByRole('button', { name: 'Abrir en ventana', exact: true })
+    .click();
+  const popup = await popupPromise;
+  await popup.waitForLoadState();
+  expect(popup.url()).toContain(`run=${run.id}`);
+  await popup.close();
+  const { default: AxeBuilder } = await import('@axe-core/playwright');
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
 });

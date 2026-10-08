@@ -75,6 +75,14 @@ En esta versión, al guardar una decisión debes volver al chat para continuar. 
 - **Rojo:** error o rechazo que requiere revisión.
 - **Gris discontinuo:** ruta pendiente; el punteado más tenue identifica una rama omitida.
 
-Pulsa **Colores del flujo** para abrir la leyenda. Las cajas usan iconos SVG para distinguir agente, persona y aprobación; mantienen datos y logs a un clic. El color siempre va acompañado de texto o símbolos.
+Pulsa **Más opciones → Colores del flujo** para abrir la leyenda. Las cajas usan iconos SVG para distinguir agente, persona y aprobación; mantienen datos y logs a un clic. El color siempre va acompañado de texto o símbolos.
 
 Las flechas muestran el estado registrado. Se detienen al pausar, perder conexión o activar movimiento reducido; no indican que un agente siga vivo fuera de Hyperion. En la vista de trabajos, los pasos internos pueden seguir ejecutándose aunque la flecha de entrada al trabajo ya figure como recorrida.
+
+## Junto al chat o en una ventana independiente
+
+En una ventana dividida, la cabecera muestra el flujo y la fila inferior permite elegir y enfocar una tarea. El canvas ocupa el espacio central; zoom y «Tu turno» quedan abajo. Los iconos muestran su nombre al mantener el cursor encima.
+
+**Más opciones (⋯)** reúne la petición original, actividad, vista de trabajos/pasos, continuación y pausa. **Ajustes** permanece accesible en la cabecera. Al ampliar la ventana, las acciones del flujo también aparecen en la barra inferior.
+
+Para trabajar fuera del panel del chat, pulsa **Más opciones → Abrir en ventana**. Se abre el mismo flujo en una ventana web independiente que puedes colocar junto a Codex, Cursor o Claude. No requiere comandos. Si el navegador bloquea la apertura, permite ventanas para Hyperion y vuelve a pulsar el botón. Esta opción no instala una aplicación nativa de escritorio.

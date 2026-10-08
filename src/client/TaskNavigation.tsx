@@ -17,6 +17,7 @@ import {
   LocateFixed,
 } from 'lucide-react';
 import type { Run, Step } from '../domain/workflow';
+import { canvasInsets } from './viewport';
 import { motionDuration } from './preferences';
 import { attentionStep } from './attention';
 const statuses: Record<string, string> = {
@@ -80,8 +81,7 @@ export function TaskNavigation({
       if (!n) return;
       const nodeWidth = n.measured?.width || 280,
         nodeHeight = n.measured?.height || 200;
-      const top = width <= 760 ? 255 : 140,
-        bottom = width <= 760 ? 245 : 110;
+      const { top, bottom } = canvasInsets;
       const visibleHeight = Math.max(80, height - top - bottom);
       const zoom = Math.min(
         1,
@@ -163,14 +163,18 @@ export function TaskNavigation({
     );
     const viewport = getViewportForBounds(
       bounds,
-      width,
-      Math.max(180, height - (width <= 760 ? 485 : 200)),
+      width - canvasInsets.side * 2,
+      Math.max(100, height - canvasInsets.top - canvasInsets.bottom),
       0.15,
       1,
       0.12,
     );
     void setViewport(
-      { ...viewport, y: viewport.y + (width <= 760 ? 255 : 115) },
+      {
+        ...viewport,
+        x: viewport.x + canvasInsets.side,
+        y: viewport.y + canvasInsets.top,
+      },
       {
         duration: motionDuration(),
       },
@@ -236,6 +240,8 @@ export function TaskNavigation({
         <div className="task-navigation-actions">
           <button
             className="follow-toggle"
+            aria-label="Seguir actividad"
+            title="Seguir actividad"
             aria-pressed={following}
             disabled={
               (!current && !following) ||
@@ -244,7 +250,7 @@ export function TaskNavigation({
             onClick={() => onFollowing(!following)}
           >
             <LocateFixed size={15} />
-            Seguir actividad
+            <span>Seguir actividad</span>
           </button>
           <button
             aria-label="Abrir tarea enfocada"

@@ -1,0 +1,341 @@
+/* Window-sized workspace: two light rows, an unobstructed canvas, one action edge. */
+.canvas-app .canvas-topbar {
+  inset: 0 0 auto;
+  height: 52px;
+  padding: 6px 14px;
+  gap: 12px;
+  background: var(--stone);
+  border: 0;
+}
+.canvas-app .canvas-identity {
+  flex: 1;
+  min-width: 0;
+  gap: 10px;
+}
+.canvas-app .canvas-topbar .brand {
+  padding: 0;
+  font-size: 22px;
+  gap: 7px;
+  flex-shrink: 0;
+}
+.canvas-app .brand-mark {
+  width: 28px;
+  height: 28px;
+}
+.canvas-app .brand-mark svg {
+  width: 25px;
+  height: 25px;
+}
+.canvas-app .canvas-identity .flows-button {
+  display: flex;
+  min-height: 32px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  font-size: 11px;
+}
+.canvas-app .canvas-title {
+  position: static;
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  padding: 0 6px;
+}
+.canvas-app .canvas-title h1 {
+  max-width: none;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.canvas-app .canvas-title .run-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  margin: 2px 0 0;
+  color: var(--muted);
+  background: none;
+  font-size: 10px;
+  line-height: 12px;
+}
+.canvas-app .canvas-topbar .topbar-right {
+  flex-shrink: 0;
+  padding: 0;
+  gap: 2px;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  background: transparent;
+}
+.canvas-app .topbar-right .icon-button {
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 7px;
+}
+.canvas-app .topbar-right .more-options {
+  order: 10;
+}
+.canvas-app .connection {
+  gap: 5px;
+  margin: 0 4px;
+  font-size: 10px;
+}
+.canvas-app .canvas-workspace::before {
+  height: 104px;
+  z-index: 0;
+  background: var(--stone);
+  border-bottom: 1px solid var(--line);
+}
+/* Clip the drawing layer only. Controls remain outside it, with unchanged camera dimensions. */
+.canvas-app .react-flow__renderer {
+  clip-path: inset(104px 0 58px);
+}
+.canvas-app .canvas-workspace .task-navigation {
+  top: 56px;
+  left: 14px;
+  right: 14px;
+  width: auto;
+  height: 40px;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  backdrop-filter: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.canvas-app .task-navigation-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.canvas-app .task-navigation select {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  max-width: 600px;
+  min-height: 34px;
+  height: 34px;
+  padding: 6px 8px;
+  font-size: 12px;
+  border-radius: 7px;
+  border-color: var(--line);
+  background: var(--glass);
+}
+.canvas-app .task-navigation-actions {
+  margin: 0;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.canvas-app .task-navigation-actions button {
+  min-height: 32px;
+  min-width: 32px;
+  padding: 6px;
+  border-radius: 7px;
+}
+.canvas-app .task-navigation-actions .follow-toggle {
+  margin: 0 4px 0 0;
+}
+.canvas-app .canvas-workspace .react-flow__controls {
+  left: 12px !important;
+  bottom: 12px !important;
+  display: flex;
+  flex-direction: row;
+  padding: 3px;
+  border-radius: 9px;
+  box-shadow: none;
+}
+.canvas-app .react-flow__controls .react-flow__controls-button {
+  width: 29px !important;
+  height: 29px !important;
+  min-width: 29px;
+  min-height: 29px;
+  border-radius: 6px !important;
+  border: 0 !important;
+}
+.canvas-app .canvas-workspace > .canvas-tools {
+  bottom: 12px;
+  padding: 3px;
+  gap: 4px;
+  max-width: calc(100% - 420px);
+  border-radius: 9px;
+  box-shadow: none;
+}
+.canvas-app .canvas-tools .secondary {
+  min-height: 32px;
+  padding: 7px 8px;
+  font-size: 11px;
+  border-radius: 7px;
+}
+.canvas-app .canvas-next,
+.canvas-app .canvas-next.human {
+  top: auto;
+  bottom: 12px;
+  right: 12px;
+  padding: 8px 10px;
+  min-height: 36px;
+  max-width: 210px;
+  gap: 7px;
+  border-radius: 9px;
+  box-shadow: none;
+}
+.canvas-app .canvas-next > span {
+  font-size: 0;
+  line-height: 0;
+  min-width: 0;
+}
+.canvas-app .canvas-next strong {
+  font-size: 11px;
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.canvas-app .canvas-notice {
+  top: 112px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.canvas-app .canvas-alert {
+  top: 112px;
+}
+.options-panel h2 {
+  margin: 8px 0 16px;
+}
+.options-panel .canvas-tools {
+  position: static;
+  transform: none;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0 0 12px;
+  display: block;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+}
+.options-panel .canvas-tools-group,
+.options-panel .workspace-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: auto;
+  padding: 0;
+  border: 0;
+}
+.options-panel .canvas-tools-group + .canvas-tools-group {
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+}
+.options-panel .canvas-tools .secondary,
+.options-panel .workspace-options button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 9px;
+  min-height: 42px;
+  padding: 10px;
+  font-size: 13px;
+  border-radius: 8px;
+  background: var(--glass);
+  color: var(--ink);
+}
+.options-panel .canvas-tools .continue-button {
+  margin: 0;
+}
+.options-panel .workspace-options {
+  margin: 12px 0 18px;
+}
+.options-panel .muted {
+  font-size: 12px;
+  line-height: 1.6;
+}
+@media (max-width: 1100px) {
+  .canvas-app .canvas-topbar {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  .canvas-app .canvas-topbar .brand-word,
+  .canvas-app .flows-label {
+    display: none;
+  }
+  .canvas-app .canvas-identity {
+    gap: 3px;
+  }
+  .canvas-app .topbar-right > button[aria-label='Guía de uso'],
+  .canvas-app .topbar-right > button[aria-label='Ayuda de conexión'] {
+    display: none;
+  }
+  .canvas-app .connection {
+    font-size: 0;
+    width: 8px;
+    margin: 0 5px;
+  }
+  .canvas-app .canvas-workspace > .canvas-tools {
+    display: none;
+  }
+  .canvas-app .task-navigation-actions .follow-toggle span {
+    display: none;
+  }
+  .canvas-app .canvas-workspace .task-navigation {
+    left: 10px;
+    right: 10px;
+  }
+  .canvas-app .canvas-next {
+    max-width: calc(100vw - 166px);
+  }
+}
+@media (max-width: 600px) {
+  .canvas-app
+    .task-navigation-actions
+    button[aria-label='Datos de la tarea enfocada'],
+  .canvas-app
+    .task-navigation-actions
+    button[aria-label='Logs de la tarea enfocada'] {
+    display: none;
+  }
+  .canvas-app .modal {
+    border-radius: 14px;
+  }
+  .canvas-app .modal-backdrop {
+    padding: 10px;
+  }
+  .canvas-app .canvas-popup .step-detail {
+    padding: 18px;
+  }
+  .options-panel .canvas-tools-group,
+  .options-panel .workspace-options {
+    grid-template-columns: 1fr;
+  }
+}
+@media (display-mode: standalone) {
+  .canvas-app .canvas-topbar {
+    padding-top: max(6px, env(safe-area-inset-top));
+  }
+}
+
+.canvas-app .react-flow__background {
+  clip-path: inset(104px 0 58px);
+}
+
+.canvas-workspace > .canvas-tools .options-only {
+  display: none;
+}
+[data-theme='dark'] .canvas-workspace .react-flow__controls-button:hover {
+  background: #35434d !important;
+}

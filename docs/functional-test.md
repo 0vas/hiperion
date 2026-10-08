@@ -151,3 +151,13 @@ Capturas automatizadas: `test-results/jobs-dark.png`, `decision-dark.png`, `sett
 - Iconos SVG por ejecutor, etiquetas explícitas INICIO/FIN, cajas compactas, leyenda accesible y colores adaptados a ambos temas. La tarea corta de la prueba mide menos de 165 px a escala real; los títulos largos pueden crecer.
 - Comprobación: 42 tests de dominio/adaptadores/presentación, 2 de producción y 14 Playwright. El escenario visual verifica flechas activas, pausa/reanudación, fallo/reintento, desconexión/reconexión, preferencias de movimiento, intervención humana, teclado, contraste y vista móvil.
 - Inspección del flujo real existente sin enviar decisiones humanas. Las capturas locales permanecen en `.hyperion/`; las capturas sintéticas se generan en `test-results/flow-colors-*.png`.
+
+## Ventanas divididas y espacio de trabajo (ADR 0009)
+
+- TDD: el primer escenario de 540 px detectó una navegación que terminaba a 239 px, frente al máximo previsto de 108 px. La implementación separa dos filas compactas, elimina la tira duplicada y agrupa acciones secundarias hasta 1100 px.
+- El escenario nuevo verifica 390, 540, 720 y 1440 px, títulos largos, foco libre de barras, ausencia de desbordamiento horizontal, navegación por teclado, devolución de foco al cerrar paneles, accesibilidad axe y apertura del mismo flujo en una ventana web independiente.
+- Se corrigió el retorno de foco al cambiar de panel, la capa que interceptaba el selector y el contraste del botón de enfoque al pasar el cursor en tema oscuro. La prueba anterior de orientación conserva sus comprobaciones geométricas sin depender del rótulo retirado «Flujo vertical».
+- `npm run check`: 42 pruebas de lógica/integración, 2 de distribución, tipos, build y formato correctos. `npm run test:e2e`: 15 recorridos aprobados.
+- Se inspeccionó el flujo real en ventanas de 540 y 1440 px, en tema oscuro y sin errores JavaScript. No se enviaron decisiones humanas. Las capturas locales permanecen en `.hyperion/workspace-*.png`; las sintéticas, en `test-results/workspace-*.png`.
+
+«Abrir en ventana» depende de la apertura de ventanas del navegador. No se ha creado ni probado un instalador nativo; la interfaz se adapta a una ventana web independiente.
