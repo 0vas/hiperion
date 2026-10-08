@@ -1,5 +1,6 @@
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 import { ChevronDown, Layers3 } from 'lucide-react';
+import type { FlowState } from './flow-visuals';
 import type { StepStatus } from '../domain/workflow';
 export type JobNodeData = {
   title: string;
@@ -7,6 +8,7 @@ export type JobNodeData = {
   total: number;
   skipped: number;
   status: StepStatus;
+  flowState: FlowState;
   statusLabel: string;
   onExpand: () => void;
 };
@@ -14,7 +16,10 @@ export function JobNode({ data }: NodeProps<Node<JobNodeData>>) {
   return (
     <>
       <Handle type="target" position={Position.Top} />
-      <div className={`job-node step-node ${data.status}`}>
+      <div
+        className={`job-node step-node flow-node ${data.status}`}
+        data-flow-state={data.flowState}
+      >
         <button
           className="node-main"
           aria-label={`Ver pasos: ${data.title}`}

@@ -27,7 +27,7 @@ export function layoutSteps(
     offset += Math.max(
       ...items.map(
         (s) =>
-          (control(s) ? 150 : 250) +
+          (control(s) ? 170 : 205) +
           Math.max(0, Math.ceil(s.title.length / 25) - 2) * 24,
       ),
     );

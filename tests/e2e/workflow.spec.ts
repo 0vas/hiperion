@@ -854,3 +854,154 @@ test('jobs, concrete decisions and preferences work from a conversation-generate
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'Guía de uso' })).toBeVisible();
 });
+
+test('route colors and motion follow real execution; compact SVG cards remain accessible', async ({
+  page,
+  request,
+}) => {
+  const headers = { authorization: `Bearer ${token()}` };
+  const response = await request.post('/api/runs', {
+    headers,
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: {
+        title: 'Ruta visible',
+        profile: 'bpmn-lite',
+        steps: [
+          { id: 'start', title: 'Petición recibida', kind: 'start' },
+          {
+            id: 'work',
+            title: 'Preparar el resultado',
+            kind: 'agent',
+            dependencies: ['start'],
+          },
+          {
+            id: 'human',
+            title: 'Revisar el resultado',
+            kind: 'manual',
+            dependencies: ['work'],
+          },
+          {
+            id: 'end',
+            title: 'Actividad terminada',
+            kind: 'end',
+            dependencies: ['human'],
+          },
+        ],
+      },
+    },
+  });
+  expect(response.status()).toBe(201);
+  const run = await response.json();
+  const command = async (type: string) => {
+    const res = await request.post(`/api/runs/${run.id}/commands`, {
+      headers,
+      data: {
+        type,
+        stepId: 'work',
+        message: 'Resultado de prueba',
+        commandId: crypto.randomUUID(),
+      },
+    });
+    expect(res.status()).toBe(200);
+  };
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto(`/?run=${run.id}`);
+  const incoming = page.locator('.react-flow__edge[data-id="start-work"]');
+  const outgoing = page.locator('.react-flow__edge[data-id="work-human"]');
+  await expect(incoming).toHaveClass(/route-ready/);
+  await expect(outgoing).toHaveClass(/route-pending/);
+  await expect(page.getByText('INICIO', { exact: true })).toBeVisible();
+  await expect(page.getByText('FIN', { exact: true })).toBeVisible();
+  await command('start');
+  await expect(incoming).toHaveClass(/route-active/);
+  await expect(incoming.locator('path.react-flow__edge-path')).toHaveCSS(
+    'animation-name',
+    'route-travel',
+  );
+  await expect(outgoing).not.toHaveClass(/animated/);
+  const task = page.locator('.step-node').first();
+  expect(
+    await task.evaluate(
+      (el) =>
+        el.getBoundingClientRect().height /
+        Number(
+          (
+            el.closest('.react-flow__viewport') as HTMLElement
+          ).style.transform.match(/scale\(([^)]+)\)/)?.[1] || 1,
+        ),
+    ),
+  ).toBeLessThan(165);
+  await expect(task.locator('.node-kind-icon svg')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Pausar', exact: true }).click();
+  await expect(incoming).toHaveClass(/route-paused/);
+  await expect(incoming).not.toHaveClass(/animated/);
+  await page.getByRole('button', { name: 'Reanudar', exact: true }).click();
+  await expect(incoming).toHaveClass(/route-active/);
+  await command('fail');
+  await expect(incoming).toHaveClass(/route-error/);
+  await expect(incoming).not.toHaveClass(/animated/);
+  await command('retry');
+  await expect(incoming).toHaveClass(/route-ready/);
+  await command('start');
+  await expect(incoming).toHaveClass(/route-active/);
+  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await page.getByLabel('Reducir movimiento').check();
+  await page.keyboard.press('Escape');
+  await expect(incoming.locator('path.react-flow__edge-path')).toHaveCSS(
+    'animation-name',
+    'none',
+  );
+  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await page.getByLabel('Reducir movimiento').uncheck();
+  await page.keyboard.press('Escape');
+  await expect(incoming).toHaveClass(/animated/);
+  await page.route('**/api/runs', (route) => route.abort());
+  await expect(page.getByText('Sin conexión', { exact: true })).toBeVisible();
+  await expect(incoming).not.toHaveClass(/animated/);
+  await page.unroute('**/api/runs');
+  await expect(page.getByText('Conectado', { exact: true })).toBeVisible();
+  await expect(incoming).toHaveClass(/animated/);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(incoming.locator('path.react-flow__edge-path')).toHaveCSS(
+    'animation-name',
+    'none',
+  );
+  await page
+    .getByRole('button', { name: 'Colores del flujo', exact: true })
+    .click();
+  await expect(page.getByRole('dialog')).toContainText('Gris · Pendiente');
+  const { default: AxeBuilder } = await import('@axe-core/playwright');
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page.keyboard.press('Escape');
+  await command('complete');
+  await expect(incoming).toHaveClass(/route-completed/);
+  await expect(outgoing).toHaveClass(/route-attention/);
+  await expect(page.locator('[data-id="human"] .flow-node')).toHaveAttribute(
+    'data-flow-state',
+    'attention',
+  );
+  await page.screenshot({ path: 'test-results/flow-colors-light.png' });
+  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await page.getByLabel('Tema', { exact: true }).selectOption('dark');
+  await page.keyboard.press('Escape');
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page.screenshot({ path: 'test-results/flow-colors-dark.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    page.getByRole('button', { name: 'Colores del flujo', exact: true }),
+  ).toBeVisible();
+  await page.screenshot({ path: 'test-results/flow-colors-mobile.png' });
+});

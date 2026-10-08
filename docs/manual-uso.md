@@ -65,3 +65,16 @@ La misma petición funciona en un harness que tenga Hyperion conectado. Hyperion
 En otra herramienta puedes pedir: «Conecta Hyperion y úsalo para [actividad]». Si aún no tiene acceso a Hyperion, necesitará que su integración esté habilitada; reconocer el nombre no instala una aplicación por sí solo. La [guía de conexión para integradores](conexion.md) contiene esa configuración, separada del uso diario.
 
 En esta versión, al guardar una decisión debes volver al chat para continuar. El canvas no despierta conversaciones cerradas ni ejecuta por sí mismo las herramientas de la IA.
+
+## Leer los colores y las flechas
+
+- **Inicio:** bandera dentro de un círculo y etiqueta INICIO. **Fin:** cuadrado dentro de un círculo de borde grueso y etiqueta FIN.
+- **Verde:** paso completado y ruta recorrida.
+- **Azul:** «Listo» espera al agente; «En curso» muestra trazos que avanzan hacia el paso en ejecución.
+- **Ámbar:** el proceso espera tu intervención o está en pausa. La etiqueta distingue ambos casos.
+- **Rojo:** error o rechazo que requiere revisión.
+- **Gris discontinuo:** ruta pendiente; el punteado más tenue identifica una rama omitida.
+
+Pulsa **Colores del flujo** para abrir la leyenda. Las cajas usan iconos SVG para distinguir agente, persona y aprobación; mantienen datos y logs a un clic. El color siempre va acompañado de texto o símbolos.
+
+Las flechas muestran el estado registrado. Se detienen al pausar, perder conexión o activar movimiento reducido; no indican que un agente siga vivo fuera de Hyperion. En la vista de trabajos, los pasos internos pueden seguir ejecutándose aunque la flecha de entrada al trabajo ya figure como recorrida.

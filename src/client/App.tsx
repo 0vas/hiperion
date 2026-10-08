@@ -21,6 +21,8 @@ import {
   type Edge,
 } from '@xyflow/react';
 import {
+  Flag,
+  Route,
   Settings2,
   ArrowUpRight,
   Focus,
@@ -52,6 +54,13 @@ import {
 } from 'lucide-react';
 import { TaskNavigation, type FocusRequest } from './TaskNavigation';
 import { jobProgress, projectJobs } from '../domain/jobs';
+import {
+  nodeState,
+  routeState,
+  flowLabels,
+  type FlowState,
+} from './flow-visuals';
+import { FlowLegend } from './FlowLegend';
 import { JobNode } from './JobNode';
 import { Settings } from './Settings';
 import { usePreferences } from './preferences';
@@ -144,6 +153,7 @@ type StepNodeData = {
   coordinator: string;
   jobTitle?: string;
   selected: boolean;
+  flowState: FlowState;
   onSelect: (id: string, view?: StepView) => void;
 };
 function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
@@ -178,13 +188,21 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
         <Handle type="target" position={Position.Top} />
       )}
       {isControl(step) ? (
-        <div className={`control-node ${step.status}`}>
+        <div
+          className={`control-node flow-node ${step.status}`}
+          data-flow-state={data.flowState}
+        >
           <button
             className="control-main"
             aria-label={`Ver paso: ${step.title}`}
             aria-haspopup="dialog"
             onClick={() => data.onSelect(step.id)}
           >
+            {step.kind !== 'gateway' && (
+              <span className="event-label">
+                {step.kind === 'start' ? 'INICIO' : 'FIN'}
+              </span>
+            )}
             <span
               className={
                 step.kind === 'gateway'
@@ -203,20 +221,22 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
                   )}
                 </span>
               )}
-              {step.kind === 'end' && <span className="end-dot" />}
+              {step.kind === 'start' && <Flag size={18} />}
+              {step.kind === 'end' && <Square size={15} fill="currentColor" />}
             </span>
             <strong>{step.title}</strong>
             <small>
               {step.gateway
                 ? `${gatewayLabels[step.gateway.type]} · ${step.gateway.direction === 'split' ? 'dividir' : 'unir'}`
-                : labels[step.status]}
+                : flowLabels[data.flowState]}
             </small>
           </button>
           {tools}
         </div>
       ) : (
         <div
-          className={`step-node ${step.status} ${data.selected ? 'selected' : ''}`}
+          className={`step-node flow-node ${step.status} ${data.selected ? 'selected' : ''}`}
+          data-flow-state={data.flowState}
         >
           <button
             className="node-main"
@@ -225,12 +245,31 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
             onClick={() => data.onSelect(step.id)}
           >
             <div className="node-top">
-              <span className="node-number">
-                {String(data.index + 1).padStart(2, '0')}
+              <span className="node-identity">
+                <span className="node-kind-icon">
+                  {step.kind === 'agent' ? (
+                    <Bot size={17} />
+                  ) : step.kind === 'approval' ? (
+                    <ShieldCheck size={17} />
+                  ) : (
+                    <UserRound size={17} />
+                  )}
+                </span>
+                <span className="node-number">
+                  {String(data.index + 1).padStart(2, '0')}
+                </span>
               </span>
               <span className={`status-tag ${step.status}`}>
-                <StatusIcon status={step.status} />
-                {labels[step.status]}
+                {data.flowState === 'paused' ? (
+                  <Pause size={13} />
+                ) : data.flowState === 'stopped' ? (
+                  <Square size={13} />
+                ) : (
+                  <StatusIcon status={step.status} />
+                )}
+                {data.flowState === 'error'
+                  ? labels[step.status]
+                  : flowLabels[data.flowState]}
               </span>
             </div>
             {(data.jobTitle || step.phase) && (
@@ -238,24 +277,9 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
             )}
             <strong>{step.title}</strong>
             <div className="node-owner">
-              {step.kind === 'agent' ? (
-                <Bot size={14} />
-              ) : step.kind === 'approval' ? (
-                <ShieldCheck size={14} />
-              ) : (
-                <UserRound size={14} />
-              )}{' '}
               {step.kind === 'agent' ? titleCase(data.coordinator) : 'Tú'}
-              <span>· {kindLabels[step.kind]}</span>
+              <ArrowUpRight size={13} />
             </div>
-            <span className="node-action">
-              {step.status === 'waiting'
-                ? step.kind === 'approval'
-                  ? 'Revisar y aprobar'
-                  : 'Responder'
-                : 'Abrir detalle'}
-              <ArrowUpRight size={12} />
-            </span>
           </button>
           {tools}
         </div>
@@ -499,7 +523,14 @@ export function App() {
   const [focusRequest, setFocusRequest] = useState<FocusRequest>(null);
   const focusNonce = useRef(0);
   const [popup, setPopup] = useState<
-    StepView | 'activity' | 'request' | 'runs' | 'guide' | 'settings' | null
+    | StepView
+    | 'activity'
+    | 'request'
+    | 'runs'
+    | 'guide'
+    | 'settings'
+    | 'legend'
+    | null
   >(null);
   const [online, setOnline] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -596,7 +627,8 @@ export function App() {
           data: {
             title: item.title,
             ...progress,
-            statusLabel: labels[progress.status],
+            flowState: nodeState(progress, run.status),
+            statusLabel: flowLabels[nodeState(progress, run.status)],
             onExpand: () => {
               setPreferences((p) => ({ ...p, view: 'steps' }));
               setFollowing(false);
@@ -616,6 +648,7 @@ export function App() {
         position: positions[item.id]!,
         data: {
           step: item,
+          flowState: nodeState(item, run.status),
           index,
           coordinator: run.coordinator,
           jobTitle: run.jobs?.find((j) => j.id === item.jobId)?.title,
@@ -630,37 +663,43 @@ export function App() {
       };
     });
     const edges: Edge[] = displayed.flatMap((item) =>
-      item.dependencies.map((id) => ({
-        id: `${id}-${item.id}`,
-        source: id,
-        target: item.id,
-        type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 },
-        label: (() => {
-          const source = run.steps.find((s) => s.id === id);
-          const route = source?.gateway?.routes?.find(
-            (r) => r.target === item.id,
-          );
-          return route?.when
-            ? `${route.when.output} = ${String(route.when.equals)}${source?.gateway?.defaultTarget === item.id ? ' / defecto' : ''}`
-            : source?.gateway?.defaultTarget === item.id
-              ? 'Por defecto'
-              : undefined;
-        })(),
-        labelStyle: { fontSize: 11, fill: '#655e50' },
-        labelBgStyle: { fill: '#f7f5ef', fillOpacity: 0.95 },
-        pathOptions: { borderRadius: 20 },
-        animated: item.status === 'running' && !preferences.reduceMotion,
-        style: {
-          stroke:
-            run.steps.find((s) => s.id === id)?.status === 'completed'
-              ? '#9a793c'
-              : '#b9b6ad',
-          strokeWidth: 1.8,
-          strokeDasharray: item.status === 'skipped' ? '5 5' : undefined,
-          opacity: item.status === 'skipped' ? 0.45 : 1,
-        },
-      })),
+      item.dependencies.map((id) => {
+        const state = routeState(run, id, item.id);
+        const color = `var(--route-${state})`;
+        return {
+          id: `${id}-${item.id}`,
+          source: id,
+          target: item.id,
+          type: 'smoothstep',
+          className: `route-${state}`,
+          ariaLabel: `${displayed.find((s) => s.id === id)?.title} → ${item.title}: ${flowLabels[state]}`,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 16,
+            height: 16,
+            color,
+          },
+          label: (() => {
+            const source = run.steps.find((s) => s.id === id);
+            const route = source?.gateway?.routes?.find(
+              (r) => r.target === item.id,
+            );
+            return route?.when
+              ? `${route.when.output} = ${String(route.when.equals)}${source?.gateway?.defaultTarget === item.id ? ' / defecto' : ''}`
+              : source?.gateway?.defaultTarget === item.id
+                ? 'Por defecto'
+                : undefined;
+          })(),
+          labelStyle: { fontSize: 11, fill: '#655e50' },
+          labelBgStyle: { fill: '#f7f5ef', fillOpacity: 0.95 },
+          pathOptions: { borderRadius: 20 },
+          animated: state === 'active' && online && !preferences.reduceMotion,
+          style: {
+            stroke: color,
+            strokeWidth: state === 'pending' || state === 'skipped' ? 1.5 : 2.2,
+          },
+        };
+      }),
     );
     return { nodes, edges };
   }, [
@@ -671,6 +710,7 @@ export function App() {
     focusedStepId,
     preferences.view,
     preferences.reduceMotion,
+    online,
   ]);
   async function act(type: string, target?: string) {
     if (!run || busy) return;
@@ -748,7 +788,7 @@ export function App() {
 
   const dialogOpen = Boolean(popup || help || confirmation);
   return (
-    <div className="app-shell canvas-app">
+    <div className="app-shell canvas-app" data-connected={online}>
       <div
         className="canvas-shell"
         inert={dialogOpen}
@@ -1060,6 +1100,14 @@ export function App() {
                   {completed}/{run.steps.length} completados · {running} en
                   curso{skipped > 0 ? ` · ${skipped} omitidos` : ''}
                 </span>
+                <button
+                  className="legend-button"
+                  onClick={() => setPopup('legend')}
+                  aria-haspopup="dialog"
+                >
+                  <Route size={13} />
+                  Colores del flujo
+                </button>
                 <span className="canvas-tip">
                   Pulsa un nodo para ver información y acciones
                 </span>
@@ -1482,6 +1530,7 @@ export function App() {
                   )}
                 </>
               )}
+            {popup === 'legend' && <FlowLegend />}
             {popup === 'settings' && (
               <Settings value={preferences} onChange={setPreferences} />
             )}

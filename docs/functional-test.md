@@ -143,3 +143,11 @@ Criterios definidos en ADR 0007. Test rojo inicial: el contrato rechazaba `jobs`
 - La skill portable se validó y actualizó. La arquitectura ArchiMate conserva cinco componentes y ocho relaciones. La interacción real en Cursor/Claude no se abrió en esta prueba; sus adaptadores MCP se comprueban mediante tests de protocolo, no mediante una sesión de esos productos.
 
 Capturas automatizadas: `test-results/jobs-dark.png`, `decision-dark.png`, `settings-mobile.png`. La revisión humana del caso real queda pendiente en su canvas. Guardar una elección aún requiere volver al chat para continuar.
+
+## Lenguaje visual del flujo (ADR 0008)
+
+- Criterios definidos antes de implementar; tests iniciales fallaron por ausencia de la clasificación visual de rutas.
+- Rutas clasificadas desde dependencias reales: pendientes, listas, activas, completadas, intervención humana, error, pausa, detención y omisión. La vista de trabajos inspecciona las aristas entre pasos de los grupos, no supone actividad a partir del estado agregado.
+- Iconos SVG por ejecutor, etiquetas explícitas INICIO/FIN, cajas compactas, leyenda accesible y colores adaptados a ambos temas. La tarea corta de la prueba mide menos de 165 px a escala real; los títulos largos pueden crecer.
+- Comprobación: 42 tests de dominio/adaptadores/presentación, 2 de producción y 14 Playwright. El escenario visual verifica flechas activas, pausa/reanudación, fallo/reintento, desconexión/reconexión, preferencias de movimiento, intervención humana, teclado, contraste y vista móvil.
+- Inspección del flujo real existente sin enviar decisiones humanas. Las capturas locales permanecen en `.hyperion/`; las capturas sintéticas se generan en `test-results/flow-colors-*.png`.
