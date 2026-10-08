@@ -3,10 +3,17 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type CSSProperties,
+  useSyncExternalStore,
 } from 'react';
 
 type Frames = string[][];
+const motionQuery = '(prefers-reduced-motion: reduce)';
+const motionSnapshot = () => window.matchMedia(motionQuery).matches;
+function subscribeMotion(notify: () => void) {
+  const media = window.matchMedia(motionQuery);
+  media.addEventListener('change', notify);
+  return () => media.removeEventListener('change', notify);
+}
 
 /** Sample the actual routed SVG path, so the ribbons also follow elbows. */
 function ribbonFrames(path: SVGPathElement): Frames {
@@ -29,8 +36,7 @@ function ribbonFrames(path: SVGPathElement): Frames {
       t,
     };
   });
-  // 32 equally spaced phases match ribbon-wave in process.css.
-  // The final keyframe reuses phase zero, keeping the cycle closed.
+  // The final SVG value repeats phase zero to close the periodic wave.
   return Array.from({ length: 3 }, (_, strand) =>
     Array.from({ length: 32 }, (_, frame) => {
       const sides = [1, -1].map((side) =>
@@ -62,6 +68,7 @@ export function FlowRibbons({
   color: string;
   horizontal: boolean;
 }) {
+  const reducedMotion = useSyncExternalStore(subscribeMotion, motionSnapshot);
   const id = useId().replace(/:/g, '');
   const measure = useRef<SVGPathElement>(null);
   const [frames, setFrames] = useState<Frames>([]);
@@ -101,12 +108,17 @@ export function FlowRibbons({
           className={`flow-ribbon strand-${strand}`}
           d={shapes[0]}
           fill={`url(#${id})`}
-          style={
-            Object.fromEntries(
-              shapes.map((shape, i) => [`--ribbon-${i}`, `path("${shape}")`]),
-            ) as CSSProperties
-          }
-        />
+        >
+          {flowing && !reducedMotion && (
+            <animate
+              attributeName="d"
+              values={[...shapes, shapes[0]].join(';')}
+              dur="6.4s"
+              repeatCount="indefinite"
+              calcMode="linear"
+            />
+          )}
+        </path>
       ))}
     </g>
   );

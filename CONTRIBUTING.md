@@ -14,8 +14,9 @@ Keep the domain independent from HTTP, MCP, React and persistence. Providers bel
 npm ci
 npm run format
 npm run check
-npx playwright install chromium
+npx playwright install chromium webkit
 npm run test:e2e
+npm run test:e2e -- --config playwright.webkit.config.ts
 ```
 
 The browser test server uses `.hyperion-e2e/` on port 4318. Never run tests against your real data directory. Preserve `package-lock.json`; use `npm ci` for reproducible verification.

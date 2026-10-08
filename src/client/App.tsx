@@ -18,6 +18,7 @@ import {
   getNodesBounds,
   getViewportForBounds,
   type NodeProps,
+  type NodeChange,
   type Node,
   type Edge,
 } from '@xyflow/react';
@@ -626,6 +627,34 @@ export function App() {
     setStepId(id);
     setPopup(view);
   }, []);
+  // Controlled nodes must retain React Flow's measurements between snapshots.
+  // Dropping them invalidates handles and unmounts every connected edge.
+  const measurementKey = `${run?.id}:${preferences.view}:${preferences.orientation}`;
+  const [measurements, setMeasurements] = useState<{
+    key: string;
+    nodes: Record<string, { width: number; height: number }>;
+  }>({ key: '', nodes: {} });
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      setMeasurements((previous) => {
+        let next = previous.key === measurementKey ? previous.nodes : {};
+        for (const change of changes) {
+          if (change.type !== 'dimensions' || !change.dimensions) continue;
+          const measured = next[change.id];
+          if (
+            measured?.width === change.dimensions.width &&
+            measured?.height === change.dimensions.height
+          )
+            continue;
+          next = { ...next, [change.id]: change.dimensions };
+        }
+        return next === previous.nodes
+          ? previous
+          : { key: measurementKey, nodes: next };
+      });
+    },
+    [measurementKey],
+  );
   const graph = useMemo(() => {
     if (!run) return { nodes: [], edges: [] };
     const collapsed = preferences.view === 'jobs' && !!run.jobs?.length;
@@ -636,12 +665,17 @@ export function App() {
       preferences.orientation,
     );
     const nodes: Node[] = displayed.map((item, index) => {
+      const measured =
+        measurements.key === measurementKey
+          ? measurements.nodes[item.id]
+          : undefined;
       if (item.id.startsWith('job:')) {
         const id = item.id.slice(4);
         const progress = jobProgress(run, id);
         return {
           id: item.id,
           type: 'job',
+          measured,
           position: positions[item.id]!,
           draggable: false,
           focusable: false,
@@ -667,6 +701,7 @@ export function App() {
       return {
         id: item.id,
         type: 'step',
+        measured,
         position: positions[item.id]!,
         data: {
           step: item,
@@ -742,6 +777,8 @@ export function App() {
     return { nodes, edges };
   }, [
     run,
+    measurements,
+    measurementKey,
     step?.id,
     selectStep,
     popup,
@@ -1065,6 +1102,7 @@ export function App() {
                 <ReactFlow
                   key={run.id}
                   nodes={graph.nodes}
+                  onNodesChange={onNodesChange}
                   edges={graph.edges}
                   nodeTypes={nodeTypes}
                   edgeTypes={edgeTypes}

@@ -938,10 +938,7 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   await expect(page.getByText('FIN', { exact: true })).toBeVisible();
   await command('start');
   await expect(incoming).toHaveClass(/route-active/);
-  await expect(incoming.locator('.flow-ribbon').first()).toHaveCSS(
-    'animation-name',
-    'ribbon-wave',
-  );
+  await expect(incoming.locator('.flow-ribbon animate')).toHaveCount(3);
   await expect(outgoing).not.toHaveClass(/animated/);
   const task = page.locator('.step-node').first();
   expect(
@@ -971,10 +968,7 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
   await page.getByLabel('Reducir movimiento').check();
   await page.keyboard.press('Escape');
-  await expect(incoming.locator('.flow-ribbon').first()).toHaveCSS(
-    'animation-name',
-    'none',
-  );
+  await expect(incoming.locator('.flow-ribbon animate')).toHaveCount(0);
   await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
   await page.getByLabel('Reducir movimiento').uncheck();
   await page.keyboard.press('Escape');
@@ -986,10 +980,7 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   await expect(page.getByText('Conectado', { exact: true })).toBeVisible();
   await expect(incoming).toHaveClass(/animated/);
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(incoming.locator('.flow-ribbon').first()).toHaveCSS(
-    'animation-name',
-    'none',
-  );
+  await expect(incoming.locator('.flow-ribbon animate')).toHaveCount(0);
   await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
   await page
     .getByRole('button', { name: 'Colores del flujo', exact: true })
@@ -1149,7 +1140,7 @@ test('human checklist, waiting motion, SVG gateways and horizontal layout form o
   await expect(page.locator('svg[data-bpmn="exclusive"]')).toHaveCount(2);
   await expect(page.locator('svg[data-bpmn="inclusive"]')).toHaveCount(2);
   const waiting = page.locator('.route-attention .flow-ribbon').first();
-  await expect(waiting).toHaveCSS('animation-name', 'ribbon-wave');
+  await expect(waiting.locator('animate')).toHaveCount(1);
   await page
     .getByRole('button', { name: 'Ver flujo horizontal', exact: true })
     .click();
@@ -1266,11 +1257,18 @@ test('liquid current follows reached routes and BPMN symbol colors stay tied to 
   await page.goto(`/?run=${run.id}`);
   const ribbons = page.locator('[data-id="start-scope"] .flow-ribbon');
   await expect(ribbons).toHaveCount(3);
-  await expect(ribbons.first()).toHaveCSS('animation-name', 'ribbon-wave');
-  const shape = await ribbons.first().evaluate((el) => getComputedStyle(el).d);
+  await expect(ribbons.first().locator('animate')).toHaveCount(1);
+  const geometry = (el: Element) => {
+    const path = el as SVGPathElement;
+    return Array.from({ length: 16 }, (_, i) => {
+      const point = path.getPointAtLength((path.getTotalLength() * i) / 16);
+      return [point.x, point.y];
+    }).flat();
+  };
+  const shape = await ribbons.first().evaluate(geometry);
   await expect
-    .poll(() => ribbons.first().evaluate((el) => getComputedStyle(el).d))
-    .not.toBe(shape);
+    .poll(() => ribbons.first().evaluate(geometry))
+    .not.toEqual(shape);
   await expect(
     page.locator('[data-id="scope-parallel"] .flow-ribbon'),
   ).toHaveCount(0);
@@ -1282,24 +1280,30 @@ test('liquid current follows reached routes and BPMN symbol colors stay tied to 
   ).toHaveAttribute('marker-end', /url/);
   await expect(page.locator('.liquid-stream')).toHaveCount(0);
   const seam = await ribbons.first().evaluate((el) => {
-    const animation = el.getAnimations()[0]!;
-    const duration = Number(animation.effect!.getTiming().duration);
-    const originalTime = animation.currentTime;
-    animation.pause();
+    const path = el as SVGPathElement;
+    const animation = path.querySelector('animate') as SVGAnimateElement;
+    const svg = path.ownerSVGElement!;
+    const duration = animation.getSimpleDuration();
+    const begin = animation.getStartTime();
+    const originalTime = svg.getCurrentTime();
+    svg.pauseAnimations();
     const sample = (time: number) => {
-      animation.currentTime = time;
-      return (getComputedStyle(el).d.match(/-?\d*\.?\d+/g) || []).map(Number);
+      svg.setCurrentTime(begin + time);
+      return Array.from({ length: 32 }, (_, i) => {
+        const point = path.getPointAtLength((path.getTotalLength() * i) / 32);
+        return [point.x, point.y];
+      }).flat();
     };
-    const before = sample(duration - 8),
+    const before = sample(duration - 0.008),
       end = sample(duration),
-      after = sample(duration + 8),
+      after = sample(duration + 0.008),
       start = sample(0);
     const incoming = end.map((v, i) => v - before[i]!);
     const outgoing = after.map((v, i) => v - end[i]!);
     const dot = incoming.reduce((sum, v, i) => sum + v * outgoing[i]!, 0);
     const norm = (values: number[]) => Math.hypot(...values);
-    animation.currentTime = originalTime;
-    animation.play();
+    svg.setCurrentTime(originalTime);
+    svg.unpauseAnimations();
     return {
       closure: Math.max(...end.map((v, i) => Math.abs(v - start[i]!))),
       continuity: dot / (norm(incoming) * norm(outgoing)),
@@ -1331,12 +1335,12 @@ test('liquid current follows reached routes and BPMN symbol colors stay tied to 
   }
   await page.getByRole('button', { name: 'Pausar', exact: true }).click();
   await expect(page.locator('.flow-ribbons.is-flowing')).toHaveCount(0);
-  await expect(ribbons.first()).toHaveCSS('animation-name', 'none');
+  await expect(ribbons.first().locator('animate')).toHaveCount(0);
   expect(await color('start')).toBe('rgb(143, 218, 133)');
   await page.getByRole('button', { name: 'Reanudar', exact: true }).click();
-  await expect(ribbons.first()).toHaveCSS('animation-name', 'ribbon-wave');
+  await expect(ribbons.first().locator('animate')).toHaveCount(1);
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(ribbons.first()).toHaveCSS('animation-name', 'none');
+  await expect(ribbons.first().locator('animate')).toHaveCount(0);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page
     .getByRole('button', { name: 'Ver flujo horizontal', exact: true })
