@@ -10,7 +10,7 @@ import type { FlowState } from './flow-visuals';
 
 type Current = Edge<{ state: FlowState; current: boolean }, 'current'>;
 
-/** A continuous channel with a moving SVG highlight in source → target order. */
+/** Reached routes carry the wave; unreached routes keep their direction marker. */
 export function CurrentEdge(props: EdgeProps<Current>) {
   const [path, labelX, labelY] = getSmoothStepPath({
     ...props,
@@ -53,20 +53,12 @@ export function CurrentEdge(props: EdgeProps<Current>) {
           }
         />
       )}
-      {reached && (
-        <path
-          d={path}
-          pathLength={100}
-          className={`liquid-stream${props.data?.current ? ' is-flowing' : ''}`}
-          style={{ stroke: props.style?.stroke }}
-        />
-      )}
       <BaseEdge
         id={props.id}
         path={path}
         labelX={labelX}
         labelY={labelY}
-        markerEnd={props.markerEnd}
+        markerEnd={reached ? undefined : props.markerEnd}
         markerStart={props.markerStart}
         style={reached ? { ...props.style, strokeWidth: 1.4 } : props.style}
         label={props.label}

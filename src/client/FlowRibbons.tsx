@@ -13,8 +13,8 @@ function ribbonFrames(path: SVGPathElement): Frames {
   const length = path.getTotalLength();
   if (!Number.isFinite(length) || length < 1) return [];
   const count = Math.min(120, Math.max(24, Math.ceil(length / 4)));
-  const amplitude = Math.min(5.5, length / 12);
-  const cycles = Math.max(1, length / 100);
+  const amplitude = Math.min(3.5, length / 20);
+  const cycles = Math.min(6, Math.max(1, length / 120));
   const points = Array.from({ length: count + 1 }, (_, i) => {
     const t = i / count;
     const at = path.getPointAtLength(t * length);
@@ -29,18 +29,20 @@ function ribbonFrames(path: SVGPathElement): Frames {
       t,
     };
   });
+  // 32 equally spaced phases match ribbon-wave in process.css.
+  // The final keyframe reuses phase zero, keeping the cycle closed.
   return Array.from({ length: 3 }, (_, strand) =>
-    Array.from({ length: 4 }, (_, frame) => {
+    Array.from({ length: 32 }, (_, frame) => {
       const sides = [1, -1].map((side) =>
         points.map(({ x, y, nx, ny, t }) => {
           const envelope = Math.sin(Math.PI * t) ** 0.7;
           const phase =
             t * Math.PI * 2 * cycles -
-            (frame * Math.PI) / 2 +
+            (frame * Math.PI * 2) / 32 +
             (strand * Math.PI * 2) / 3;
           const wave = Math.sin(phase) * amplitude * envelope;
           const width =
-            (0.45 + envelope * (1.25 + 0.35 * Math.cos(phase))) * side;
+            (0.25 + envelope * (0.8 + 0.12 * Math.cos(phase))) * side;
           return `${(x + nx * (wave + width)).toFixed(2)},${(y + ny * (wave + width)).toFixed(2)}`;
         }),
       );

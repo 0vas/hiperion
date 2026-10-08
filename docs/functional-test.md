@@ -191,3 +191,11 @@ El usuario elige split o desktop en su chat. `hyperion_open` (MCP) y `open RUN_I
 - `npm run check` aprobado: 45 pruebas unitarias/integración, 2 de producción, tipos, compilación y formato. `npm run test:e2e`: 18 recorridos aprobados, incluidos contraste, split, orientación y movimiento. Total: 65 pruebas.
 - Inspección del flujo real sin enviar decisiones: vertical claro a 720 px y horizontal oscuro a 720/1440 px, sin errores JavaScript. Capturas locales ignoradas: `.hyperion/ribbons-split-light.png`, `.hyperion/ribbons-horizontal-dark.png`, `.hyperion/ribbons-desktop-dark.png`.
 - La animación usa CSS sobre geometrías SVG calculadas al cambiar el recorrido, sin actualizaciones React por frame. La prueba se realizó en Chromium; en este incremento no se regeneraron ni probaron los instaladores nativos.
+
+## Continuidad del ciclo (ADR 0013)
+
+- TDD: el escenario falló inicialmente porque las conexiones con cintas aún tenían `marker-end`. Se eliminó ese marcador en rutas alcanzadas, conservándolo en las pendientes.
+- Se retiró el pulso superpuesto. La única onda usa 32 fases periódicas en 6,4 s, con amplitud y grosor menores; el cierre reutiliza exactamente la forma inicial. No añade trabajo React por frame.
+- El navegador mide la forma en el cierre y la dirección de velocidad a ambos lados: diferencia de cierre menor de 0,001 y similitud direccional mayor de 0,96. También verifica movimiento real, ausencia del pulso, pausa, movimiento reducido y conservación de flechas pendientes.
+- `npm run check`: 45 pruebas de lógica/integración y 2 de producción, tipos, build y formato aprobados. `npm run test:e2e`: 18 recorridos aprobados.
+- Inspección del flujo real vertical claro y horizontal oscuro, sin modificar decisiones humanas: cero errores JavaScript, ciclos de 6,4 s y cero flechas en conexiones alcanzadas. Capturas locales ignoradas en `.hyperion/seamless-current-light.png` y `.hyperion/seamless-current-dark.png`. Validado en Chromium; no se regeneraron instaladores nativos.

@@ -77,7 +77,7 @@ En esta versión, al guardar una decisión debes volver al chat para continuar. 
 
 Pulsa **Más opciones → Colores del flujo** para abrir la leyenda. Las cajas usan iconos SVG para distinguir agente, persona y aprobación; mantienen datos y logs a un clic. El color siempre va acompañado de texto o símbolos.
 
-Las conexiones SVG muestran una corriente: tres cintas entrelazadas con volumen y ondas que avanzan desde lo hecho hasta la tarea disponible o que espera tu respuesta. No circula por ramas pendientes u omitidas. Se detiene al terminar, pausar, cancelar, perder conexión o activar movimiento reducido; no indica que un agente siga vivo fuera de Hyperion. En la vista de trabajos, los pasos internos pueden seguir ejecutándose aunque la flecha de entrada al trabajo ya figure como recorrida.
+Las conexiones SVG muestran una corriente: tres cintas finas con ondas lentas y continuas que avanzan desde lo hecho hasta la tarea disponible o que espera tu respuesta. Las cintas no llevan punta de flecha; las rutas pendientes conservan la flecha para indicar dirección. No circula por ramas pendientes u omitidas. Se detiene al terminar, pausar, cancelar, perder conexión o activar movimiento reducido; no indica que un agente siga vivo fuera de Hyperion. En la vista de trabajos, los pasos internos pueden seguir ejecutándose aunque la conexión de entrada al trabajo ya figure como recorrida.
 
 ## Junto al chat o en una ventana independiente
 
