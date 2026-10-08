@@ -78,3 +78,18 @@ export function routeState(
     ).find((s) => states.includes(s)) || 'pending'
   );
 }
+
+/** Information can reach this connection; motion never claims agent execution. */
+export function carriesCurrent(
+  state: FlowState,
+  status: Run['status'],
+  online: boolean,
+  reduceMotion: boolean,
+): boolean {
+  return (
+    status === 'active' &&
+    online &&
+    !reduceMotion &&
+    ['completed', 'ready', 'active', 'attention'].includes(state)
+  );
+}

@@ -3,7 +3,7 @@
   height: 56px;
   display: block;
   margin: 0 auto;
-  color: var(--tone, var(--gold));
+  color: var(--symbol-color);
   fill: none;
   stroke: currentColor;
   stroke-width: 2.5;
@@ -11,7 +11,7 @@
   stroke-linecap: round;
 }
 .bpmn-symbol .symbol-outline {
-  fill: var(--node-surface);
+  fill: var(--symbol-fill);
 }
 .gateway-legend {
   border-top: 1px solid var(--line);
@@ -34,30 +34,6 @@
 .gateway-legend span {
   font-size: 13px;
   line-height: 1.5;
-}
-.react-flow__edge.route-attention.animated .react-flow__edge-path {
-  animation: route-wait 1.8s ease-in-out infinite;
-  stroke-dasharray: none;
-}
-@keyframes route-wait {
-  0%,
-  100% {
-    stroke-opacity: 1;
-    stroke-width: 2.2;
-  }
-  50% {
-    stroke-opacity: 0.45;
-    stroke-width: 3.5;
-  }
-}
-[data-motion='reduce'] .react-flow__edge.animated .react-flow__edge-path,
-[data-connected='false'] .react-flow__edge.animated .react-flow__edge-path {
-  animation: none !important;
-}
-@media (prefers-reduced-motion: reduce) {
-  .react-flow__edge.animated .react-flow__edge-path {
-    animation: none !important;
-  }
 }
 .canvas-app .human-action {
   background: var(--node-surface);
@@ -196,5 +172,78 @@
 @media (max-width: 600px) {
   .canvas-app .human-action {
     padding: 14px;
+  }
+}
+
+/* Symbol kind is independent of the execution status shown by its label. */
+.bpmn-symbol {
+  --symbol-color: #89670c;
+  --symbol-fill: #fff2a8;
+}
+.bpmn-symbol[data-bpmn='start'] {
+  --symbol-color: #2e7531;
+  --symbol-fill: #e5f4d6;
+}
+.bpmn-symbol[data-bpmn='end'] {
+  --symbol-color: #ae3840;
+  --symbol-fill: #ffdfdf;
+}
+[data-theme='dark'] .bpmn-symbol {
+  --symbol-color: #f3d25d;
+  --symbol-fill: #423b1e;
+}
+[data-theme='dark'] .bpmn-symbol[data-bpmn='start'] {
+  --symbol-color: #8fda85;
+  --symbol-fill: #243e2c;
+}
+[data-theme='dark'] .bpmn-symbol[data-bpmn='end'] {
+  --symbol-color: #ff9b9e;
+  --symbol-fill: #4b292f;
+}
+
+/* Keep the channel continuous. The wider moving highlight carries the current. */
+.react-flow__edge.animated .react-flow__edge-path {
+  animation: none;
+  stroke-dasharray: none;
+}
+.liquid-channel,
+.liquid-stream {
+  fill: none;
+  pointer-events: none;
+  stroke-linecap: round;
+}
+.react-flow__edge path.liquid-channel {
+  animation: none;
+  stroke-dasharray: none;
+  stroke-width: 7;
+  stroke-opacity: 0.12;
+}
+.liquid-stream {
+  stroke-width: 5;
+  stroke-dasharray: 18 82;
+  opacity: 0;
+}
+.react-flow__edge path.liquid-stream.is-flowing {
+  stroke-dasharray: 18 82;
+  opacity: 0.75;
+  animation: information-current 2.8s linear infinite;
+}
+@keyframes information-current {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+[data-motion='reduce'] .react-flow__edge path.liquid-stream,
+[data-connected='false'] .react-flow__edge path.liquid-stream {
+  animation: none;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .react-flow__edge path.liquid-stream.is-flowing {
+    animation: none;
+    opacity: 0;
   }
 }

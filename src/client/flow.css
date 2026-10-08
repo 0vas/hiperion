@@ -180,8 +180,7 @@
 [data-connected='false'] .flow-node .spin {
   animation: none;
 }
-.react-flow__edge.route-pending .react-flow__edge-path,
-.react-flow__edge.route-ready .react-flow__edge-path {
+.react-flow__edge.route-pending .react-flow__edge-path {
   stroke-dasharray: 5 6;
 }
 .react-flow__edge.route-skipped .react-flow__edge-path {
@@ -193,17 +192,6 @@
 }
 .react-flow__edge.route-paused .react-flow__edge-path {
   stroke-dasharray: 8 4;
-}
-.react-flow__edge.route-active .react-flow__edge-path {
-  stroke-dasharray: 7 6;
-}
-.react-flow__edge.route-active.animated .react-flow__edge-path {
-  animation: route-travel 0.9s linear infinite;
-}
-@keyframes route-travel {
-  to {
-    stroke-dashoffset: -26;
-  }
 }
 .legend-button {
   display: inline-flex;

@@ -80,3 +80,27 @@ test('collapsed routes follow real crossing dependencies instead of an aggregate
   run = transition(run, { type: 'start', stepId: 'c' }, agent);
   assert.equal(routeState(run, 'job:one', 'job:two'), 'completed');
 });
+
+test('information current traverses reached routes up to the frontier, and stops with the process', async () => {
+  const { carriesCurrent } = await import('../src/client/flow-visuals.js');
+  for (const state of ['completed', 'ready', 'active', 'attention'] as const) {
+    assert.equal(carriesCurrent(state, 'active', true, false), true);
+    for (const status of [
+      'paused',
+      'completed',
+      'cancelled',
+      'rejected',
+    ] as const)
+      assert.equal(carriesCurrent(state, status, true, false), false);
+    assert.equal(carriesCurrent(state, 'active', false, false), false);
+    assert.equal(carriesCurrent(state, 'active', true, true), false);
+  }
+  for (const state of [
+    'pending',
+    'skipped',
+    'error',
+    'paused',
+    'stopped',
+  ] as const)
+    assert.equal(carriesCurrent(state, 'active', true, false), false);
+});

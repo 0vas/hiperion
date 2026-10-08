@@ -11,7 +11,7 @@ export function FlowLegend() {
           <Check />
           <div>
             <strong>Verde · Completado</strong>
-            <span>La línea continua muestra el recorrido completado.</span>
+            <span>La corriente recorre lo hecho hasta la siguiente tarea.</span>
           </div>
         </li>
         <li data-flow-state="active">
@@ -19,8 +19,8 @@ export function FlowLegend() {
           <div>
             <strong>Azul · En curso</strong>
             <span>
-              Los trazos avanzan hacia el paso que se está ejecutando. «Listo»
-              aún espera al agente.
+              La corriente llega a la tarea disponible. «En curso» indica
+              ejecución; «Listo» aún espera al agente.
             </span>
           </div>
         </li>
@@ -29,7 +29,8 @@ export function FlowLegend() {
           <div>
             <strong>Ámbar · Tu turno</strong>
             <span>
-              El pulso indica espera: abre la tarea para responder o aprobar.
+              La corriente llega hasta aquí y espera tu respuesta. Abre la
+              tarea.
             </span>
           </div>
         </li>
@@ -61,8 +62,7 @@ export function FlowLegend() {
       <div className="gateway-legend">
         <h3>Compuertas del proceso</h3>
         <p>
-          El plan incluye las que necesita tu actividad. «Dividir» abre ramas;
-          «unir» las reúne.
+          Las compuertas son amarillas. «Dividir» abre ramas; «unir» las reúne.
         </p>
         <div>
           <BpmnSymbol kind="parallel" />
@@ -90,8 +90,10 @@ export function FlowLegend() {
         <BpmnSymbol kind="end" /> Fin
       </p>
       <p className="guide-note">
-        Se muestra el estado que registró el agente. Sin conexión, en pausa o
-        con movimiento reducido, las flechas permanecen quietas.
+        Inicio verde y fin rojo identifican los extremos; el fin rojo no indica
+        error. La corriente representa información disponible, no actividad del
+        agente. Se detiene al terminar, pausar, perder conexión o reducir
+        movimiento.
       </p>
     </div>
   );

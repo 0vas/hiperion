@@ -938,9 +938,9 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   await expect(page.getByText('FIN', { exact: true })).toBeVisible();
   await command('start');
   await expect(incoming).toHaveClass(/route-active/);
-  await expect(incoming.locator('path.react-flow__edge-path')).toHaveCSS(
+  await expect(incoming.locator('.liquid-stream')).toHaveCSS(
     'animation-name',
-    'route-travel',
+    'information-current',
   );
   await expect(outgoing).not.toHaveClass(/animated/);
   const task = page.locator('.step-node').first();
@@ -971,7 +971,7 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
   await page.getByLabel('Reducir movimiento').check();
   await page.keyboard.press('Escape');
-  await expect(incoming.locator('path.react-flow__edge-path')).toHaveCSS(
+  await expect(incoming.locator('.liquid-stream')).toHaveCSS(
     'animation-name',
     'none',
   );
@@ -986,7 +986,7 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   await expect(page.getByText('Conectado', { exact: true })).toBeVisible();
   await expect(incoming).toHaveClass(/animated/);
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(incoming.locator('path.react-flow__edge-path')).toHaveCSS(
+  await expect(incoming.locator('.liquid-stream')).toHaveCSS(
     'animation-name',
     'none',
   );
@@ -1148,8 +1148,8 @@ test('human checklist, waiting motion, SVG gateways and horizontal layout form o
   await expect(page.locator('svg[data-bpmn="parallel"]')).toHaveCount(2);
   await expect(page.locator('svg[data-bpmn="exclusive"]')).toHaveCount(2);
   await expect(page.locator('svg[data-bpmn="inclusive"]')).toHaveCount(2);
-  const waiting = page.locator('.route-attention .react-flow__edge-path');
-  await expect(waiting).toHaveCSS('animation-name', 'route-wait');
+  const waiting = page.locator('.route-attention .liquid-stream');
+  await expect(waiting).toHaveCSS('animation-name', 'information-current');
   await page
     .getByRole('button', { name: 'Ver flujo horizontal', exact: true })
     .click();
@@ -1247,4 +1247,69 @@ test('a human retries a failed task from its card without starting it or losing 
   await expect(
     page.getByRole('button', { name: 'Reintentar: Preparar entrega' }),
   ).toHaveCount(0);
+});
+
+test('liquid current follows reached routes and BPMN symbol colors stay tied to their kind', async ({
+  page,
+  request,
+}) => {
+  const headers = { authorization: `Bearer ${token()}` };
+  const plan = JSON.parse(
+    readFileSync('examples/process-gateways.json', 'utf8'),
+  );
+  const response = await request.post('/api/runs', {
+    headers,
+    data: { plan, commandId: crypto.randomUUID() },
+  });
+  const run = await response.json();
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto(`/?run=${run.id}`);
+  const path = page.locator('[data-id="start-scope"] .liquid-stream');
+  await expect(path).toHaveCSS('animation-name', 'information-current');
+  await expect(
+    page.locator('[data-id="scope-parallel"] .liquid-stream'),
+  ).toHaveCount(0);
+  await expect(path).toHaveCSS('stroke-dasharray', '18px, 82px');
+  const offset = await path.evaluate(
+    (el) => getComputedStyle(el).strokeDashoffset,
+  );
+  await expect
+    .poll(() => path.evaluate((el) => getComputedStyle(el).strokeDashoffset))
+    .not.toBe(offset);
+  const color = (kind: string) =>
+    page
+      .locator(`.react-flow__node svg[data-bpmn="${kind}"]`)
+      .first()
+      .evaluate((el) => getComputedStyle(el).color);
+  for (const theme of ['light', 'dark']) {
+    await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+    await page.getByLabel('Tema', { exact: true }).selectOption(theme);
+    await page.keyboard.press('Escape');
+    expect(await color('start')).not.toBe(await color('end'));
+    expect(await color('parallel')).toBe(await color('exclusive'));
+    expect(await color('parallel')).toBe(await color('inclusive'));
+    expect(await color('start')).toBe(
+      theme === 'light' ? 'rgb(46, 117, 49)' : 'rgb(143, 218, 133)',
+    );
+    expect(await color('parallel')).toBe(
+      theme === 'light' ? 'rgb(137, 103, 12)' : 'rgb(243, 210, 93)',
+    );
+    expect(await color('end')).toBe(
+      theme === 'light' ? 'rgb(174, 56, 64)' : 'rgb(255, 155, 158)',
+    );
+  }
+  await page.getByRole('button', { name: 'Pausar', exact: true }).click();
+  await expect(page.locator('.liquid-stream')).not.toHaveClass(/is-flowing/);
+  expect(await color('start')).toBe('rgb(143, 218, 133)');
+  await page.getByRole('button', { name: 'Reanudar', exact: true }).click();
+  await expect(path).toHaveCSS('animation-name', 'information-current');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(path).toHaveCSS('animation-name', 'none');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page
+    .getByRole('button', { name: 'Ver flujo horizontal', exact: true })
+    .click();
+  await page.screenshot({
+    path: 'test-results/information-current-horizontal.png',
+  });
 });

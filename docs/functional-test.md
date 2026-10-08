@@ -174,3 +174,12 @@ Capturas automatizadas: `test-results/jobs-dark.png`, `decision-dark.png`, `sett
 - Skill actualizada, frontmatter validado con js-yaml (el validador Python no tenía PyYAML disponible). XML/SVG ArchiMate analizados: cinco componentes y ocho relaciones válidas; importación en editor ArchiMate pendiente. La vista lógica representa el canvas alojado en navegador o Electron.
 
 El usuario elige split o desktop en su chat. `hyperion_open` (MCP) y `open RUN_ID split|desktop` (CLI) conservan el run; abrir una presentación no cambia decisiones. El perfil sigue siendo BPMN-lite estructurado, sin bucles ni eventos temporizados. No se afirma compatibilidad BPMN 2.0 completa ni despertar automático de conversaciones.
+
+## Corriente de información y símbolos (ADR 0011)
+
+- TDD: el test inicial falló por ausencia de `carriesCurrent`. La prueba de navegador detectó además que el estilo de React Flow imponía `dashdraw`; se reemplazó por un canal SVG continuo y un reflejo direccional con patrón y movimiento comprobados.
+- La corriente recorre conexiones completadas y llega hasta tareas listas, en curso o esperando respuesta. No recorre rutas pendientes, omitidas o con error. Finalización, cancelación, pausa, desconexión y movimiento reducido la detienen. Representa información disponible, no garantiza que un agente esté ejecutándose.
+- Inicio verde, compuertas amarillas y fin rojo conservan su color por tipo, independientemente del estado. Verificados los tres tipos de compuerta, ambos temas y orientación horizontal/vertical. Se mantiene la etiqueta de estado; fin rojo no significa error.
+- `npm run check`: 45 pruebas de lógica/adaptadores/presentación, 2 de distribución, tipos, build y formato correctos. `npm run test:e2e`: 18 recorridos aprobados, incluidos movimiento real, estilos SVG, pausa, preferencias, accesibilidad y split.
+- Inspección visual del flujo real en una ventana de 720 px, sin enviar decisiones humanas: tres conexiones alcanzadas con `information-current` y ramas pendientes estáticas. Captura local ignorada en `.hyperion/information-current-split.png`. Inspección adicional del proceso sintético horizontal con los tres tipos de compuerta.
+- El canvas compilado queda actualizado para navegador y desktop conectado al servicio local. En este incremento no se regeneraron los instaladores independientes de ADR 0010.

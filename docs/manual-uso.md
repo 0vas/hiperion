@@ -68,16 +68,16 @@ En esta versión, al guardar una decisión debes volver al chat para continuar. 
 
 ## Leer los colores y las flechas
 
-- **Inicio:** círculo de borde fino y etiqueta INICIO. **Fin:** círculo de borde grueso y etiqueta FIN.
+- **Inicio verde:** círculo de borde fino. **Compuertas amarillas:** rombos con +, X u ○. **Fin rojo:** círculo de borde grueso. Estos colores identifican el símbolo, no su estado.
 - **Verde:** paso completado y ruta recorrida.
-- **Azul:** «Listo» espera al agente; «En curso» muestra trazos que avanzan hacia el paso en ejecución.
+- **Azul:** «Listo» espera al agente; «En curso» indica que el agente inició la tarea.
 - **Ámbar:** el proceso espera tu intervención o está en pausa. La etiqueta distingue ambos casos.
-- **Rojo:** error o rechazo que requiere revisión.
+- **Rojo en tareas o conexiones:** error o rechazo que requiere revisión. El círculo rojo de fin no es un error.
 - **Gris discontinuo:** ruta pendiente; el punteado más tenue identifica una rama omitida.
 
 Pulsa **Más opciones → Colores del flujo** para abrir la leyenda. Las cajas usan iconos SVG para distinguir agente, persona y aprobación; mantienen datos y logs a un clic. El color siempre va acompañado de texto o símbolos.
 
-Las flechas muestran el estado registrado. Se detienen al pausar, perder conexión o activar movimiento reducido; no indican que un agente siga vivo fuera de Hyperion. En la vista de trabajos, los pasos internos pueden seguir ejecutándose aunque la flecha de entrada al trabajo ya figure como recorrida.
+Las conexiones SVG muestran una corriente: una línea continua con un reflejo que avanza desde lo hecho hasta la tarea disponible o que espera tu respuesta. No circula por ramas pendientes u omitidas. Se detiene al terminar, pausar, cancelar, perder conexión o activar movimiento reducido; no indica que un agente siga vivo fuera de Hyperion. En la vista de trabajos, los pasos internos pueden seguir ejecutándose aunque la flecha de entrada al trabajo ya figure como recorrida.
 
 ## Junto al chat o en una ventana independiente
 
@@ -105,6 +105,6 @@ Los instaladores son **DMG para macOS** y **EXE para Windows**. Se generaron DMG
 
 - **Horizontal / vertical:** pulsa la flecha de dirección junto al selector de tareas, o cambia **Ajustes → Dirección**. Se conserva tu preferencia. «Vista general» muestra el proceso completo; «Enfocar paso actual» vuelve al trabajo pendiente.
 - **Compuertas:** los rombos SVG usan **+** (todas las ramas), **X** (una) y **○** (una o más). Abre **Más opciones → Colores del flujo** para ver sus reglas. Solo aparecen las compuertas que el agente incluyó en tu proceso.
-- **Animación:** trazos azules avanzan durante ejecución; el pulso ámbar señala que te toca responder. Las rutas pendientes no se mueven. Pausa, desconexión y movimiento reducido detienen las animaciones.
+- **Animación:** la corriente avanza por las rutas alcanzadas y llega hasta el punto de espera. Las rutas pendientes no se mueven. Funciona en horizontal y vertical, en split y escritorio; respeta el movimiento reducido.
 - **Tu lista:** cada pregunta indica si está resuelta. Selecciona Sí o No, completa los datos solicitados y guarda al terminar. Marcar No también resuelve la pregunta; no hay respuestas predeterminadas.
 - **Reintentar:** aparece en la caja y el detalle de una tarea que falló. Conserva el error en el historial y habilita otro intento. Después pide al chat «Continúa mi flujo de Hyperion». El botón no ejecuta herramientas por su cuenta.

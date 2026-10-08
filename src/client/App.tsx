@@ -55,11 +55,13 @@ import {
 import { TaskNavigation, type FocusRequest } from './TaskNavigation';
 import { jobProgress, projectJobs } from '../domain/jobs';
 import {
+  carriesCurrent,
   nodeState,
   routeState,
   flowLabels,
   type FlowState,
 } from './flow-visuals';
+import { CurrentEdge } from './CurrentEdge';
 import { BpmnSymbol } from './BpmnSymbol';
 import { DecisionFields } from './DecisionFields';
 import { canvasInsets } from './viewport';
@@ -387,6 +389,7 @@ function TraceView({ step, run }: { step: Step; run: Run }) {
     </div>
   );
 }
+const edgeTypes = { current: CurrentEdge };
 const nodeTypes = { step: StepNode, job: JobNode };
 function FitCanvas({ view }: { view: string }) {
   const { getNodes, getInternalNode, setViewport } = useReactFlow();
@@ -692,7 +695,16 @@ export function App() {
           id: `${id}-${item.id}`,
           source: id,
           target: item.id,
-          type: 'smoothstep',
+          type: 'current',
+          data: {
+            state,
+            current: carriesCurrent(
+              state,
+              run.status,
+              online,
+              preferences.reduceMotion,
+            ),
+          },
           className: `route-${state}`,
           ariaLabel: `${displayed.find((s) => s.id === id)?.title} → ${item.title}: ${flowLabels[state]}`,
           markerEnd: {
@@ -714,12 +726,12 @@ export function App() {
           })(),
           labelStyle: { fontSize: 11, fill: '#655e50' },
           labelBgStyle: { fill: '#f7f5ef', fillOpacity: 0.95 },
-          pathOptions: { borderRadius: 20 },
-          animated:
-            ['active', 'attention'].includes(state) &&
-            online &&
-            run.status === 'active' &&
-            !preferences.reduceMotion,
+          animated: carriesCurrent(
+            state,
+            run.status,
+            online,
+            preferences.reduceMotion,
+          ),
           style: {
             stroke: color,
             strokeWidth: state === 'pending' || state === 'skipped' ? 1.5 : 2.2,
@@ -1055,6 +1067,7 @@ export function App() {
                   nodes={graph.nodes}
                   edges={graph.edges}
                   nodeTypes={nodeTypes}
+                  edgeTypes={edgeTypes}
                   fitView
                   fitViewOptions={{ padding: 0.12, maxZoom: 1 }}
                   minZoom={0.15}
