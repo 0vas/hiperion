@@ -106,3 +106,18 @@ Evidencia de este incremento:
 - Se reinició la instancia local conservando SQLite, se creó el caso desde Codex mediante CLI y se verificaron sus 15 nodos, 6 símbolos de compuerta y formulario humano, sin errores JavaScript. El inicio está completado y el alcance espera la respuesta real del usuario. Los planes anteriores siguen siendo legibles.
 
 El perfil es estructurado y acíclico; no implementa BPMN completo ni subprocesos independientes por fase. Las trazas contienen información pública enviada expresamente por el agente. La continuación de un chat sigue siendo cooperativa.
+
+## Incremento: skill portable y canvas continuo (2026-10-08)
+
+Criterios: [ADR 0005](decisions/0005-portable-invocation-and-canvas.md).
+
+- `npm run check`: 36 pruebas de lógica/integración y 2 de distribución compilada aprobadas; tipos, build y formato correctos.
+- `npm run test:e2e`: 10 recorridos aprobados, con medidas exactas del canvas (origen 0,0 y dimensiones del viewport), foco de popups, decisiones humanas, accesibilidad axe WCAG AA y enfoque de la tarea actual con movimiento reducido. Capturas revisadas en escritorio y móvil.
+- TDD observó módulos ausentes para instalación y layout, el margen de 16 px del canvas anterior y el control de enfoque aún inexistente; después se implementaron y pasaron esas verificaciones.
+- Se generó el archivo npm, se instaló en una carpeta temporal con `--omit=dev --ignore-scripts` y se ejecutaron las dos pruebas de distribución contra ese paquete instalado. No había carpeta `src` ni dependencias de desarrollo.
+- Una skill instalada en otra carpeta arranca/reutiliza el servicio, crea un flujo desde una petición con la identidad genérica `independent-tool` y envía una salida tipada hasta completar el recorrido. Se sirve HTML y JavaScript desde el paquete.
+- El instalador conserva skills ajenas, permite reinstalar sus archivos sin cambios y rechaza modificaciones manuales. El validador de skills comprobó el frontmatter. Los contratos y ejemplos enlazados se incluyen en la instalación.
+- En el equipo de desarrollo, se instaló la skill y se ejecutó desde `/tmp`, iniciando la instancia real actualizada con los datos existentes. Se verificó el caso anterior de 15 nodos en el canvas a pantalla completa, sin errores JavaScript; su intervención humana sigue pendiente.
+- El modelo ArchiMate XML/SVG se actualizó a 0.3, manteniendo cinco componentes y ocho relaciones verificadas. La importación en un editor ArchiMate sigue sin comprobarse.
+
+No se ha publicado el paquete ni enviado la rama. La elección automática de la skill en nuevas conversaciones nativas de Codex, Claude o Cursor requiere recargar esos clientes y sigue pendiente de una prueba humana. La ejecución aislada del script demuestra el contrato y el arranque, no garantiza el comportamiento de todos los hosts.

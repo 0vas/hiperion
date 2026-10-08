@@ -3,12 +3,24 @@ import { existsSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
+import { ensureServer } from './bootstrap.js';
+import { registerAgent } from '../server/config.js';
+import { installSkill, defaultDirectory } from './install.js';
 import { setupClient } from './setup.js';
 import { HyperionClient } from './client.js';
 import { commandSchema } from '../domain/workflow.js';
 import { generateConnection } from './connections.js';
-const [operation, first, second, ...rest] = process.argv.slice(2);
+const args = process.argv.slice(2);
+if (args[0] === '--agent') {
+  if (!args[1]) throw new Error('--agent requires an identity');
+  process.env.HYPERION_AGENT_ID = args[1];
+  args.splice(0, 2);
+}
+process.env.HYPERION_DATA_DIR ||= defaultDirectory();
+const [operation, first, second, ...rest] = args;
 const help = `Hyperion — cooperative workflow adapter
+  install [skills-directory]  # portable skill, no vendor CLI or MCP required
+  up                         # start/reuse local Hyperion, return URL
   setup <codex|claude|cursor>  # configure the client; local server starts on demand
   connect <client-id>  # codex, claude, cursor, or your own ID
   create <plan.json> [idempotency-key]
@@ -22,7 +34,7 @@ Human approvals and manual input belong in the web interface.
 Set HYPERION_URL and HYPERION_DATA_DIR to target another local instance.`;
 try {
   if (!operation || operation === '--help') console.log(help);
-  else if (operation === 'setup' && first) {
+  else if (operation === 'install' || (operation === 'setup' && first)) {
     const root = fileURLToPath(new URL('../../', import.meta.url));
     if (!existsSync(resolve(root, 'dist/adapters/mcp-launcher.js'))) {
       const build = spawnSync('npm', ['run', 'build'], {
@@ -33,13 +45,44 @@ try {
       if (build.status !== 0)
         throw new Error('Build failed. Run npm ci and npm run build first.');
     }
-    console.log(JSON.stringify(await setupClient(first), null, 2));
+    console.log(
+      JSON.stringify(
+        operation === 'install'
+          ? installSkill({ destination: first })
+          : await setupClient(first!),
+        null,
+        2,
+      ),
+    );
   } else if (operation === 'connect' && first)
     console.log(JSON.stringify(generateConnection(first), null, 2));
   else {
+    if (
+      ![
+        'up',
+        'list',
+        'create',
+        'command',
+        'get',
+        'wait',
+        'start',
+        'complete',
+        'fail',
+        'log',
+        'retry',
+      ].includes(operation)
+    )
+      throw new Error(help);
+    if (process.env.HYPERION_AGENT_ID)
+      registerAgent(
+        process.env.HYPERION_AGENT_ID,
+        process.env.HYPERION_DATA_DIR,
+      );
+    const startup = await ensureServer();
     const client = new HyperionClient();
     let result: unknown;
-    if (operation === 'list') result = await client.list();
+    if (operation === 'up') result = { ...startup, url: client.url };
+    else if (operation === 'list') result = await client.list();
     else if (operation === 'create' && first) {
       const run = await client.create(
         JSON.parse(readFileSync(first, 'utf8')),

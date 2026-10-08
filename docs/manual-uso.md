@@ -2,9 +2,48 @@
 
 Hyperion convierte el plan de tu agente en un flujo **vertical, de arriba hacia abajo**. Las tareas independientes aparecen en paralelo en el mismo nivel. La petición se escribe en Codex, Claude, Cursor u otra herramienta conectada; el agente interpreta lo que necesitas, genera los pasos y registra el flujo. Tú respondes y apruebas desde Hyperion.
 
-La configuración se realiza una vez por herramienta. Después, el uso habitual comienza con una petición en lenguaje natural. No necesitas escribir JSON ni preparar una plantilla de pasos.
+La instalación de la skill se realiza una vez. Después, el uso habitual comienza con una petición en lenguaje natural. No necesitas escribir JSON ni preparar una plantilla de pasos.
 
-## Conexión rápida — configuración una sola vez
+## Usar Hyperion con una petición
+
+En este repositorio ya preparado, instala la skill portable:
+
+```sh
+npm run hyperion -- install
+```
+
+Recarga las skills o abre una sesión nueva del agente y escribe:
+
+> Usa Hyperion para preparar mi siguiente entrega. Pídeme el alcance, muéstrame los pasos y espera mi aprobación antes de ejecutarla.
+
+La skill enseña al agente a arrancar o reutilizar Hyperion, construir el plan desde esa petición y devolver el enlace al canvas. El agente usa sus propias herramientas para el trabajo y registra sus resultados. La persona participa mediante los popups. No necesitas configurar MCP, escribir JSON ni mantener una terminal de servidor abierta.
+
+Esta vía usa el estándar [Agent Skills](https://agentskills.io/specification) y requiere un agente con shell local y Node.js 22.13+. El instalador coloca la skill en `~/.agents/skills/hyperion`, ubicación compartida por [Codex](https://learn.chatgpt.com/docs/build-skills) y [Cursor](https://cursor.com/docs/skills). Si existe `~/.claude`, también la instala en `~/.claude/skills/hyperion`, ubicación de [Claude Code](https://code.claude.com/docs/en/skills). Para otra ubicación: `hyperion install /ruta/a/skills`; se creará su subcarpeta `hyperion`.
+
+La frase por sí sola no instala capacidades en una herramienta que nunca ha cargado la skill ni conoce Hyperion. Esa primera instalación y la recarga del cliente son necesarias. La selección automática depende del host; si no la selecciona, invoca su skill Hyperion explícitamente. Un agente remoto sin acceso al ordenador local necesita otra modalidad de despliegue, pendiente en esta edición.
+
+### Instalar el paquete sin clonar el repositorio
+
+Con el archivo de distribución `hyperion-workflows-0.3.0.tgz`:
+
+```sh
+npm install --global ./hyperion-workflows-0.3.0.tgz
+hyperion install
+```
+
+El paquete incluye la web, el servidor y la CLI compilados. No requiere TypeScript, Vite ni el código fuente. Es una instalación inicial de dos comandos; el uso posterior comienza desde el chat. En este incremento el archivo se genera y valida localmente: todavía no está publicado en npm ni en GitHub Releases. No uses un paquete homónimo del registro suponiendo que es este proyecto.
+
+Para generar una distribución desde las fuentes: `npm ci` y `npm pack` (el empaquetado construye el producto). El paquete puede compartirse sin incluir ejecuciones ni credenciales. La validación del incremento comprobó su instalación en un directorio aislado con dependencias de producción.
+
+### Datos, actualizaciones y otras herramientas
+
+La skill incluye rutas absolutas al ejecutable y al almacenamiento, sin tokens. Las instalaciones de paquete usan `~/.hyperion` por defecto; el checkout actual conserva su `.hyperion` existente. `HYPERION_DATA_DIR` permite elegir otra ubicación. Así, cambiar de proyecto no crea otra instancia ni pierde los flujos. `--agent ID` permite registrar cualquier identidad local, sin lista cerrada de marcas.
+
+Si mueves Hyperion o lo actualizas, vuelve a ejecutar `hyperion install` (en las fuentes, construye antes con `npm run build`). Se conservan las skills ajenas; una modificación manual de los archivos administrados provoca un conflicto explícito. Para retirar la integración, elimina únicamente las carpetas de skill mostradas por el instalador; esto no borra tus flujos. El servicio iniciado sigue disponible al terminar el chat. Una versión antigua que ocupe el puerto debe detenerse antes de cargar una nueva.
+
+El reconocimiento nativo en cada producto debe verificarse tras recargar su sesión. Las pruebas automatizadas verifican instalación, ejecución del script, API y MCP; no equivalen a una conversación nativa completa en cada cliente.
+
+## Alternativa: conexión MCP por cliente
 
 Desde el repositorio, ejecuta `npm ci` la primera vez. Después utiliza **solo el comando correspondiente** a tu herramienta:
 
@@ -24,7 +63,7 @@ Luego basta con escribir en el chat:
 
 La configuración no añade herramientas retroactivamente a una conversación abierta. Esta conversación puede continuar usando la CLI. Las secciones siguientes conservan la configuración manual, Claude Desktop y otros clientes como alternativas.
 
-## 1. Iniciar Hyperion
+## 1. Iniciar Hyperion manualmente (opcional)
 
 Requisitos: Node.js 22.13 o superior y npm. Los comandos siguientes utilizan una terminal macOS o Linux.
 
@@ -43,7 +82,7 @@ HYPERION_REPO="$PWD"
 HYPERION_NODE="$(command -v node)"
 ```
 
-En este equipo, el repositorio está en `/Users/oscarlobaton/Documents/ChatGPT/github/0vas/hiperion`. En otros equipos debes usar tu ruta local. Usa una ruta absoluta al ejecutable Node si la aplicación no hereda el PATH de tu terminal.
+Usa la ruta local de tu copia de Hyperion. Usa una ruta absoluta al ejecutable Node si la aplicación no hereda el PATH de tu terminal.
 
 Hyperion guarda sus ejecuciones en `.hyperion/`. No requiere una clave de OpenAI ni de Anthropic: el modelo lo proporciona la herramienta en la que haces la petición.
 

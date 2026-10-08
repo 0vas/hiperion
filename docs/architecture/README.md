@@ -1,8 +1,8 @@
 # Hyperion — contexto y propuesta de arquitectura
 
-Estado: arquitectura de referencia y evolución del primer incremento. Propuesta original: 2026-10-07, America/Lima.
+Estado: arquitectura de referencia y evolución hasta el incremento 0.3. Propuesta original: 2026-10-07, America/Lima.
 
-El usuario autorizó posteriormente iniciar la implementación en el repositorio y probarla con Codex. El [ADR 0001](../decisions/0001-functional-increment.md) concreta ese incremento; el [protocolo v0.1](../protocol.md) describe su comportamiento implementado.
+El usuario autorizó posteriormente iniciar la implementación en el repositorio y probarla con Codex. El [ADR 0001](../decisions/0001-functional-increment.md) concreta ese incremento; el [protocolo](../protocol.md) describe su comportamiento implementado.
 Nombre del producto: Hyperion. Nombre actual del repositorio: `hiperion`.
 
 ## Requisitos confirmados por el usuario
@@ -169,3 +169,9 @@ El [modelo XML editable](implemented.xml) contiene los cinco componentes y ocho 
 El [ADR 0004](../decisions/0004-process-contract.md) extiende las responsabilidades existentes. `src/domain/process.ts` valida bloques estructurados, selecciona rutas y reúne ramas; `contracts.ts` define los datos y las trazas. El adaptador incorpora `setup.ts` para registrar clientes y `bootstrap.ts` para iniciar o reutilizar el servicio local. La relación de cooperación entre adaptadores, núcleo, persistencia e interfaz no cambia en la vista ArchiMate.
 
 El canvas utiliza símbolos basados en BPMN para representar el proceso; los diagramas ArchiMate siguen representando la arquitectura de aplicaciones. No se intercambian ambas notaciones. El [contrato del perfil](../process-contract.md) establece sus límites y evita afirmar conformidad con BPMN completo.
+
+## Incremento 0.3: descubrimiento y canvas continuo
+
+El [ADR 0005](../decisions/0005-portable-invocation-and-canvas.md) añade una skill portable como artefacto de instrucciones consumido por el agente externo. El instalador y la CLI compilada pertenecen al componente Adaptadores de agente: registran una identidad arbitraria y arrancan/reutilizan el servicio. MCP es opcional cuando el host puede descubrir skills y ejecutar comandos locales. No se delega la interpretación de peticiones al servidor ni se añade dependencia de un modelo.
+
+El paquete npm contiene los componentes ejecutables y la interfaz compilados; el almacenamiento persiste fuera del paquete. La vista ArchiMate conserva cinco componentes y ocho relaciones, actualizando sus responsabilidades a 0.3. El canvas ocupa el viewport y coloca los controles sobre el contenido. Las compuertas anidadas conservan carriles y centros; el zoom de enfoque facilita la lectura de tareas.

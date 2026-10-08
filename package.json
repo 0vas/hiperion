@@ -1,6 +1,6 @@
 {
   "name": "hyperion-workflows",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Human-guided workflows for any AI tool",
   "license": "MIT",
@@ -21,7 +21,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "npm run typecheck && npm test && npm run build && npm run test:production && npm run format:check",
-    "test:production": "node --test tests/production-smoke.mjs"
+    "test:production": "node --test tests/production-smoke.mjs",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
@@ -42,5 +43,20 @@
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.3"
+  },
+  "bin": {
+    "hyperion": "dist/adapters/cli.js"
+  },
+  "files": [
+    "dist/",
+    "skills/",
+    "docs/",
+    "examples/",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0vas/hiperion.git"
   }
 }

@@ -4,6 +4,10 @@ Hyperion runs separately from the agent and owns workflow state. The agent propo
 
 For setup in Codex, Claude Code, Claude Desktop, Cursor and other local clients, follow the [Spanish user manual](manual-uso.md). The user starts with a natural-language request; the host agent generates the plan and includes its original text in `plan.request`. Do not ask the user to author JSON.
 
+## Portable invocation
+
+Prefer `hyperion install` for local agents supporting Agent Skills and shell access. The installed skill recognizes requests to use Hyperion and launches the same compiled CLI independently of vendor MCP settings. Its script pins the runtime/data paths; `--agent ID` registers a caller without a vendor allowlist. The CLI starts or reuses the authenticated local server automatically. A standalone npm archive includes production assets; no source checkout is needed at runtime. See [the manual](manual-uso.md) for the one-time installation and host-discovery limits.
+
 ## This Codex conversation
 
 Use the repository CLI. New MCP configuration does not automatically inject tools into an already running conversation.

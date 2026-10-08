@@ -1,15 +1,15 @@
 <?xml version='1.0' encoding='utf-8'?>
-<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" identifier="hyperion-v01" version="0.1">
-  <name>Hyperion v0.1 — implemented cooperation</name>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" identifier="hyperion-v03" version="0.3">
+  <name>Hyperion v0.3 — implemented cooperation</name>
   <documentation>ArchiMate 3.2 subset. Five logical Application Components and directed Flow relationships. Diagram layout is provided separately in implemented.svg.</documentation>
   <elements>
     <element identifier="I1" xsi:type="ApplicationComponent">
       <name>Interfaz web</name>
-      <documentation>React · decisiones humanas</documentation>
+      <documentation>Canvas · decisiones humanas</documentation>
     </element>
     <element identifier="I2" xsi:type="ApplicationComponent">
       <name>Adaptadores de agente</name>
-      <documentation>CLI y MCP stdio · cliente HTTP</documentation>
+      <documentation>Skill · CLI · MCP · cliente HTTP</documentation>
     </element>
     <element identifier="I3" xsi:type="ApplicationComponent">
       <name>Límite HTTP</name>
@@ -21,7 +21,7 @@
     </element>
     <element identifier="I5" xsi:type="ApplicationComponent">
       <name>Motor de workflow</name>
-      <documentation>DAG · estados · reglas puras</documentation>
+      <documentation>DAG · compuertas · datos tipados</documentation>
     </element>
   </elements>
   <relationships>

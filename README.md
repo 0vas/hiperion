@@ -4,11 +4,23 @@
 
 Hyperion is an independent, MIT-licensed module. It can accompany Codex or another compatible agent through HTTP, a CLI, or MCP. It has no dependency on Olimpo and does not require an AI API key.
 
-> **v0.2 — local cooperative preview.** One trusted user and one external coordinator per execution. Hyperion manages workflow state; your agent performs the actual work. Multi-agent dispatch, hosted multi-user operation, and automatic conversation wakeups are future work.
+> **v0.3 — local cooperative preview.** One trusted user and one external coordinator per execution. Hyperion manages workflow state; your agent performs the actual work. Multi-agent dispatch, hosted multi-user operation, and automatic conversation wakeups are future work.
 
 ![Hyperion landscape canvas with interactive workflow nodes](docs/images/workflow.png)
 
-## Run locally
+## Say “use Hyperion”
+
+Install the portable skill once from a prepared checkout:
+
+```sh
+npm run hyperion -- install
+```
+
+Reload skills or open a new agent session, then ask: **“Use Hyperion to guide my next release.”** The agent starts the canvas on demand, generates a plan from your request, performs ready work and waits for your decisions in the canvas. Local agents with Agent Skills and shell access do not need MCP setup. MCP and HTTP remain available for other integrations.
+
+For a standalone distribution, run `npm install --global ./hyperion-workflows-0.3.0.tgz`, then `hyperion install`. The archive includes the compiled server, UI and CLI. It is currently built locally with `npm pack`; this increment has not been published to npm or GitHub Releases. Node.js 22.13+ is required. [Installation, discovery and compatibility](docs/manual-uso.md).
+
+## Run from source
 
 Requirements: Node.js **22.13+** (Node 24 LTS recommended) and npm. `node:sqlite` may emit an experimental warning on older supported Node versions.
 
@@ -18,7 +30,7 @@ npm run build
 npm start
 ```
 
-Open **http://127.0.0.1:4317**. State and locally generated credentials live in `.hyperion/`, excluded from Git. Keep the server running while using the CLI or MCP adapter.
+Open **http://127.0.0.1:4317**. State and locally generated credentials live in `.hyperion/`, excluded from Git. The CLI and portable skill can also start the server on demand.
 
 In another terminal, create a real workflow:
 
@@ -34,7 +46,7 @@ Open the returned URL, submit your objective, and ask your agent to read the run
 - An executable BPMN-based profile: start/end and structured parallel, exclusive and inclusive gateways.
 - Typed task inputs/outputs and public decision/action/observation traces, each available from node icons.
 - Dependency gates, independent parallel steps, and explicit coordinator ownership.
-- A full-window landscape canvas with a vertical graph and parallel branches.
+- An edge-to-edge canvas with floating controls, aligned process branches and a focus-current-step control.
 - Node popups for human input, approvals, step details and evidence; buttons for the original request and activity.
 - Human input, approval/rejection, pause/resume, cancel, and retry after failure.
 - Transactional SQLite persistence and command idempotency.
@@ -45,7 +57,7 @@ The interface refreshes state every second. An agent must cooperate with the pro
 
 ## Connect an agent
 
-After `npm ci`, configure your client with one command:
+MCP is an optional alternative to the portable skill. After `npm ci`, configure your client with one command:
 
 ```sh
 npm run hyperion -- setup codex  # or claude / cursor

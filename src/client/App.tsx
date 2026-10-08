@@ -10,6 +10,7 @@ import {
   ReactFlow,
   Background,
   Controls,
+  ControlButton,
   Handle,
   Position,
   MarkerType,
@@ -23,6 +24,7 @@ import {
 } from '@xyflow/react';
 import {
   ArrowUpRight,
+  Focus,
   ArrowRightLeft,
   ListTree,
   Circle,
@@ -48,6 +50,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
+import { layoutSteps } from './layout';
 import type { Run, Step, StepStatus } from '../domain/workflow';
 
 const labels: Record<StepStatus, string> = {
@@ -345,6 +348,38 @@ function TraceView({ step, run }: { step: Step; run: Run }) {
   );
 }
 const nodeTypes = { step: StepNode };
+function CanvasControls() {
+  const { getNodes, setCenter } = useReactFlow<Node<StepNodeData>>();
+  const focus = () => {
+    const nodes = getNodes();
+    const node =
+      nodes.find((n) => n.data.step.status === 'waiting') ||
+      nodes.find((n) => ['running', 'ready'].includes(n.data.step.status)) ||
+      nodes[0];
+    if (!node) return;
+    void setCenter(
+      node.position.x + (node.measured?.width || 280) / 2,
+      node.position.y + (node.measured?.height || 200) / 2,
+      {
+        zoom: 1,
+        duration: matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 0
+          : 280,
+      },
+    );
+  };
+  return (
+    <Controls showInteractive={false}>
+      <ControlButton
+        onClick={focus}
+        aria-label="Enfocar paso actual"
+        title="Enfocar paso actual"
+      >
+        <Focus size={17} style={{ fill: 'none' }} />
+      </ControlButton>
+    </Controls>
+  );
+}
 function FitCanvas() {
   const { getNodes, getInternalNode, setViewport } = useReactFlow();
   const initialized = useStore(
@@ -364,9 +399,18 @@ function FitCanvas() {
       const bounds = getNodesBounds(
         getNodes().map((node) => getInternalNode(node.id)!),
       );
-      void setViewport(
-        getViewportForBounds(bounds, width, height, 0.15, 1, 0.12),
+      const viewport = getViewportForBounds(
+        bounds,
+        width,
+        Math.max(180, height - (width <= 760 ? 395 : 200)),
+        0.15,
+        1,
+        0.12,
       );
+      void setViewport({
+        ...viewport,
+        y: viewport.y + (width <= 760 ? 165 : 115),
+      });
     }
   }, [getNodes, getInternalNode, setViewport, initialized, width, height]);
   return null;
@@ -540,41 +584,12 @@ export function App() {
   }, []);
   const graph = useMemo(() => {
     if (!run) return { nodes: [], edges: [] };
-    const levels = new Map<string, number>();
-    function level(id: string): number {
-      if (levels.has(id)) return levels.get(id)!;
-      const item = run!.steps.find((s) => s.id === id)!;
-      const depth = item.dependencies.length
-        ? Math.max(...item.dependencies.map(level)) + 1
-        : 0;
-      levels.set(id, depth);
-      return depth;
-    }
-    run.steps.forEach((s) => level(s.id));
-    const groups = new Map<number, Step[]>();
-    for (const item of run.steps) {
-      const depth = levels.get(item.id)!;
-      groups.set(depth, [...(groups.get(depth) || []), item]);
-    }
-    const offsets = new Map<number, number>();
-    let offset = 0;
-    for (const [depth, items] of [...groups].sort(([a], [b]) => a - b)) {
-      offsets.set(depth, offset);
-      offset += items.some((item) => !isControl(item)) ? 230 : 155;
-    }
+    const positions = layoutSteps(run.steps);
     const nodes: Node<StepNodeData>[] = run.steps.map((item, index) => {
-      const depth = levels.get(item.id)!;
-      const group = groups.get(depth)!;
       return {
         id: item.id,
         type: 'step',
-        position: {
-          x:
-            (group.indexOf(item) - (group.length - 1) / 2) * 310 +
-            280 +
-            (isControl(item) ? 44 : 0),
-          y: offsets.get(depth)!,
-        },
+        position: positions[item.id]!,
         data: {
           step: item,
           index,
@@ -606,13 +621,15 @@ export function App() {
               ? 'Por defecto'
               : undefined;
         })(),
-        labelStyle: { fontSize: 10, fill: '#55546a' },
+        labelStyle: { fontSize: 11, fill: '#655e50' },
+        labelBgStyle: { fill: '#f7f5ef', fillOpacity: 0.95 },
+        pathOptions: { borderRadius: 20 },
         animated: item.status === 'running',
         style: {
           stroke:
             run.steps.find((s) => s.id === id)?.status === 'completed'
-              ? '#857af0'
-              : '#d0d5df',
+              ? '#9a793c'
+              : '#b9b6ad',
           strokeWidth: 1.8,
           strokeDasharray: item.status === 'skipped' ? '5 5' : undefined,
           opacity: item.status === 'skipped' ? 0.45 : 1,
@@ -706,7 +723,32 @@ export function App() {
           <div className="canvas-identity">
             <a className="brand" href="/" aria-label="Hyperion, inicio">
               <span className="brand-mark">
-                <GitBranch size={22} />
+                <svg
+                  viewBox="0 0 40 40"
+                  width="32"
+                  height="32"
+                  aria-hidden="true"
+                >
+                  <circle
+                    cx="20"
+                    cy="20"
+                    r="8"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M20 2v7m0 22v7M2 20h7m22 0h7M7 7l5 5m16 16 5 5M7 33l5-5m16-16 5-5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M16 15v10m8-10v10m-8-5h8"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                </svg>
               </span>
               <span className="brand-word">hyperion</span>
             </a>
@@ -721,8 +763,7 @@ export function App() {
               <div className="canvas-title">
                 <h1>{run.title}</h1>
                 <span>
-                  Creado desde {titleCase(run.coordinator)} ·{' '}
-                  {run.id.slice(0, 8)}
+                  Un recorrido compartido · {titleCase(run.coordinator)}
                 </span>
               </div>
             )}
@@ -858,8 +899,8 @@ export function App() {
                   zoomOnDoubleClick={false}
                 >
                   <FitCanvas />
-                  <Background color="#d3d5e4" gap={22} size={1.1} />
-                  <Controls showInteractive={false} />
+                  <Background color="#c6c0b2" gap={28} size={0.8} />
+                  <CanvasControls />
                 </ReactFlow>
                 {error && !dialogOpen && (
                   <div role="alert" className="canvas-alert popup-error">
@@ -1402,11 +1443,11 @@ export function App() {
               </li>
             </ol>
             <div className="code-note">
-              npm run hyperion -- setup codex
+              hyperion install
               <br />
-              Sustituye codex por claude o cursor.
+              Instala una vez. Después: «Usa Hyperion para…».
               <br />
-              Codex, Claude, Cursor: consulta docs/manual-uso.md
+              Recarga las skills de tu agente. MCP es opcional.
             </div>
             <p className="muted">
               Esta versión coordina a un agente externo. No inicia agentes ni

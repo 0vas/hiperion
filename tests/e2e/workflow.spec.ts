@@ -271,8 +271,10 @@ test('the workflow is a landscape canvas with information and human actions in a
   const canvas = page.getByRole('region', { name: 'Canvas del workflow' });
   await expect(canvas).toBeVisible();
   const bounds = (await canvas.boundingBox())!;
-  expect(bounds.width).toBeGreaterThan(1440 * 0.9);
-  expect(bounds.height).toBeGreaterThan(900 * 0.75);
+  expect(bounds.x).toBe(0);
+  expect(bounds.y).toBe(0);
+  expect(bounds.width).toBe(1440);
+  expect(bounds.height).toBe(900);
   expect(bounds.width).toBeGreaterThan(bounds.height);
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByLabel('Tu respuesta')).toHaveCount(0);
@@ -507,4 +509,12 @@ test('the canvas renders start/end and all three gateway symbols together', asyn
   await expect(page.getByRole('dialog')).toContainText('docs');
   await page.keyboard.press('Escape');
   await page.screenshot({ path: 'test-results/process-gateways.png' });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.getByRole('button', { name: 'Enfocar paso actual' }).click();
+  const scope = page.locator('.react-flow__node[data-id="scope"]');
+  await expect
+    .poll(async () => (await scope.boundingBox())!.width)
+    .toBeGreaterThan(270);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.screenshot({ path: 'test-results/process-focus.png' });
 });
