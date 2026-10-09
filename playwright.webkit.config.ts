@@ -4,5 +4,5 @@ export default defineConfig({
   ...config,
   outputDir: 'test-results/webkit',
   use: { ...config.use, browserName: 'webkit' },
-  grep: /ribbons retain|liquid current/,
+  grep: /ribbons retain|liquid current|compact decision|field hints/,
 });

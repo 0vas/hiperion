@@ -168,3 +168,23 @@ Las tareas humanas pueden añadir:
 `question`, `context` y `next` son obligatorios dentro de `interaction`. Se admiten solo en pasos manuales/de aprobación. `description` de cada salida se usa como etiqueta humana; su nombre/tipo se conserva en I/O. Un `submit` con salidas tipadas válidas y al menos un valor no requiere `message` redundante; el motor registra «Decisión guardada en los datos del paso». Las respuestas sin puertos siguen requiriendo texto. La validación de tipos, campos obligatorios y roles no cambia. Usa campos simples para usuarios no técnicos; no conviertas una decisión cotidiana en un formulario JSON.
 
 Los campos nuevos son opcionales, sin valores predeterminados añadidos a planes anteriores, para preservar los recibos de idempotencia existentes.
+
+### Ayuda para formularios humanos
+
+Cada puerto admite metadatos opcionales `form`: `label` (etiqueta breve, hasta 160 caracteres), `hint` (ayuda, hasta 240), `placeholder` (ejemplo sin valor predeterminado, hasta 160), `trueLabel` y `falseLabel` (etiquetas de decisiones booleanas, hasta 80). No cambian el tipo ni el nombre del dato. `description` sigue siendo la etiqueta alternativa para planes anteriores.
+
+```json
+{
+  "name": "count",
+  "type": "number",
+  "required": true,
+  "description": "Número de ejemplos de la guía",
+  "form": {
+    "label": "¿Cuántos ejemplos necesitas?",
+    "hint": "Usa 0 si prefieres una guía sin ejemplos.",
+    "placeholder": "Ej. 3"
+  }
+}
+```
+
+Genera cada formulario desde la conversación: una pregunta principal en `interaction.question`, etiquetas concretas y ayuda solo si aclara qué escribir. No repitas instrucciones en el título, la etiqueta y el placeholder. Los ejemplos orientan; nunca son respuestas preseleccionadas. Usa `required` solo para datos necesarios; los opcionales se abren bajo demanda y no cuentan en el progreso obligatorio. El comentario de aprobación también es opcional.

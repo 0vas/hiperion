@@ -64,7 +64,8 @@ import {
 } from './flow-visuals';
 import { CurrentEdge } from './CurrentEdge';
 import { BpmnSymbol } from './BpmnSymbol';
-import { DecisionFields } from './DecisionFields';
+import { HumanForm } from './HumanForm';
+import { parseField } from './decision-form';
 import { canvasInsets } from './viewport';
 import { FlowLegend } from './FlowLegend';
 import { JobNode } from './JobNode';
@@ -798,17 +799,10 @@ export function App() {
         step && ['submit', 'approve'].includes(type) && step.outputs?.length
           ? Object.fromEntries(
               step.outputs
-                .filter(
-                  (port) =>
-                    outputDraft[port.name] !== undefined &&
-                    outputDraft[port.name] !== '',
-                )
+                .filter((port) => !!outputDraft[port.name]?.trim())
                 .map((port) => {
                   const raw = outputDraft[port.name]!;
-                  return [
-                    port.name,
-                    port.type === 'string' ? raw : JSON.parse(raw),
-                  ];
+                  return [port.name, parseField(port, raw)];
                 }),
             )
           : undefined;
@@ -1267,7 +1261,9 @@ export function App() {
                   ) : popup === 'trace' && step ? (
                     <TraceView step={step} run={run} />
                   ) : popup === 'step' && step ? (
-                    <div className="step-detail">
+                    <div
+                      className={`step-detail ${step.status === 'waiting' && live ? 'answering-step' : ''}`}
+                    >
                       <div className="detail-eyebrow">
                         {step.jobId
                           ? `${run.jobs?.find((j) => j.id === step.jobId)?.title} · `
@@ -1317,223 +1313,146 @@ export function App() {
                         </button>
                       )}
                       {step.status === 'waiting' && live && (
-                        <div className="human-action">
-                          <div className="action-title">
-                            {step.kind === 'manual' ? (
-                              <MessageSquareText size={18} />
-                            ) : (
-                              <ShieldCheck size={18} />
-                            )}
-                            <strong>
-                              {step.interaction?.question ||
-                                (step.kind === 'manual'
-                                  ? step.outputs?.length
-                                    ? 'Completa tu lista'
-                                    : 'Tu aporte'
-                                  : '¿Apruebas este resultado?')}
-                            </strong>
-                          </div>
-                          <p className="decision-context">
-                            {step.interaction?.context ||
-                              step.description ||
-                              'Este dato permite preparar el siguiente paso.'}
-                          </p>
-                          {(step.kind === 'approval' ||
-                            !step.outputs?.length) && (
-                            <>
-                              <label htmlFor="human-answer">
-                                {step.kind === 'manual'
-                                  ? step.interaction?.question || 'Tu respuesta'
-                                  : 'Comentario (opcional al aprobar)'}
-                              </label>
-                              <textarea
-                                id="human-answer"
-                                value={answer}
-                                onChange={(e) => setAnswer(e.target.value)}
-                                maxLength={8000}
-                                rows={3}
-                                placeholder={
-                                  step.kind === 'manual'
-                                    ? step.title
-                                    : 'Añade contexto a tu decisión…'
-                                }
-                              />
-                            </>
-                          )}
-                          {!!step.outputs?.length && (
-                            <DecisionFields
-                              ports={step.outputs}
-                              values={outputDraft}
-                              onChange={setOutputDraft}
-                            />
-                          )}
-                          <button
-                            className="primary full"
-                            disabled={
-                              busy ||
-                              !online ||
-                              (step.kind === 'manual' &&
-                                !step.outputs?.length &&
-                                !answer.trim()) ||
-                              !!step.outputs?.some(
-                                (p) =>
-                                  p.required && !outputDraft[p.name]?.trim(),
-                              ) ||
-                              (step.kind === 'manual' &&
-                                !!step.outputs?.length &&
-                                !Object.values(outputDraft).some((v) =>
-                                  v.trim(),
-                                ))
-                            }
-
-                            onClick={() =>
-                              void act(
-                                step.kind === 'manual' ? 'submit' : 'approve',
-                                step.id,
-                              )
-                            }
-                          >
-                            {busy ? (
-                              <LoaderCircle className="spin" size={16} />
-                            ) : (
-                              <Check size={16} />
-                            )}{' '}
-                            {step.kind === 'manual'
-                              ? step.outputs?.length
-                                ? 'Guardar elección'
-                                : 'Enviar respuesta'
-                              : 'Aprobar paso'}
-                          </button>
-                          {step.kind === 'approval' && (
-                            <button
-                              className="text-button reject"
-                              disabled={busy || !online}
-                              onClick={() => setConfirmation('reject')}
-                            >
-                              Rechazar y detener este flujo
-                            </button>
-                          )}
-                          <p className="decision-next">
-                            <strong>Después</strong>{' '}
-                            {step.interaction?.next ||
-                              `Se habilitará el siguiente paso. Vuelve a ${titleCase(run.coordinator)} y pide continuar este flujo.`}
-                          </p>
-                        </div>
+                        <HumanForm
+                          key={step.id}
+                          step={step}
+                          answer={answer}
+                          onAnswer={setAnswer}
+                          values={outputDraft}
+                          onValues={setOutputDraft}
+                          busy={busy}
+                          online={online}
+                          onSubmit={() =>
+                            void act(
+                              step.kind === 'manual' ? 'submit' : 'approve',
+                              step.id,
+                            )
+                          }
+                          onReject={() => setConfirmation('reject')}
+                        />
                       )}
-                      <dl className="step-meta">
-                        <div>
-                          <dt>Responsable</dt>
-                          <dd>
-                            {step.kind === 'agent' ? (
-                              <Bot size={14} />
-                            ) : (
-                              <UserRound size={14} />
-                            )}{' '}
-                            {isControl(step)
-                              ? 'Hyperion'
-                              : step.kind === 'agent'
-                                ? titleCase(run.coordinator)
-                                : 'Tú'}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Tipo de paso</dt>
-                          <dd>{kindLabels[step.kind]}</dd>
-                        </div>
-                        {step.attempt > 0 && (
+                      <details
+                        className="step-secondary"
+                        open={!(step.status === 'waiting' && live)}
+                      >
+                        <summary>Detalles del paso</summary>
+                        <dl className="step-meta">
                           <div>
-                            <dt>Intento</dt>
-                            <dd>#{step.attempt}</dd>
+                            <dt>Responsable</dt>
+                            <dd>
+                              {step.kind === 'agent' ? (
+                                <Bot size={14} />
+                              ) : (
+                                <UserRound size={14} />
+                              )}{' '}
+                              {isControl(step)
+                                ? 'Hyperion'
+                                : step.kind === 'agent'
+                                  ? titleCase(run.coordinator)
+                                  : 'Tú'}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>Tipo de paso</dt>
+                            <dd>{kindLabels[step.kind]}</dd>
+                          </div>
+                          {step.attempt > 0 && (
+                            <div>
+                              <dt>Intento</dt>
+                              <dd>#{step.attempt}</dd>
+                            </div>
+                          )}
+                        </dl>
+                        {step.dependencies.length > 0 && (
+                          <div className="dependencies">
+                            <h3>Depende de</h3>
+                            {step.dependencies.map((id) => {
+                              const dependency = run.steps.find(
+                                (s) => s.id === id,
+                              )!;
+                              return (
+                                <button key={id} onClick={() => selectStep(id)}>
+                                  <span
+                                    className={`dependency-icon ${dependency.status}`}
+                                  >
+                                    <StatusIcon
+                                      status={dependency.status}
+                                      size={13}
+                                    />
+                                  </span>
+                                  <span>{dependency.title}</span>
+                                  <ChevronRight size={13} />
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
-                      </dl>
-                      {step.dependencies.length > 0 && (
-                        <div className="dependencies">
-                          <h3>Depende de</h3>
-                          {step.dependencies.map((id) => {
-                            const dependency = run.steps.find(
-                              (s) => s.id === id,
-                            )!;
-                            return (
-                              <button key={id} onClick={() => selectStep(id)}>
-                                <span
-                                  className={`dependency-icon ${dependency.status}`}
-                                >
-                                  <StatusIcon
-                                    status={dependency.status}
-                                    size={13}
-                                  />
-                                </span>
-                                <span>{dependency.title}</span>
-                                <ChevronRight size={13} />
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {step.result && (
-                        <div className="result">
-                          <h3>
-                            <CheckCheck size={15} />
-                            {step.status === 'failed'
-                              ? 'Error registrado'
-                              : 'Resultado registrado'}
-                          </h3>
-                          <p>{step.result}</p>
-                        </div>
-                      )}
-                      {step.status === 'blocked' && (
-                        <div className="step-hint">
-                          <LockKeyhole size={16} />
-                          <p>
-                            Este paso se habilitará cuando termine:{' '}
-                            {blockedReason}.
-                          </p>
-                        </div>
-                      )}
-                      {step.status === 'running' && (
-                        <div className="step-hint">
-                          <LoaderCircle className="spin" size={17} />
-                          <p>
-                            El agente tiene este paso en curso. Puedes revisar
-                            sus avances en Actividad.
-                          </p>
-                        </div>
-                      )}
-                      {step.status === 'ready' && live && (
-                        <div className="step-hint">
-                          <Bot size={17} />
-                          <p>
-                            El paso está habilitado. Pide a{' '}
-                            {titleCase(run.coordinator)} que continúe desde el
-                            chat.
-                          </p>
-                        </div>
-                      )}
-                      <div className="step-history">
-                        <h3>Actividad de este paso</h3>
-                        {run.events
-                          .filter((e) => e.stepId === step.id)
-                          .slice(-4)
-                          .reverse()
-                          .map((e) => (
-                            <div key={e.sequence}>
-                              <span className="history-dot" />
-                              <p>
-                                <strong>{eventLabels[e.type] || e.type}</strong>
-                                <small>
-                                  {e.actor} · {time(e.at)}
-                                </small>
-                                {e.message && <span>{e.message}</span>}
-                              </p>
-                            </div>
-                          ))}
-                        {!run.events.some((e) => e.stepId === step.id) && (
-                          <p className="muted">
-                            Todavía no hay actividad registrada.
-                          </p>
+                        {step.result && (
+                          <div className="result">
+                            <h3>
+                              <CheckCheck size={15} />
+                              {step.status === 'failed'
+                                ? 'Error registrado'
+                                : 'Resultado registrado'}
+                            </h3>
+                            <p>{step.result}</p>
+                          </div>
                         )}
-                      </div>
+                        {step.status === 'blocked' && (
+                          <div className="step-hint">
+                            <LockKeyhole size={16} />
+                            <p>
+                              Este paso se habilitará cuando termine:{' '}
+                              {blockedReason}.
+                            </p>
+                          </div>
+                        )}
+                        {step.status === 'running' && (
+                          <div className="step-hint">
+                            <LoaderCircle className="spin" size={17} />
+                            <p>
+                              El agente tiene este paso en curso. Puedes revisar
+                              sus avances en Actividad.
+                            </p>
+                          </div>
+                        )}
+                        {step.status === 'ready' && live && (
+                          <div className="step-hint">
+                            <Bot size={17} />
+                            <p>
+                              El paso está habilitado. Pide a{' '}
+                              {titleCase(run.coordinator)} que continúe desde el
+                              chat.
+                            </p>
+                          </div>
+                        )}
+                        <div className="step-history">
+                          <h3>Actividad de este paso</h3>
+                          {run.events
+                            .filter((e) => e.stepId === step.id)
+                            .slice(-4)
+                            .reverse()
+                            .map((e) => (
+                              <div key={e.sequence}>
+                                <span className="history-dot" />
+                                <p>
+                                  <strong>
+                                    {eventLabels[e.type] || e.type}
+                                  </strong>
+                                  <small>
+                                    {e.actor} · {time(e.at)}
+                                  </small>
+                                  {e.message && <span>{e.message}</span>}
+                                </p>
+                              </div>
+                            ))}
+                          {!run.events.some((e) => e.stepId === step.id) && (
+                            <p className="muted">
+                              Todavía no hay actividad registrada.
+                            </p>
+                          )}
+                        </div>
+                      </details>
                     </div>
                   ) : (
                     <div className="activity-list">

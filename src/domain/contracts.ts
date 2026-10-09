@@ -16,6 +16,16 @@ export const portSchema = z
     type: valueType,
     required: z.boolean().default(false),
     description: z.string().max(1000).default(''),
+    form: z
+      .object({
+        label: z.string().trim().min(1).max(160).optional(),
+        hint: z.string().trim().min(1).max(240).optional(),
+        placeholder: z.string().trim().min(1).max(160).optional(),
+        trueLabel: z.string().trim().min(1).max(80).optional(),
+        falseLabel: z.string().trim().min(1).max(80).optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 export const inputSchema = portSchema
@@ -52,12 +62,4 @@ export const traceSchema = z
     tool: z.string().trim().min(1).max(120).optional(),
   })
   .strict();
-export function matchesType(
-  type: z.infer<typeof valueType>,
-  value: unknown,
-): boolean {
-  if (type === 'array') return Array.isArray(value);
-  if (type === 'object')
-    return value !== null && typeof value === 'object' && !Array.isArray(value);
-  return typeof value === type && (type !== 'number' || Number.isFinite(value));
-}
+export { matchesType } from './value-types.js';
