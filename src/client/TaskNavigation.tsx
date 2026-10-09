@@ -24,7 +24,7 @@ import { motionDuration } from './preferences';
 import { attentionStep } from './attention';
 const statuses: Record<string, string> = {
   blocked: 'En espera',
-  ready: 'Lista',
+  ready: 'Espera al agente',
   running: 'En curso',
   waiting: 'Tu turno',
   completed: 'Completada',

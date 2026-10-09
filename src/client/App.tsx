@@ -1,3 +1,6 @@
+import { contextForStep, routeLabel } from '../domain/context';
+import { HarnessIcon } from './HarnessIcon';
+import { useReceiptActivity, mergeRuns } from './receipt-activity';
 import {
   useCallback,
   useEffect,
@@ -76,7 +79,7 @@ import type { Run, Step, StepStatus } from '../domain/workflow';
 
 const labels: Record<StepStatus, string> = {
   blocked: 'En espera',
-  ready: 'Listo',
+  ready: 'Espera al agente',
   running: 'En curso',
   waiting: 'Tu turno',
   completed: 'Completado',
@@ -159,6 +162,10 @@ type StepNodeData = {
   index: number;
   coordinator: string;
   jobTitle?: string;
+  logActivity: number;
+  ioActivity: number;
+  logCount: number;
+  contextCount: number;
   selected: boolean;
   horizontal: boolean;
   canRetry: boolean;
@@ -184,23 +191,26 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
 
       <button
         aria-label={`Ver datos: ${step.title}`}
-        title="Entradas y salidas"
+        title="Entradas, contexto y salidas"
+        data-receiving={!!data.ioActivity}
         onClick={() => data.onSelect(step.id, 'io')}
         aria-haspopup="dialog"
       >
         <ArrowRightLeft size={13} />
         <span>
-          I/O {step.inputs?.length || 0}/{step.outputs?.length || 0}
+          I/O {(step.inputs?.length || 0) + data.contextCount}/
+          {step.outputs?.length || 0}
         </span>
       </button>
       <button
         aria-label={`Ver trazas: ${step.title}`}
         title="Logs y trazas públicas"
+        data-receiving={!!data.logActivity}
         onClick={() => data.onSelect(step.id, 'trace')}
         aria-haspopup="dialog"
       >
         <ListTree size={14} />
-        <span>Logs</span>
+        <span>Logs {data.logCount || ''}</span>
       </button>
     </div>
   );
@@ -257,7 +267,7 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
               <span className="node-identity">
                 <span className="node-kind-icon">
                   {step.kind === 'agent' ? (
-                    <Bot size={17} />
+                    <HarnessIcon name={data.coordinator} />
                   ) : step.kind === 'approval' ? (
                     <ShieldCheck size={17} />
                   ) : (
@@ -286,7 +296,11 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
             )}
             <strong>{step.title}</strong>
             <div className="node-owner">
-              {step.kind === 'agent' ? titleCase(data.coordinator) : 'Tú'}
+              {step.kind === 'agent' ? (
+                <span className="muted">Agente</span>
+              ) : (
+                'Tú'
+              )}
               <ArrowUpRight size={13} />
             </div>
           </button>
@@ -302,11 +316,41 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
     </>
   );
 }
-function ContractView({ step }: { step: Step }) {
+function ContractView({ step, run }: { step: Step; run: Run }) {
+  const context = contextForStep(run, step);
   return (
     <div className="step-detail contract-view">
       <h2 id="popup-title">Entradas y salidas</h2>
-      <p className="muted">{step.title} · Contrato Hyperion v1</p>
+      <p className="muted">{step.title}</p>
+      <section className="context-sources">
+        <h3>Contexto disponible</h3>
+        {context.request && (
+          <details>
+            <summary>Petición original</summary>
+            <p>{context.request}</p>
+          </details>
+        )}
+        {!!Object.keys(context.general).length && (
+          <details>
+            <summary>Contexto del proceso</summary>
+            <pre>{JSON.stringify(context.general, null, 2)}</pre>
+          </details>
+        )}
+        {context.previous.map((previous) => (
+          <details key={previous.stepId}>
+            <summary>{previous.title}</summary>
+            {previous.result && <p>{previous.result}</p>}
+            {!!Object.keys(previous.outputs).length && (
+              <pre>{JSON.stringify(previous.outputs, null, 2)}</pre>
+            )}
+          </details>
+        ))}
+        {!context.request &&
+          !Object.keys(context.general).length &&
+          !context.previous.length && (
+            <p className="muted">Aún no hay resultados anteriores.</p>
+          )}
+      </section>
       {(['inputs', 'outputs'] as const).map((direction) => (
         <section key={direction}>
           <h3>
@@ -327,16 +371,25 @@ function ContractView({ step }: { step: Step }) {
               return (
                 <article key={port.name} className="port">
                   <div>
-                    <strong>{port.name}</strong>
-                    <code>{port.type}</code>
+                    <strong>
+                      {port.form?.label || port.description || port.name}
+                    </strong>
+                    <code>
+                      {port.name} · {port.type}
+                    </code>
                     <span>{port.required ? 'Obligatorio' : 'Opcional'}</span>
                   </div>
-                  {port.description && <p>{port.description}</p>}
+                  {port.description && port.form?.label && (
+                    <p>{port.description}</p>
+                  )}
                   <small>
                     {source
                       ? `Origen: ${source.stepId}.${source.output}`
                       : direction === 'inputs'
-                        ? 'Origen: valor del plan'
+                        ? step.inputs?.find((input) => input.name === port.name)
+                            ?.contextKey
+                          ? `Origen: contexto del proceso · ${step.inputs?.find((input) => input.name === port.name)?.contextKey}`
+                          : 'Origen: valor del plan'
                         : 'Origen: resultado de la tarea'}
                   </small>
                   <pre>
@@ -354,11 +407,25 @@ function ContractView({ step }: { step: Step }) {
   );
 }
 function TraceView({ step, run }: { step: Step; run: Run }) {
-  const events = run.events.filter((e) => e.stepId === step.id);
+  const [scope, setScope] = useState('step');
+  const events = [...run.events]
+    .filter((e) => scope === 'all' || e.stepId === step.id)
+    .reverse();
   return (
     <div className="step-detail trace-view">
       <h2 id="popup-title">Trazas del paso</h2>
       <p>{step.title}</p>
+      <label className="trace-scope">
+        Mostrar{' '}
+        <select
+          aria-label="Alcance de logs"
+          value={scope}
+          onChange={(e) => setScope(e.target.value)}
+        >
+          <option value="step">Este paso</option>
+          <option value="all">Todo el proceso</option>
+        </select>
+      </label>
       <p className="muted">
         Resumen público → acción → observación. Se muestra lo que el agente o el
         motor registra.
@@ -378,7 +445,7 @@ function TraceView({ step, run }: { step: Step; run: Run }) {
                   : eventLabels[event.type] || event.type}
               </strong>
               <small>
-                {event.actor} · {time(event.at)}
+                <HarnessIcon name={event.actor} /> · {time(event.at)}
               </small>
             </div>
             {event.trace?.tool && <code>{event.trace.tool}</code>}
@@ -552,6 +619,8 @@ export function App() {
       document.querySelector<HTMLButtonElement>('.modal-close')?.focus();
   }, [popup]);
   const [online, setOnline] = useState(false);
+  const [streaming, setStreaming] = useState(false);
+  const streamConnected = useRef(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
   const [answer, setAnswer] = useState('');
@@ -563,6 +632,7 @@ export function App() {
     null,
   );
   const run = runId ? runs.find((r) => r.id === runId) : runs[0];
+  const activity = useReceiptActivity(run);
   useEffect(() => {
     setFollowing(preferences.follow);
     setNotice('');
@@ -586,29 +656,78 @@ export function App() {
         else if (requested.status !== 404)
           throw new Error('Unable to read selected run');
       }
-      setRuns(data);
+      setRuns((previous) => mergeRuns(previous, data));
       setOnline(true);
       setLoaded(true);
     } catch {
-      setOnline(false);
+      setOnline(streamConnected.current);
       setLoaded(true);
     }
   }, [runId]);
   useEffect(() => {
     let active = true;
+    let events: EventSource | undefined;
     let timer: ReturnType<typeof setTimeout>;
     const tick = async () => {
       await refresh();
       if (active) timer = setTimeout(tick, 1000);
     };
+    const connect = () => {
+      events?.close();
+      if (!active) return;
+      events = new EventSource('/api/events');
+      events.onopen = () => {
+        streamConnected.current = true;
+      };
+      const receive = (event: MessageEvent, snapshot: boolean) => {
+        if (!active) return;
+        try {
+          const value = JSON.parse(event.data);
+          setRuns((previous) =>
+            mergeRuns(previous, snapshot ? value : [value]),
+          );
+          setOnline(true);
+          setStreaming(true);
+          setLoaded(true);
+        } catch {
+          setStreaming(false);
+        }
+      };
+      events.addEventListener('snapshot', (e) =>
+        receive(e as MessageEvent, true),
+      );
+      events.addEventListener('run', (e) => receive(e as MessageEvent, false));
+      events.onerror = () => {
+        if (active) {
+          streamConnected.current = false;
+          setStreaming(false);
+        }
+      };
+    };
+    const disconnect = () => {
+      events?.close();
+      streamConnected.current = false;
+      setOnline(false);
+      setStreaming(false);
+    };
+    window.addEventListener('offline', disconnect);
+    window.addEventListener('online', connect);
     void api('/api/session')
-      .then(tick)
+      .then(() => {
+        if (!active) return;
+        connect();
+        void tick();
+      })
       .catch(() => {
         setLoaded(true);
         setOnline(false);
       });
     return () => {
       active = false;
+      window.removeEventListener('offline', disconnect);
+      window.removeEventListener('online', connect);
+      events?.close();
+      streamConnected.current = false;
       clearTimeout(timer);
     };
   }, [refresh]);
@@ -706,6 +825,21 @@ export function App() {
         position: positions[item.id]!,
         data: {
           step: item,
+          logActivity:
+            online && !preferences.reduceMotion
+              ? activity.logs[item.id] || 0
+              : 0,
+          ioActivity:
+            online && !preferences.reduceMotion ? activity.io[item.id] || 0 : 0,
+          logCount: run.events.filter((e) => e.stepId === item.id).length,
+          contextCount: (() => {
+            const c = contextForStep(run, item);
+            return (
+              Number(!!c.request) +
+              Object.keys(c.general).length +
+              c.previous.length
+            );
+          })(),
           horizontal: preferences.orientation === 'horizontal',
           canRetry: online && run.status === 'active' && !busy,
           onRetry: (id: string) => void act('retry', id),
@@ -749,17 +883,11 @@ export function App() {
             height: 16,
             color,
           },
-          label: (() => {
-            const source = run.steps.find((s) => s.id === id);
-            const route = source?.gateway?.routes?.find(
-              (r) => r.target === item.id,
-            );
-            return route?.when
-              ? `${route.when.output} = ${String(route.when.equals)}${source?.gateway?.defaultTarget === item.id ? ' / defecto' : ''}`
-              : source?.gateway?.defaultTarget === item.id
-                ? 'Por defecto'
-                : undefined;
-          })(),
+          label: routeLabel(
+            run,
+            run.steps.find((s) => s.id === id),
+            item.id,
+          ),
           labelStyle: { fontSize: 11, fill: '#655e50' },
           labelBgStyle: { fill: '#f7f5ef', fillOpacity: 0.95 },
           animated: carriesCurrent(
@@ -778,6 +906,7 @@ export function App() {
     return { nodes, edges };
   }, [
     run,
+    activity,
     measurements,
     measurementKey,
     step?.id,
@@ -806,7 +935,7 @@ export function App() {
                 }),
             )
           : undefined;
-      await api(`/api/runs/${run.id}/commands`, {
+      const updated = await api<Run>(`/api/runs/${run.id}/commands`, {
         type,
         ...(outputs ? { outputs } : {}),
         ...(target ? { stepId: target } : {}),
@@ -817,7 +946,11 @@ export function App() {
       setAnswer('');
       if (['submit', 'approve'].includes(type))
         setNotice(
-          `Elección guardada. Vuelve al chat y pide a ${titleCase(run.coordinator)} continuar este flujo.`,
+          updated.status === 'completed'
+            ? 'Elección guardada. El proceso terminó.'
+            : updated.steps.some((s) => s.status === 'ready')
+              ? 'Elección guardada. El siguiente paso espera al agente. Copia la continuación y envíala en tu chat.'
+              : 'Elección guardada. Sigue el estado de la siguiente tarea en el canvas.',
         );
       if (type === 'retry')
         setNotice(
@@ -892,6 +1025,9 @@ export function App() {
         </button>
         <button
           className="secondary"
+          data-receiving={
+            online && !preferences.reduceMotion && !!activity.process
+          }
           aria-haspopup="dialog"
           onClick={() => openPanel('activity')}
         >
@@ -916,7 +1052,7 @@ export function App() {
         )}
         <button className="secondary continue-button" onClick={copyPrompt}>
           <Copy size={15} />
-          {copied ? 'Copiado' : `Continuar en ${titleCase(run.coordinator)}`}
+          {copied ? 'Pega la petición en tu chat' : 'Copiar continuación'}
         </button>
         {(live || run.status === 'paused') && (
           <>
@@ -1036,7 +1172,10 @@ export function App() {
             >
               <BookOpen size={18} />
             </button>
-            <span className={`connection ${online ? 'online' : ''}`}>
+            <span
+              className={`connection ${online ? 'online' : ''}`}
+              title={streaming ? 'Eventos en directo' : 'Consultando conexión'}
+            >
               <span />
               {online ? 'Conectado' : loaded ? 'Sin conexión' : 'Conectando'}
             </span>
@@ -1183,14 +1322,12 @@ export function App() {
                 )}
                 {live && !waiting && ready > 0 && (
                   <button className="canvas-next" onClick={copyPrompt}>
-                    <Bot size={17} />
+                    <HarnessIcon name={run.coordinator} />
                     <span>
-                      <strong>
-                        Listo para que {titleCase(run.coordinator)} continúe
-                      </strong>
+                      <strong>Espera al agente</strong>
                       {copied
-                        ? 'Petición copiada'
-                        : 'Copiar petición para volver al chat'}
+                        ? 'Pégala en tu chat para continuar'
+                        : 'Copiar continuación para tu chat'}
                     </span>
                     <Copy size={15} />
                   </button>
@@ -1257,7 +1394,7 @@ export function App() {
                     </button>
                   </div>
                   {popup === 'io' && step ? (
-                    <ContractView step={step} />
+                    <ContractView step={step} run={run} />
                   ) : popup === 'trace' && step ? (
                     <TraceView step={step} run={run} />
                   ) : popup === 'step' && step ? (
@@ -1341,14 +1478,14 @@ export function App() {
                             <dt>Responsable</dt>
                             <dd>
                               {step.kind === 'agent' ? (
-                                <Bot size={14} />
+                                <HarnessIcon name={run.coordinator} />
                               ) : (
                                 <UserRound size={14} />
                               )}{' '}
                               {isControl(step)
                                 ? 'Hyperion'
                                 : step.kind === 'agent'
-                                  ? titleCase(run.coordinator)
+                                  ? null
                                   : 'Tú'}
                             </dd>
                           </div>
@@ -1420,9 +1557,15 @@ export function App() {
                           <div className="step-hint">
                             <Bot size={17} />
                             <p>
-                              El paso está habilitado. Pide a{' '}
-                              {titleCase(run.coordinator)} que continúe desde el
-                              chat.
+                              El agente aún no ha retomado este paso.
+                              <button
+                                className="secondary"
+                                onClick={copyPrompt}
+                              >
+                                {copied
+                                  ? 'Pega la petición en tu chat'
+                                  : 'Copiar continuación'}
+                              </button>
                             </p>
                           </div>
                         )}
@@ -1440,7 +1583,8 @@ export function App() {
                                     {eventLabels[e.type] || e.type}
                                   </strong>
                                   <small>
-                                    {e.actor} · {time(e.at)}
+                                    <HarnessIcon name={e.actor} /> ·{' '}
+                                    {time(e.at)}
                                   </small>
                                   {e.message && <span>{e.message}</span>}
                                 </p>
@@ -1458,7 +1602,9 @@ export function App() {
                     <div className="activity-list">
                       <h2 id="popup-title">Historial del flujo</h2>
                       <p className="muted">
-                        Decisiones y acciones observables.
+                        {streaming
+                          ? 'En directo · acciones y decisiones registradas'
+                          : 'Actualización periódica · reconectando eventos'}
                       </p>
                       {[...run.events].reverse().map((e) => (
                         <article key={e.sequence}>
@@ -1476,7 +1622,7 @@ export function App() {
                           <div>
                             <strong>{eventLabels[e.type] || e.type}</strong>
                             <small>
-                              {e.actor} · {time(e.at)}
+                              <HarnessIcon name={e.actor} /> · {time(e.at)}
                             </small>
                             {e.stepId && (
                               <button onClick={() => selectStep(e.stepId!)}>

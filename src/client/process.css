@@ -366,3 +366,70 @@
 .flow-ribbon.strand-2 {
   opacity: 0.95;
 }
+
+/* A brief receipt signal, never a claim that the agent is still working. */
+[data-receiving='true'] > svg {
+  animation: receipt-glow 1s ease-in-out infinite;
+  color: var(--route-active);
+}
+@keyframes receipt-glow {
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 3px currentColor);
+  }
+}
+.harness-icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  align-items: center;
+  vertical-align: middle;
+}
+.harness-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.harness-icon > span {
+  width: 100%;
+  height: 100%;
+}
+.context-sources details {
+  border-bottom: 1px solid var(--line);
+  padding: 12px 0;
+}
+.context-sources summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+.context-sources pre,
+.context-sources p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.canvas-popup .trace-scope {
+  color: var(--ink);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 16px 0;
+}
+.trace-scope select {
+  min-height: 36px;
+  padding: 6px 10px;
+  color: inherit;
+  background: var(--node-surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-receiving='true'] > svg {
+    animation: none;
+    filter: none;
+  }
+}

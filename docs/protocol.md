@@ -93,4 +93,12 @@ Errors have `{error, message}`. Common statuses: 400 invalid input, 401 missing 
 
 ## Current limits
 
-Snapshots include the full event history and are retained locally without automated expiration. The UI polls once per second; this implementation targets small local workflows. Large-scale event storage, pagination, remote identity management, cancellation signalling to executors, streaming updates, plan edits and distributed orchestration need later protocol versions and tests.
+Snapshots include the full event history and are retained locally without automated expiration. The UI receives committed changes through SSE and polls once per second as a fallback; this implementation targets small local workflows. Large-scale event storage, pagination, remote identity management, cancellation signalling to executors, plan edits and distributed orchestration need later protocol versions and tests.
+
+## Live receipts
+
+`GET /api/events` is an authenticated, same-origin SSE channel. Use the normal local session cookie or bearer credential; never put credentials in its URL. It sends `snapshot` (recent runs) on connect and `run` (one committed run) after commands, with heartbeat comments. Reconnect recovers the current snapshot, not a replay cursor. Merge by ID and increasing revision; never apply an older idempotent receipt over newer state. The canvas keeps periodic reads as a fallback. Slow clients are disconnected when their queued output exceeds 4 MiB and reconnect to state.
+
+Each run includes read-only `steps[].availableContext`, derived from its request, shared context and completed ancestors. Inputs can explicitly use `contextKey`; see the process contract.
+
+Emit `log` before a material action and after its real observation, including failures, then complete with evidence and typed outputs. The UI streams only submitted events: it cannot intercept arbitrary harness tools or private model reasoning. Brief receipt signals mean newly arrived records/data, never an independent agent heartbeat. Human approval enables a task but does not wake an idle host conversation.

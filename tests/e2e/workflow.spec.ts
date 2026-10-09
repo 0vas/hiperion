@@ -70,7 +70,7 @@ test('an agent creates a workflow; the human supplies input and approves; the ag
     .click();
   await page.getByRole('button', { name: 'Aprobar paso' }).click();
   await expect(
-    page.getByText('Listo para que Codex continúe', { exact: true }),
+    page.locator('.canvas-next strong').filter({ hasText: 'Espera al agente' }),
   ).toBeVisible();
   await page.reload();
   await page
@@ -973,10 +973,10 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   await page.getByLabel('Reducir movimiento').uncheck();
   await page.keyboard.press('Escape');
   await expect(incoming).toHaveClass(/animated/);
-  await page.route('**/api/runs', (route) => route.abort());
+  await page.context().setOffline(true);
   await expect(page.getByText('Sin conexión', { exact: true })).toBeVisible();
   await expect(incoming).not.toHaveClass(/animated/);
-  await page.unroute('**/api/runs');
+  await page.context().setOffline(false);
   await expect(page.getByText('Conectado', { exact: true })).toBeVisible();
   await expect(incoming).toHaveClass(/animated/);
   await page.emulateMedia({ reducedMotion: 'reduce' });

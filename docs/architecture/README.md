@@ -152,7 +152,7 @@ La vista `cooperacion.svg` conserva la arquitectura de referencia, incluyendo el
 | Responsabilidad               | Implementación           | Estado                                       |
 | ----------------------------- | ------------------------ | -------------------------------------------- |
 | Adaptadores CLI y MCP         | `src/adapters/`          | Implementado; cliente HTTP compartido        |
-| Interfaz visual               | `src/client/`            | Implementado; refresco cada segundo          |
+| Interfaz visual               | `src/client/`            | Implementado; SSE y sondeo de respaldo       |
 | Límite HTTP y roles           | `src/server/app.ts`      | Implementado; loopback y sesión humana local |
 | Persistencia transaccional    | `src/server/store.ts`    | Implementado; SQLite y recibos idempotentes  |
 | Motor de estados              | `src/domain/workflow.ts` | Implementado; transiciones puras y DAG       |

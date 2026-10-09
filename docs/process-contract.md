@@ -188,3 +188,11 @@ Cada puerto admite metadatos opcionales `form`: `label` (etiqueta breve, hasta 1
 ```
 
 Genera cada formulario desde la conversación: una pregunta principal en `interaction.question`, etiquetas concretas y ayuda solo si aclara qué escribir. No repitas instrucciones en el título, la etiqueta y el placeholder. Los ejemplos orientan; nunca son respuestas preseleccionadas. Usa `required` solo para datos necesarios; los opcionales se abren bajo demanda y no cuentan en el progreso obligatorio. El comentario de aprobación también es opcional.
+
+## Contexto entre fases y etiquetas de rutas
+
+`plan.context` admite un objeto JSON con claves de identificador y valores compartidos. Una entrada puede usar `contextKey: "audience"` para tomar `plan.context.audience`; el motor valida su tipo y obligatoriedad. Cada entrada elige una sola fuente: `source`, `contextKey` o `value`.
+
+Todas las respuestas HTTP/MCP/CLI incluyen `step.availableContext`: `request`, `general` y `previous` (ID, título, resultado y salidas de antecesores completados). Es una proyección de lectura, no se envía dentro del plan ni reemplaza un contrato obligatorio. Excluye tareas futuras, ajenas y omitidas. Los trabajos agrupan tareas; cada tarea conserva su contexto y entradas. El agente debe leer este contexto antes de ejecutar, declarar las salidas que necesita la siguiente fase y pasar sus valores al completar. No copie información sensible que la actividad no necesite.
+
+Una ruta admite `label`, por ejemplo `"Continuar con el informe"`. Sin etiqueta, una condición booleana usa `form.trueLabel` / `form.falseLabel` del campo o «Sí» / «No». La alternativa de una exclusión binaria usa el valor opuesto. Otras alternativas muestran «Otra opción». Las condiciones de ejecución permanecen sin cambios; sus identificadores técnicos no son instrucciones para la persona.

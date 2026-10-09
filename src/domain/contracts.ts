@@ -29,7 +29,11 @@ export const portSchema = z
   })
   .strict();
 export const inputSchema = portSchema
-  .extend({ source: referenceSchema.optional(), value: z.json().optional() })
+  .extend({
+    source: referenceSchema.optional(),
+    value: z.json().optional(),
+    contextKey: identifier.optional(),
+  })
   .strict();
 export const gatewaySchema = z
   .object({
@@ -41,6 +45,7 @@ export const gatewaySchema = z
         z
           .object({
             target: identifier,
+            label: z.string().trim().min(1).max(100).optional(),
             when: referenceSchema
               .extend({
                 equals: z.union([z.string(), z.number(), z.boolean()]),

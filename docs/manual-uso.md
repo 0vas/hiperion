@@ -109,3 +109,11 @@ Los instaladores son **DMG para macOS** y **EXE para Windows**. Se generaron DMG
 - **Tu respuesta:** responde la pregunta principal y pulsa **Guardar elección**. Si hay varias preguntas obligatorias, verás cuántas faltan. Sí y No son respuestas válidas; ninguna viene seleccionada.
 - **Ayuda y comentarios:** abre **Ver instrucciones** si necesitas contexto. Los campos **Opcionales** se despliegan al pulsarlos y conservan lo escrito al cerrarlos. Cada campo puede incluir una ayuda o un ejemplo; los errores se explican junto al dato. **Detalles del paso** reúne responsable, dependencias e historial.
 - **Reintentar:** aparece en la caja y el detalle de una tarea que falló. Conserva el error en el historial y habilita otro intento. Después pide al chat «Continúa mi flujo de Hyperion». El botón no ejecuta herramientas por su cuenta.
+
+## Si aprobaste y el flujo está esperando
+
+**Espera al agente** significa que tu decisión se guardó y la siguiente tarea está habilitada. Pulsa **Copiar continuación**, vuelve al mismo chat y pega la petición. También puedes escribir «Continúa mi flujo de Hyperion». No necesitas comandos. En esta versión el canvas no puede despertar por sí solo un chat inactivo.
+
+**I/O** abre las entradas, salidas y el contexto anterior. Expande solo la fuente que necesitas consultar. **Logs** muestra registros reales del paso; selecciona **Todo el proceso** para ampliar la vista. Los iconos pulsan brevemente al recibir registros o valores nuevos. Si dejan de pulsar, no significa necesariamente un error: no han llegado datos nuevos. La interfaz no puede mostrar acciones que la herramienta de IA no haya registrado.
+
+Las ramas muestran decisiones legibles («Sí», «No» o el nombre definido para la opción). El símbolo SVG identifica al agente; su nombre sigue disponible como ayuda y para lectores de pantalla.

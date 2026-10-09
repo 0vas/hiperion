@@ -11,7 +11,7 @@ export type FlowState =
   | 'stopped';
 export const flowLabels: Record<FlowState, string> = {
   pending: 'Pendiente',
-  ready: 'Listo',
+  ready: 'Espera al agente',
   active: 'En curso',
   attention: 'Tu turno',
   completed: 'Completado',

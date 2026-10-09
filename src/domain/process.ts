@@ -190,15 +190,25 @@ export function validateProcess(plan: Plan) {
     };
     for (const p of s.inputs || []) {
       check(
-        !(p.source && p.value !== undefined),
-        'An input cannot have both source and literal value',
+        [
+          p.source !== undefined,
+          p.value !== undefined,
+          p.contextKey !== undefined,
+        ].filter(Boolean).length <= 1,
+        'An input must use one source: output, context or literal',
       );
       if (p.source)
         check(
           sourcePort(p.source, p.required).type === p.type,
           `Input type mismatch: ${s.id}.${p.name}`,
         );
-      else
+      else if (p.contextKey) {
+        const value = plan.context?.[p.contextKey];
+        check(
+          value === undefined ? !p.required : matchesType(p.type, value),
+          `Invalid context input: ${s.id}.${p.name}`,
+        );
+      } else
         check(
           p.value === undefined ? !p.required : matchesType(p.type, p.value),
           `Invalid input literal: ${s.id}.${p.name}`,
@@ -223,7 +233,9 @@ export function resolveInputs(run: Run, step: Step) {
       ? source && Object.hasOwn(source, p.source.output)
         ? source[p.source.output]
         : undefined
-      : p.value;
+      : p.contextKey
+        ? run.context?.[p.contextKey]
+        : p.value;
     if (value === undefined && !p.required) return [];
     if (!matchesType(p.type, value))
       throw new WorkflowError(

@@ -1,3 +1,5 @@
+import { presentRun } from '../domain/context.js';
+import type { Run } from '../domain/workflow.js';
 import { VERSION } from '../version.js';
 import {
   createServer,
@@ -48,6 +50,17 @@ async function body(req: IncomingMessage) {
 }
 export function createApp(options: Options) {
   let baseUrl = '';
+  const streams = new Set<ServerResponse>();
+  const send = (res: ServerResponse, event: string, value: unknown) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(value)}\n\n`);
+    if (res.writableLength > 4 * 1024 * 1024) {
+      streams.delete(res);
+      res.destroy(); // A slow consumer reconnects to a fresh snapshot.
+    }
+  };
+  const publish = (run: Run) => {
+    for (const res of streams) send(res, 'run', presentRun(run));
+  };
   const server = createServer(async (req, res) => {
     res.setHeader('cache-control', 'no-store');
     res.setHeader('x-content-type-options', 'nosniff');
@@ -113,17 +126,33 @@ export function createApp(options: Options) {
             'Authentication required',
             401,
           );
+        if (url.pathname === '/api/events' && req.method === 'GET') {
+          res.writeHead(200, {
+            'content-type': 'text/event-stream; charset=utf-8',
+            connection: 'keep-alive',
+            'x-accel-buffering': 'no',
+          });
+          streams.add(res);
+          send(res, 'snapshot', options.store.list().map(presentRun));
+          const heartbeat = setInterval(() => {
+            if (!res.write(': heartbeat\n\n')) res.destroy();
+          }, 15000);
+          heartbeat.unref();
+          res.on('close', () => {
+            clearInterval(heartbeat);
+            streams.delete(res);
+          });
+          return;
+        }
         if (url.pathname === '/api/runs' && req.method === 'GET') {
-          json(res, 200, options.store.list());
+          json(res, 200, options.store.list().map(presentRun));
           return;
         }
         if (url.pathname === '/api/runs' && req.method === 'POST') {
           const data = createSchema.parse(await body(req));
-          json(
-            res,
-            201,
-            options.store.create(data.plan, actor, data.commandId),
-          );
+          const run = options.store.create(data.plan, actor, data.commandId);
+          publish(run);
+          json(res, 201, presentRun(run));
           return;
         }
         const match = /^\/api\/runs\/([a-f0-9-]+)(\/commands)?$/.exec(
@@ -132,7 +161,7 @@ export function createApp(options: Options) {
         if (match) {
           const id = match[1]!;
           if (!match[2] && req.method === 'GET') {
-            json(res, 200, options.store.get(id));
+            json(res, 200, presentRun(options.store.get(id)));
             return;
           }
           if (match[2] && req.method === 'POST') {
@@ -148,7 +177,9 @@ export function createApp(options: Options) {
                 'Human decisions require expectedRevision',
                 400,
               );
-            json(res, 200, options.store.command(id, data, actor));
+            const run = options.store.command(id, data, actor);
+            publish(run);
+            json(res, 200, presentRun(run));
             return;
           }
         }

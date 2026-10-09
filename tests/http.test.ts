@@ -173,3 +173,77 @@ test('HTTP rejects oversized, malformed and cross-site input without exposing in
     store.close();
   }
 });
+
+test('SSE authenticates, sends committed revisions immediately, and reconnects with a snapshot', async () => {
+  const store = new Store(':memory:');
+  const app = createApp({
+    store,
+    agentToken: 'agent',
+    humanToken: 'human',
+    agentId: 'codex',
+  });
+  const url = await app.listen(0);
+  const headers = {
+    authorization: 'Bearer agent',
+    'content-type': 'application/json',
+  };
+  const abort = new AbortController();
+  try {
+    assert.equal((await fetch(url + '/api/events')).status, 401);
+    assert.equal(
+      (
+        await fetch(url + '/api/events', {
+          headers: { ...headers, origin: 'https://evil.test' },
+        })
+      ).status,
+      403,
+    );
+    const response = await fetch(url + '/api/events', {
+      headers,
+      signal: abort.signal,
+    });
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get('content-type')!, /text\/event-stream/);
+    const reader = response.body!.getReader();
+    assert.match(
+      new TextDecoder().decode((await reader.read()).value),
+      /event: snapshot/,
+    );
+    const created = await fetch(url + '/api/runs', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        commandId: 'live',
+        plan: {
+          title: 'Live',
+          steps: [{ id: 'a', title: 'A', kind: 'agent' }],
+        },
+      }),
+    });
+    const run = await created.json();
+    const frame = new TextDecoder().decode((await reader.read()).value);
+    assert.match(frame, /event: run/);
+    assert.ok(frame.includes(run.id));
+    await fetch(url + `/api/runs/${run.id}/commands`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ type: 'start', stepId: 'a', commandId: 'start' }),
+    });
+    assert.match(
+      new TextDecoder().decode((await reader.read()).value),
+      /"revision":2/,
+    );
+    abort.abort();
+    const reconnect = await fetch(url + '/api/events', { headers });
+    const recovery = reconnect.body!.getReader();
+    assert.match(
+      new TextDecoder().decode((await recovery.read()).value),
+      /"revision":2/,
+    );
+    await recovery.cancel();
+  } finally {
+    abort.abort();
+    await app.close();
+    store.close();
+  }
+});

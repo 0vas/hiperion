@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { AvailableContext } from './context.js';
 import { validateJobs } from './jobs.js';
 
 import {
@@ -41,6 +42,7 @@ export const planSchema = z
   .object({
     title: z.string().trim().min(1).max(180),
     profile: z.literal('bpmn-lite').optional(),
+    context: z.record(identifier, z.json()).optional(),
     request: z.string().trim().min(1).max(8000).optional(),
     description: z.string().trim().max(4000).default(''),
     jobs: z
@@ -95,6 +97,7 @@ export type StepStatus =
   | 'rejected'
   | 'skipped';
 export type Step = Plan['steps'][number] & {
+  availableContext?: AvailableContext;
   status: StepStatus;
   selectedBranches?: string[];
   inputValues?: Record<string, unknown>;
@@ -114,6 +117,7 @@ export type RunEvent = {
   message: string;
 };
 export type Run = {
+  context?: Plan['context'];
   jobs?: Plan['jobs'];
   profile?: 'bpmn-lite';
   request?: string;
