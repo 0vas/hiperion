@@ -2,13 +2,17 @@
 
 **Tú describes la actividad en el chat. La IA conecta Hyperion, crea el plan y ejecuta sus pasos. Tú sigues el avance y decides en el canvas.**
 
-## Invocarlo desde esta conversación
+## Conectarlo una vez
+
+Instala Hyperion Desktop y elige **Codex**, **Cursor**, **Claude Desktop** o **Claude Code** en el asistente inicial. Reinicia esa aplicación y abre una conversación nueva. No necesitas terminal ni instalar Node. Para conectar otra aplicación: **Hyperion → Conectar con mi IA**. [Descarga, instalación y ayuda](conexion.md).
+
+## Invocarlo desde una conversación
 
 Escribe, por ejemplo:
 
 > Usa Hyperion para preparar una guía de bienvenida a mi proyecto.
 
-Eso es todo. En este entorno la conexión ya está preparada: no tienes que instalar nada, abrir una terminal ni escribir comandos. Codex crea un flujo específico y te entrega su enlace.
+Con la conexión preparada, eso es todo: tu agente crea un flujo específico y te entrega su enlace.
 
 Si solo dices «Quiero usar Hyperion», el agente te preguntará qué actividad quieres realizar. El plan nace de tu respuesta.
 

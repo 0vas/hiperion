@@ -1,8 +1,34 @@
 # Instalar y conectar Hyperion
 
-## Instalación y conexión (una vez)
+## Conectar sin comandos (recomendado)
 
-Si ya recibes un canvas al pedir «usa Hyperion», consulta el [manual de uso](manual-uso.md). Para configurar otra herramienta, consulta las opciones siguientes. Codex, Cursor y Claude Code pueden usar la skill con terminal local; Claude Desktop usa la conexión MCP descrita más abajo.
+1. Instala **Hyperion Desktop**: `.dmg` en macOS o `.exe` en Windows. En macOS, arrastra Hyperion a Aplicaciones antes de abrirlo.
+2. Al abrirlo, elige **Codex**, **Cursor**, **Claude Desktop** o **Claude Code**. Si ya lo usabas, entra en **Hyperion → Conectar con mi IA**.
+3. Reinicia la aplicación elegida y abre un chat nuevo. Si solicita habilitar Hyperion, acepta para usar sus herramientas.
+4. Escribe tu objetivo: **«Usa Hyperion para preparar una guía breve de bienvenida a mi proyecto»**.
+
+No necesitas instalar Node, escribir comandos ni editar archivos. Hyperion Desktop incluye el runtime. La conexión sirve para otros proyectos y chats sin contexto previo. La IA pide solo los datos que falten y genera el proceso; no debes explicarle cómo dibujar el canvas ni cómo registrar los pasos.
+
+**Instaladores:** los builds de desarrollo están en las ejecuciones satisfactorias de [Desktop installers](https://github.com/0vas/hiperion/actions/workflows/desktop.yml), apartado Artifacts (requiere iniciar sesión en GitHub). Descarga el archivo de tu sistema y extrae el instalador. Todavía no hay una distribución pública firmada: estos builds pueden mostrar avisos del sistema. No se presentan como una release estable.
+
+| Aplicación     | Qué prepara el asistente                                                    |
+| -------------- | --------------------------------------------------------------------------- |
+| Codex          | Conexión MCP de usuario; también respeta `CODEX_HOME` cuando está definido. |
+| Cursor         | Conexión MCP de usuario para los proyectos locales.                         |
+| Claude Desktop | Conexión MCP en la configuración de escritorio de macOS o Windows.          |
+| Claude Code    | Skill Hyperion en su carpeta de skills de usuario.                          |
+
+La conexión usa rutas absolutas al runtime incluido y al almacenamiento local; no escribe tokens en la configuración del cliente. Guarda copia del archivo anterior, conserva otros servidores y rechaza una entrada Hyperion diferente. «Conexión configurada» confirma la instalación; el cliente debe reiniciarse y cargar las herramientas para usarla. Puedes repetir el asistente para conectar otra aplicación.
+
+Para actualizar, conserva Hyperion en la misma ubicación. Si lo mueves y aparece un conflicto, retira la antigua entrada Hyperion desde la configuración del cliente y vuelve a conectarlo. Para desconectarlo, elimina solo esa entrada (o la skill Hyperion en Claude Code). Tus flujos se conservan.
+
+La edición actual requiere herramientas en el mismo ordenador. Claude en el navegador y los agentes que ejecutan en la nube no acceden a este servicio local. La primera conexión es necesaria: mencionar el nombre en una aplicación sin integración no instala Hyperion por sí solo.
+
+Los formatos se contrastaron con la documentación de [Codex](https://developers.openai.com/codex/mcp), [Cursor](https://prod.cursor.com/docs/mcp) y [MCP para Claude Desktop](https://modelcontextprotocol.io/docs/develop/connect-local-servers). Las políticas del cliente u organización pueden impedir cargar servidores locales.
+
+## Alternativas para agentes y desarrolladores
+
+Si ya recibes un canvas al pedir «usa Hyperion», sigue el [manual de uso](manual-uso.md). Los comandos siguientes son alternativas de instalación, no pasos del uso cotidiano.
 
 ### Skill portable
 

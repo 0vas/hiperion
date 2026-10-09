@@ -14,23 +14,25 @@ Say **“Usa Hyperion para [tu actividad]”** to a connected agent. It starts H
 
 For daily use, follow the [Spanish user manual](docs/manual-uso.md). The installation instructions below are for setting up a new environment; the user does not run them for each activity.
 
-## Say “use Hyperion”
+## Connect once, then just ask
 
-Install the portable skill once from a prepared checkout:
+The simplest path is **Hyperion Desktop**; it includes its runtime:
 
-```sh
-npm run hyperion -- install
-```
+1. Install the macOS `.dmg` or Windows `.exe` and open Hyperion. On macOS, move it to Applications before connecting.
+2. In the first-launch assistant, choose **Codex**, **Cursor**, **Claude Desktop**, or **Claude Code**. You can connect another application later from **Hyperion → Conectar con mi IA**.
+3. Restart your AI application, open a new chat, and say **“Usa Hyperion para preparar una guía breve de bienvenida a mi proyecto.”**
 
-Reload skills or open a new agent session, then ask: **“Use Hyperion to guide my next release.”** The agent starts the canvas on demand, generates a plan from your request, performs ready work and waits for your decisions in the canvas. Local agents with Agent Skills and shell access do not need MCP setup. MCP and HTTP remain available for other integrations.
+No terminal, Node installation, API key or hand-written configuration is needed for this Desktop path. Codex, Cursor and Claude Desktop receive a local MCP connection; Claude Code receives the portable skill. Hyperion preserves other connections and backs up existing configuration before changing it. A conflicting Hyperion entry is reported without overwriting it.
 
-For a standalone distribution, run `npm install --global ./hyperion-workflows-0.4.0.tgz`, then `hyperion install`. The archive includes the compiled server, UI and CLI. It is currently built locally with `npm pack`; this increment has not been published to npm or GitHub Releases. Node.js 22.13+ is required. [Installation, discovery and compatibility](docs/conexion.md).
+The request is enough: the agent asks for missing context, constructs the workflow and shares its canvas. You can request **split** or **desktop** in the chat; both show the same run. After a human handoff, ask the chat to continue. Hyperion does not wake an idle conversation automatically.
 
-## Desktop or split
+**Download status:** installers are development builds without release signing. The [Desktop installers workflow](https://github.com/0vas/hiperion/actions/workflows/desktop.yml) produces macOS arm64/x64 and Windows x64 artifacts; download the matching archive from a successful run. GitHub requires signing in to download Actions artifacts. A signed public release and native end-to-end verification in every AI application remain pending. Do not install a similarly named npm package assuming it is this project.
 
-The user can ask **“Usa Hyperion en split”** or **“Abre este flujo en escritorio”**. CLI and MCP preserve the same run in either presentation. Hyperion Desktop bundles its runtime; install/open it once, then use **Hyperion → Conectar con mi IA** to prepare the skill when needed.
+[Setup and troubleshooting](docs/conexion.md) · [User manual](docs/manual-uso.md) · [Desktop build details](desktop/README.md)
 
-DMG (macOS arm64/x64) and NSIS EXE (Windows x64) builds are configured in the repository. Local installers are development artifacts without release signing; Windows execution and public distribution remain unverified. See [Desktop build and validation](desktop/README.md). The manual GitHub workflow uploads build artifacts without publishing a release.
+### Alternative for an agent with local shell access
+
+From a prepared checkout, `npm run hyperion -- install` installs the portable skill. Reload skills or open a new agent session. A compiled archive can also be installed with `npm install --global ./hyperion-workflows-0.4.0.tgz`, followed by `hyperion install`; this alternative needs Node.js 22.13+. The archive is built with `npm pack` and is not published to npm.
 
 ## Run from source
 

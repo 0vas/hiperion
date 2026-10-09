@@ -8,7 +8,7 @@ Electron aloja el mismo canvas del navegador y usa el mismo servicio HTTP local 
 - `npm run test:desktop` prueba un servicio aislado: decisión en split, reflejo en Desktop, ejecución del agente y resultado en ambos.
 - `npm run desktop:dist -- --mac` genera DMG; `--win` genera instaladores NSIS EXE.
 - `HYPERION_DESKTOP_EXECUTABLE=/ruta/al/ejecutable npm run test:desktop` ejecuta la prueba sobre una aplicación empaquetada.
-- El workflow manual **Desktop installers** compila en macOS y Windows y guarda artefactos descargables. No publica automáticamente.
+- El workflow **Desktop installers**, manual y automático ante cambios de Desktop, adaptadores o dependencias, compila en macOS y Windows y guarda artefactos descargables. No publica automáticamente.
 
 Los binarios pertenecen a GitHub Releases, no al historial Git. `release/` está ignorado. Para distribución pública, configurar firma/notarización macOS y firma Windows. No se incorporan certificados al repositorio. El build local sin esas identidades es un artefacto de desarrollo.
 
@@ -20,4 +20,4 @@ Si otro servicio ocupa el puerto o las credenciales no coinciden, la aplicación
 
 Referencias de implementación: [aislamiento en Electron](https://www.electronjs.org/docs/latest/tutorial/security), [runtime Node integrado](https://www.electronjs.org/docs/latest/api/environment-variables), [DMG](https://www.electron.build/v26/docs/dmg/) y [NSIS](https://www.electron.build/docs/nsis/).
 
-El servicio predeterminado publica su ubicación local (sin tokens) en `~/.hyperion/workspace.json`, de modo que abrir Desktop desde su icono reutiliza la instancia iniciada por el chat. Los puertos personalizados se seleccionan mediante el adaptador, pasando URL y directorio explícitos. **Hyperion → Conectar con mi IA** prepara la skill usando el runtime empaquetado; no instala Node en el equipo.
+El servicio predeterminado publica su ubicación local (sin tokens) en `~/.hyperion/workspace.json`, de modo que abrir Desktop desde su icono reutiliza la instancia iniciada por el chat. Los puertos personalizados se seleccionan mediante el adaptador, pasando URL y directorio explícitos. **Hyperion → Conectar con mi IA** abre el mismo asistente del primer arranque: Codex, Cursor y Claude Desktop reciben configuración MCP; Claude Code recibe su skill. Se usa el runtime empaquetado con `ELECTRON_RUN_AS_NODE`, sin instalar Node ni depender de CLI de proveedor. Los archivos existentes tienen respaldo y las conexiones ajenas se conservan. La configuración no equivale a una sesión MCP ya conectada: el usuario reinicia su aplicación.

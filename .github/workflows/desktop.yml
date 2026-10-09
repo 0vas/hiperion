@@ -1,6 +1,13 @@
 name: Desktop installers
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'desktop/**'
+      - 'src/adapters/**'
+      - 'tests/desktop*'
+      - 'package*.json'
+      - '.github/workflows/desktop.yml'
 permissions:
   contents: read
 jobs:

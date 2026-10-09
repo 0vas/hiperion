@@ -7,6 +7,7 @@ export function generateConnection(
   agentId: string,
   directory?: string,
   autoStart = false,
+  url = process.env.HYPERION_URL || 'http://127.0.0.1:4317',
 ) {
   const credentials = registerAgent(agentId, directory);
   const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -24,9 +25,10 @@ export function generateConnection(
           ),
         ],
         env: {
+          ...(process.versions.electron ? { ELECTRON_RUN_AS_NODE: '1' } : {}),
           HYPERION_AGENT_ID: agentId,
           HYPERION_DATA_DIR: credentials.directory,
-          HYPERION_URL: process.env.HYPERION_URL || 'http://127.0.0.1:4317',
+          HYPERION_URL: url,
         },
       },
     },

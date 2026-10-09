@@ -20,7 +20,12 @@ export function defaultDirectory(home = homedir()) {
   );
 }
 export function installSkill(
-  options: { home?: string; directory?: string; destination?: string } = {},
+  options: {
+    home?: string;
+    directory?: string;
+    destination?: string;
+    url?: string;
+  } = {},
 ) {
   const home = options.home || homedir();
   const directory = resolve(options.directory || defaultDirectory(home));
@@ -64,7 +69,8 @@ export function installSkill(
             : {}),
           cli: resolve(root, 'dist/adapters/cli.js'),
           directory,
-          url: process.env.HYPERION_URL || 'http://127.0.0.1:4317',
+          url:
+            options.url || process.env.HYPERION_URL || 'http://127.0.0.1:4317',
         },
         null,
         2,

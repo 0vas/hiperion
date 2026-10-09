@@ -2,7 +2,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import {
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+  rmSync,
+  mkdirSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { once } from 'node:events';
@@ -90,6 +96,37 @@ test('desktop and split share one real service, decisions and agent progress', a
     const page = await app.firstWindow();
     await page.getByRole('heading', { name: run.title }).waitFor();
     assert.equal(await page.evaluate(() => typeof window.require), 'undefined');
+    await app.evaluate(async ({ Menu, dialog }) => {
+      const original = dialog.showMessageBox;
+      let count = 0;
+      let finished;
+      const completion = new Promise((resolve) => {
+        finished = resolve;
+      });
+      dialog.showMessageBox = async () => {
+        if (++count === 2) finished();
+        return { response: 1 };
+      };
+      try {
+        await Menu.getApplicationMenu()
+          .items[0].submenu.items.find(
+            (item) => item.label === 'Conectar con mi IA',
+          )
+          .click();
+        await completion;
+      } finally {
+        dialog.showMessageBox = original;
+      }
+    });
+    const connected = JSON.parse(
+      readFileSync(join(home, '.cursor/mcp.json'), 'utf8'),
+    );
+    assert.equal(connected.mcpServers.hyperion.env.ELECTRON_RUN_AS_NODE, '1');
+    assert.equal(
+      connected.mcpServers.hyperion.env.HYPERION_URL,
+      env.HYPERION_URL,
+    );
+    assert.match(connected.mcpServers.hyperion.args[0], /mcp-launcher\.js$/);
     browser = await chromium.launch();
     const split = await browser.newPage({
       viewport: { width: 540, height: 720 },
@@ -118,6 +155,7 @@ test('desktop and split share one real service, decisions and agent progress', a
       .locator('[data-testid="run-status"]')
       .filter({ hasText: 'Completado' })
       .waitFor();
+    const navigation = page.waitForEvent('load');
     const opened = await promisify(execFile)(
       process.execPath,
       ['dist/adapters/cli.js', 'open', run.id, 'desktop'],
@@ -125,10 +163,20 @@ test('desktop and split share one real service, decisions and agent progress', a
     );
     assert.equal(JSON.parse(opened.stdout).runId, run.id);
     assert.equal(JSON.parse(opened.stdout).presentation, 'desktop');
+    await navigation;
     await page.getByRole('heading', { name: run.title }).waitFor();
     const result = await api(`/api/runs/${run.id}`);
     assert.equal(result.steps[0].outputValues.beginners, false);
-    await page.screenshot({ path: 'test-results/desktop-shared.png' });
+    const capture = await app.evaluate(async ({ BrowserWindow }) =>
+      (await BrowserWindow.getAllWindows()[0].capturePage())
+        .toPNG()
+        .toString('base64'),
+    );
+    mkdirSync('test-results', { recursive: true });
+    writeFileSync(
+      'test-results/desktop-shared.png',
+      Buffer.from(capture, 'base64'),
+    );
   } finally {
     await browser?.close();
     await app?.close();

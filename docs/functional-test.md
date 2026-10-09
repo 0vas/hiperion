@@ -242,3 +242,11 @@ El usuario elige split o desktop en su chat. `hyperion_open` (MCP) y `open RUN_I
 - El navegador recibe la modificación por SSE, muestra el motivo y la diferencia, y permite reanudar desde el canvas. El historial conserva las versiones completas y detalle desplegable del contrato de cada paso cambiado.
 - `npm run check`: 55 pruebas de lógica/integración, 2 de producción, tipos, build y formato. Chromium: 24 recorridos; WebKit: 7 recorridos. Total: 88 pruebas aprobadas.
 - Servicio local reiniciado con comparación completa antes/después de los seis flujos. No se alteraron decisiones ni ejecuciones existentes. Captura privada ignorada: `.hyperion/decision-icons-live.png`. Manual con caso inicial y cambio de alcance mediante mensajes, sin comandos de usuario. No se publicaron cambios ni instaladores.
+
+## Conexión desde Desktop (ADR 0018)
+
+- `npm run check`: 58 pruebas de lógica/integración y 4 de producción/asistente, tipos, build y formato correctos.
+- `npm run test:desktop`: recorrido real en Electron, configuración de Cursor desde el menú en un usuario aislado y estado compartido con split. Se espera la navegación al reabrir el flujo y se captura con la API nativa de Electron.
+- Aplicación macOS arm64 empaquetada: las dos pruebas Desktop pasan sin omisiones. Las configuraciones generadas para Codex, Cursor y Claude Desktop lanzan MCP con el runtime incluido, completan el handshake y permiten listar herramientas y flujos. No se modifica la configuración real de las aplicaciones del usuario.
+- TDD reprodujo la ausencia del instalador y un puerto personalizado perdido en la skill de Claude Code; ambos corregidos. Se prueban respaldo, preservación, repetición y conflictos sin sobrescritura.
+- `npm audit --audit-level=high` pasa; quedan ocho avisos moderados transitivos en herramientas de empaquetado, sin aplicar una actualización incompatible automática. Los instaladores no están firmados. Las conversaciones nativas completas en cada cliente siguen pendientes de verificación.

@@ -1,6 +1,9 @@
-import { app, BrowserWindow, dialog, session, Menu } from 'electron';
+import { app, BrowserWindow, dialog, session, Menu, clipboard } from 'electron';
 import { fileURLToPath } from 'node:url';
-import { installSkill } from '../dist/adapters/install.js';
+import { existsSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { setupDesktopClient } from '../dist/adapters/desktop-setup.js';
+import { connectWithDialog } from './onboarding.mjs';
 import { ensureServer } from '../dist/adapters/bootstrap.js';
 import {
   desktopTarget,
@@ -10,6 +13,30 @@ import {
 let window;
 let target;
 const pending = [];
+let connecting = false;
+async function connect() {
+  if (connecting) return;
+  connecting = true;
+  try {
+    const connected = await connectWithDialog({
+      window,
+      dialog,
+      clipboard,
+      setup: setupDesktopClient,
+      options: { directory: target.directory, url: target.service },
+    });
+    if (connected)
+      writeFileSync(
+        resolve(target.directory, 'desktop-onboarding.json'),
+        JSON.stringify({ completed: true }),
+        { mode: 0o600 },
+      );
+  } catch (error) {
+    report(error);
+  } finally {
+    connecting = false;
+  }
+}
 const isLocal = (url) => {
   try {
     return new URL(url).origin === target.service;
@@ -96,19 +123,7 @@ if (!app.requestSingleInstanceLock()) {
             submenu: [
               {
                 label: 'Conectar con mi IA',
-                click: () => {
-                  try {
-                    installSkill({ directory: target.directory });
-                    void dialog.showMessageBox({
-                      type: 'info',
-                      message: 'Conexión preparada',
-                      detail:
-                        'Abre una nueva conversación en una herramienta compatible con skills y pide: Usa Hyperion en escritorio para…',
-                    });
-                  } catch (error) {
-                    report(error);
-                  }
-                },
+                click: () => connect(),
               },
               { type: 'separator' },
               { role: 'quit' },
@@ -125,6 +140,11 @@ if (!app.requestSingleInstanceLock()) {
         args: app.isPackaged ? [] : [fileURLToPath(import.meta.url)],
       });
       for (const args of pending) await openRun(args);
+      if (
+        !target.run &&
+        !existsSync(resolve(target.directory, 'desktop-onboarding.json'))
+      )
+        void connect();
     })
     .catch((error) => {
       report(error);
