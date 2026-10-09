@@ -6,7 +6,7 @@
 
 Escribe, por ejemplo:
 
-> Usa Hyperion para preparar una guía de bienvenida a mi proyecto. Organiza el trabajo por trabajos y pasos. Pregúntame a quién va dirigida y espera mi aprobación antes de darla por terminada.
+> Usa Hyperion para preparar una guía de bienvenida a mi proyecto.
 
 Eso es todo. En este entorno la conexión ya está preparada: no tienes que instalar nada, abrir una terminal ni escribir comandos. Codex crea un flujo específico y te entrega su enlace.
 
@@ -16,15 +16,20 @@ Si solo dices «Quiero usar Hyperion», el agente te preguntará qué actividad 
 
 Copia este mensaje aquí:
 
-> Usa Hyperion para preparar una guía breve de bienvenida a mi proyecto. Primero pregúntame en el canvas a quién va dirigida. Cuando responda, espera mi siguiente mensaje antes de redactar. Después prepara el borrador y pídeme revisarlo en Hyperion. Muestra las entradas, salidas y logs de cada paso. No publiques ni envíes nada.
+> Usa Hyperion para preparar una guía de bienvenida a mi proyecto.
 
-1. Abre el enlace que te dé Codex y responde la pregunta del primer paso.
-2. Vuelve aquí y escribe **«Continúa mi flujo de Hyperion»**. Verás avanzar la redacción y después aparecerá tu revisión.
-3. Lee el resultado en el paso, decide y guarda. El estado final y la decisión deben aparecer en Actividad.
+El agente usa el contexto de la conversación y del proyecto para construir el plan. Si falta información relevante —por ejemplo, el público de la guía— te la pide en el canvas. Si ya la conoce, continúa. Organizar fases, conectar entradas y salidas y registrar avances son responsabilidades de la integración: no tienes que pedirlas en cada mensaje.
 
-**Para probar un cambio de plan:** después de responder el primer paso, en lugar de pedir que continúe, escribe:
+1. Abre el enlace y observa el plan generado para tu objetivo.
+2. Si aparece **Tu turno**, responde la pregunta o decisión concreta. No todos los flujos necesitan una intervención humana.
+3. Si aparece **Espera al agente**, usa **Copiar continuación** y envía el texto en este chat. Es una limitación actual de la conexión con el chat, no una instrucción que debas incluir al pedir tu actividad.
+4. Consulta el resultado y sus registros. Solo debe pedirse aprobación cuando corresponda a la actividad o tú la hayas solicitado.
 
-> Cambia lo que falta de mi flujo: quiero una checklist de cinco puntos en lugar de una guía. Añade un paso para comprobar que el lenguaje sea sencillo antes de mi revisión. Conserva mi respuesta y todo lo ya ejecutado. Registra el motivo del cambio.
+**Para probar un cambio de plan:** mientras quede trabajo pendiente, puedes escribir:
+
+> Mejor quiero una checklist de cinco puntos, con lenguaje sencillo.
+
+El agente interpreta el cambio dentro del flujo actual y conserva por sí mismo las respuestas, lo ejecutado y el historial. No necesitas indicarle cómo aplicar una revisión.
 
 Codex aplica la revisión al mismo flujo y lo deja **en pausa**. Pulsa **El plan cambió** para ver lo añadido, modificado o retirado. Si coincide con tu petición, usa **Más opciones → Reanudar** y escribe aquí **«Continúa con el plan actualizado»**. No necesitas instalar nada ni escribir comandos.
 
@@ -44,13 +49,13 @@ Si tienes varios flujos, pulsa «Copiar continuación» dentro del que quieres r
 
 **Tú, aquí:** «Usa Hyperion para preparar mi guía de bienvenida».
 
-**Codex:** conecta el canvas, crea los trabajos «Definir la guía», «Redactar» y «Revisar», con sus pasos, y comparte el enlace.
+**Codex:** lee el contexto disponible, genera el plan adecuado y comparte su enlace.
 
-**Hyperion, en tu turno:** «¿La guía es para personas sin experiencia técnica?». Explica que esta elección adapta el vocabulario. Seleccionas Sí o No y guardas.
+**Si falta el público destinatario**, Hyperion puede preguntarte «¿Para quién es la guía?». Respondes en el canvas. Si el contexto ya lo aclara, no repite la pregunta.
 
 **Tú, aquí:** «Continúa mi flujo de Hyperion».
 
-**Codex:** lee la elección, redacta la guía, registra el resultado y deja la revisión final para ti. Apruebas solo después de leerla.
+**Codex:** recoge tu respuesta, redacta la guía y registra el resultado. Puedes leerlo y pedir ajustes en lenguaje natural.
 
 Los títulos y decisiones se generan para tu actividad; este ejemplo no es una plantilla obligatoria.
 
