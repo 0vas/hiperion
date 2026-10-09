@@ -8,7 +8,9 @@ import { resolve, dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-const executable = process.env.HYPERION_DESKTOP_EXECUTABLE;
+const executable = process.env.HYPERION_DESKTOP_EXECUTABLE
+  ? resolve(process.env.HYPERION_DESKTOP_EXECUTABLE)
+  : undefined;
 test(
   'packaged desktop starts its own service without a system Node installation',
   { skip: !executable },
