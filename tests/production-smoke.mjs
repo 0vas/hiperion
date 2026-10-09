@@ -79,6 +79,24 @@ test('installed skill starts Hyperion from another workspace and an arbitrary to
       (await invoke(runner, ['--agent', 'independent-tool', 'up'])).started,
       false,
     );
+    // A fresh invocation must not borrow context from another stored run.
+    const unrelatedPlan = join(workspace, 'unrelated.json');
+    writeFileSync(
+      unrelatedPlan,
+      JSON.stringify({
+        title: 'Another project',
+        request: 'A separate activity',
+        context: { project: 'Unrelated project' },
+        steps: [{ id: 'other', title: 'Other work', kind: 'agent' }],
+      }),
+    );
+    await invoke(runner, [
+      '--agent',
+      'independent-tool',
+      'create',
+      unrelatedPlan,
+      'unrelated-request',
+    ]);
     const planFile = join(workspace, 'plan.json');
     writeFileSync(
       planFile,
@@ -104,6 +122,9 @@ test('installed skill starts Hyperion from another workspace and an arbitrary to
     ]);
     assert.equal(run.coordinator, 'independent-tool');
     assert.equal(run.request, 'Guide my review');
+    assert.equal(run.context, undefined);
+    assert.deepEqual(run.steps[0].availableContext.general, {});
+    assert.deepEqual(run.steps[0].availableContext.previous, []);
     await invoke(runner, [
       '--agent',
       'independent-tool',
@@ -129,6 +150,18 @@ test('installed skill starts Hyperion from another workspace and an arbitrary to
       commandFile,
     ]);
     assert.equal(completed.status, 'completed');
+    const recovered = await invoke(runner, [
+      '--agent',
+      'independent-tool',
+      'get',
+      run.id,
+    ]);
+    assert.equal(recovered.id, run.id);
+    assert.equal(
+      recovered.steps[0].outputValues.report,
+      'Verified isolated workflow',
+    );
+    assert.deepEqual(recovered.steps[0].availableContext.general, {});
     const page = await fetch(launch.url);
     assert.equal(page.status, 200);
     assert.ok(existsSync(resolve(install.paths[0], 'references/protocol.md')));

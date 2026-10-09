@@ -32,6 +32,14 @@ Group a multi-stage activity with `jobs: [{id, title, description?}]` and assign
 
 For human steps, declare `interaction: {question, context, next}`: the exact decision, why it matters, and what follows. Use clear output descriptions as field labels. Prefer simple booleans, text or numbers for nontechnical users; do not make them author JSON. Typed fields are the response: do not ask for the same information again in free text. Do not add artificial approvals or choices unrelated to the request.
 
+## Start without prior context
+
+A new chat, empty workspace or external connected application may supply only an activity. Prior conversation, repository files and `plan.context` are optional. Use the request itself as the starting point; never assume “my project” means Hyperion, Olimpo, the current directory or a project from another stored run.
+
+When a material fact is missing, generate the relevant manual discovery step in the canvas and connect its typed answers to the dependent work. Ask only what is needed next; do not require a technical brief, prescribed workflow, logging instructions or an artificial pause in the user's prompt. If the request already provides enough information, proceed without a discovery form. If no activity was provided at all, ask for the objective before inventing task-specific work.
+
+For a continuation in a fresh chat, recover state from the provided run ID/link. If the intended run is ambiguous, ask which one to resume. Do not import another run's context as a default. Runtime/service access comes from the integration, independently of business context; a missing connection is not a request for project information.
+
 ## Execute and resume
 
 Use `get RUN_ID` to read current state and decisions. For an existing run use its coordinator identity; do not create a replacement run on every continuation. Start only ready agent tasks, execute their actual work with your own tools, and send evidence. Use `command RUN_ID /absolute/path/command.json` for typed outputs and structured logs. Reuse an action's commandId only on transport retries with identical content.

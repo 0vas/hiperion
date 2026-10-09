@@ -8,6 +8,18 @@ For setup in Codex, Claude Code, Claude Desktop, Cursor and other local clients,
 
 “Use Hyperion to prepare a welcome guide for my project” is sufficient. The user specifies the outcome; the integration owns planning, task contracts, progress logs and handoffs. Read available conversation/project context before asking for missing information. Ask only material unresolved questions and add human approvals only when warranted by the activity or explicitly requested. Do not require users to prescribe steps, repeat I/O/logging instructions, or include an artificial wait in their prompt. Generating a draft does not imply publishing or sending it. The cooperative host-resume limitation must be explained when a handoff occurs, not encoded as part of the user's goal.
 
+## No prior context
+
+Acceptance criteria: a host can start from an activity with no conversation history, repository or general context; missing facts become relevant manual inputs; explicit run identity recovers persisted state; unrelated runs never become implicit context.
+
+Business input is the user's activity plus optional supporting context. Treat absent context as unknown, not as permission to infer the project from Hyperion's own repository or another run. Generate a small discovery phase only when material facts are missing; wire its typed outputs into downstream tasks. Do not ask the user to specify protocol mechanics. If there is no objective, ask for it before constructing task-specific work.
+
+A fresh chat resumes by run ID/link and reads the stored state. Distinguish this from a new activity; ask when the target run is ambiguous. A local integration can discover its runtime/service without depending on the calling workspace.
+
+Current responsibility boundary: a connected host agent produces the full plan for `create_run`; the HTTP/MCP server validates and stores it. It is not a natural-language planning endpoint. An external application without an agent needs a planning/execution adapter. Lack of prior business context is supported; automatic installation, remote access and universal recognition of the word “Hyperion” are not implied.
+
+Validation uses the installed portable runner from an empty temporary workspace, an arbitrary integration identity and no general context, alongside an unrelated stored run. A subsequent CLI process recovers the correct result by run ID. This validates transport/state isolation, not autonomous LLM interpretation of an unseen prompt.
+
 ## Portable invocation
 
 Prefer `hyperion install` for local agents supporting Agent Skills and shell access. The installed skill recognizes requests to use Hyperion and launches the same compiled CLI independently of vendor MCP settings. Its script pins the runtime/data paths; `--agent ID` registers a caller without a vendor allowlist. The CLI starts or reuses the authenticated local server automatically. A standalone npm archive includes production assets; no source checkout is needed at runtime. See [the connection guide](conexion.md) for the one-time installation and host-discovery limits.

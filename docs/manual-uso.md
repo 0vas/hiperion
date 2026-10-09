@@ -12,13 +12,25 @@ Eso es todo. En este entorno la conexión ya está preparada: no tienes que inst
 
 Si solo dices «Quiero usar Hyperion», el agente te preguntará qué actividad quieres realizar. El plan nace de tu respuesta.
 
+## Desde un chat nuevo o una aplicación sin contexto
+
+La misma frase sirve aunque el chat esté vacío:
+
+> Usa Hyperion para preparar una guía de bienvenida a mi proyecto.
+
+Si la herramienta no sabe qué proyecto es, el flujo recoge primero esa información: por ejemplo, «¿Qué hace tu proyecto?» y «¿Para quién es la guía?». Tus respuestas alimentan los pasos siguientes. No tienes que traer una conversación previa, un repositorio ni explicar cómo debe funcionar Hyperion. Si el objetivo ya está claro, no añade preguntas de preparación.
+
+Para retomar un flujo desde otro chat, puedes compartir su enlace y decir **«Continúa este flujo»**. La integración recupera los pasos, datos y decisiones guardados. Si hay varios flujos posibles, te pide identificar el correcto.
+
+Esto requiere que la aplicación tenga habilitada su conexión con Hyperion. El contexto de tu actividad puede estar vacío; la conexión técnica es independiente. Una aplicación sin agente de IA necesita un adaptador que genere y ejecute el plan; el servidor actual de Hyperion no incorpora un modelo propio.
+
 ## Tu caso de prueba, desde este chat
 
 Copia este mensaje aquí:
 
 > Usa Hyperion para preparar una guía de bienvenida a mi proyecto.
 
-El agente usa el contexto de la conversación y del proyecto para construir el plan. Si falta información relevante —por ejemplo, el público de la guía— te la pide en el canvas. Si ya la conoce, continúa. Organizar fases, conectar entradas y salidas y registrar avances son responsabilidades de la integración: no tienes que pedirlas en cada mensaje.
+El agente construye el plan desde tu petición y utiliza contexto adicional solo si está disponible. Si falta información relevante —por ejemplo, el público de la guía— te la pide en el canvas. Si ya la conoce, continúa. Organizar fases, conectar entradas y salidas y registrar avances son responsabilidades de la integración: no tienes que pedirlas en cada mensaje.
 
 1. Abre el enlace y observa el plan generado para tu objetivo.
 2. Si aparece **Tu turno**, responde la pregunta o decisión concreta. No todos los flujos necesitan una intervención humana.
@@ -33,7 +45,7 @@ El agente interpreta el cambio dentro del flujo actual y conserva por sí mismo 
 
 Codex aplica la revisión al mismo flujo y lo deja **en pausa**. Pulsa **El plan cambió** para ver lo añadido, modificado o retirado. Si coincide con tu petición, usa **Más opciones → Reanudar** y escribe aquí **«Continúa con el plan actualizado»**. No necesitas instalar nada ni escribir comandos.
 
-Comprueba que tu respuesta anterior sigue en I/O, que aparecen los pasos nuevos y que Actividad conserva el motivo y el historial. La revisión es excepcional: no se modifican pasos ya ejecutados o iniciados, compuertas resueltas ni decisiones que el canvas ya te haya presentado. Si hay una tarea ejecutándose, primero debe terminar o registrar su fallo. Si el proceso terminó, se crea otro flujo.
+Si respondiste preguntas anteriores, comprueba que esas respuestas siguen en I/O. Revisa también los pasos nuevos y el motivo del cambio en Actividad. La revisión es excepcional: no se modifican pasos ya ejecutados o iniciados, compuertas resueltas ni decisiones que el canvas ya te haya presentado. Si hay una tarea ejecutándose, primero debe terminar o registrar su fallo. Si el proceso terminó, se crea otro flujo.
 
 ## Qué pasa después
 
