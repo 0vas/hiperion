@@ -9,7 +9,7 @@
 
 No necesitas instalar Node, escribir comandos ni editar archivos. Hyperion Desktop incluye el runtime. La conexión sirve para otros proyectos y chats sin contexto previo. La IA pide solo los datos que falten y genera el proceso; no debes explicarle cómo dibujar el canvas ni cómo registrar los pasos.
 
-**Instaladores:** los builds de desarrollo están en las ejecuciones satisfactorias de [Desktop installers](https://github.com/0vas/hiperion/actions/workflows/desktop.yml), apartado Artifacts (requiere iniciar sesión en GitHub). Descarga el archivo de tu sistema y extrae el instalador. Todavía no hay una distribución pública firmada: estos builds pueden mostrar avisos del sistema. No se presentan como una release estable.
+**[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v0.4.0-preview.1)**: elige el `.dmg` de Apple Silicon o Intel, o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. Los instaladores no tienen firma de distribución/notarización y pueden mostrar avisos del sistema. La release estable firmada sigue pendiente.
 
 | Aplicación     | Qué prepara el asistente                                                    |
 | -------------- | --------------------------------------------------------------------------- |

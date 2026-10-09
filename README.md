@@ -26,7 +26,9 @@ No terminal, Node installation, API key or hand-written configuration is needed 
 
 The request is enough: the agent asks for missing context, constructs the workflow and shares its canvas. You can request **split** or **desktop** in the chat; both show the same run. After a human handoff, ask the chat to continue. Hyperion does not wake an idle conversation automatically.
 
-**Download status:** installers are development builds without release signing. The [Desktop installers workflow](https://github.com/0vas/hiperion/actions/workflows/desktop.yml) produces macOS arm64/x64 and Windows x64 artifacts; download the matching archive from a successful run. GitHub requires signing in to download Actions artifacts. A signed public release and native end-to-end verification in every AI application remain pending. Do not install a similarly named npm package assuming it is this project.
+**[Download Hyperion Desktop — preview](https://github.com/0vas/hiperion/releases/tag/v0.4.0-preview.1)** · macOS Apple Silicon / Intel · Windows x64.
+
+These installers are unsigned preview builds; the operating system may show a warning. Signing and a stable release remain pending. The [Desktop installers workflow](https://github.com/0vas/hiperion/actions/workflows/desktop.yml) builds and tests the packaged application on each platform. Protocol tests do not replace native conversation testing in every AI client.
 
 [Setup and troubleshooting](docs/conexion.md) · [User manual](docs/manual-uso.md) · [Desktop build details](desktop/README.md)
 
