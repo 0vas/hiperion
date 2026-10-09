@@ -4,6 +4,97 @@ const headers = () => ({
   authorization: `Bearer ${JSON.parse(readFileSync('.hyperion-e2e/credentials.json', 'utf8')).agentToken}`,
 });
 
+test('checklist numbers and completion icons stay centered beside the first label line', async ({
+  page,
+  request,
+}) => {
+  const labels = [
+    'Nombre del proyecto y qué hace',
+    'A quién va dirigida la guía',
+    'Información del proyecto: carpeta, enlaces o resumen',
+  ] as const;
+  const response = await request.post('/api/runs', {
+    headers: headers(),
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: {
+        title: 'Numeración del formulario',
+        steps: [
+          {
+            id: 'details',
+            title: 'Conocer el proyecto',
+            kind: 'manual',
+            outputs: labels.map((description, index) => ({
+              name: `detail${index}`,
+              type: 'string',
+              required: true,
+              description,
+            })),
+          },
+        ],
+      },
+    },
+  });
+  expect(response.status()).toBe(201);
+  const run = await response.json();
+  for (const theme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: theme });
+    await page.goto(`/?run=${run.id}`);
+    await page
+      .getByRole('button', {
+        name: 'Ver paso: Conocer el proyecto',
+        exact: true,
+      })
+      .click();
+    for (const width of [700, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.getByLabel(labels[0], { exact: true }).fill('');
+      const badges = page.locator('.decision-check');
+      await expect(badges).toHaveText(['1', '2', '3']);
+      const geometry = () =>
+        badges.evaluateAll((elements) =>
+          elements.map((element) => {
+            const box = element.getBoundingClientRect();
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const content =
+              element.querySelector('svg')?.getBoundingClientRect() ??
+              range.getBoundingClientRect();
+            const label = element.parentElement!.querySelector('label')!;
+            return {
+              x: content.x + content.width / 2 - (box.x + box.width / 2),
+              y: content.y + content.height / 2 - (box.y + box.height / 2),
+              labelOffset:
+                box.y +
+                box.height / 2 -
+                (label.getBoundingClientRect().y +
+                  parseFloat(getComputedStyle(label).lineHeight) / 2),
+              width: box.width,
+            };
+          }),
+        );
+      for (const badge of await geometry()) {
+        expect(Math.abs(badge.x)).toBeLessThan(1);
+        expect(Math.abs(badge.y)).toBeLessThan(2);
+        expect(Math.abs(badge.labelOffset)).toBeLessThan(1);
+        expect(badge.width).toBe(22);
+      }
+      const before = await badges.first().boundingBox();
+      await page
+        .getByLabel(labels[0], { exact: true })
+        .fill('Proyecto de ejemplo');
+      await expect(badges.first().locator('svg')).toBeVisible();
+      const completed = (await geometry())[0]!;
+      expect(Math.abs(completed.x)).toBeLessThan(1);
+      expect(Math.abs(completed.y)).toBeLessThan(1);
+      expect(await badges.first().boundingBox()).toEqual(before);
+      await page.screenshot({
+        path: `test-results/checklist-${theme}-${width}.png`,
+      });
+    }
+  }
+});
+
 test('a compact decision reveals help and optional detail without losing a negative answer', async ({
   page,
   request,

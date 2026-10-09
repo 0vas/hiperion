@@ -1,5 +1,10 @@
 # Prueba funcional con Codex
 
+## Numeración de formularios
+
+- Una regla general de las listas del modal anulaba el centrado y añadía margen a los indicadores. El estilo queda acotado al canvas: números y checks centrados, alineados con la primera línea del campo, incluso cuando la etiqueta ocupa varias líneas.
+- TDD: la prueba reprodujo un desplazamiento horizontal de 7,4 px antes de corregirlo. Verifica geometría y ausencia de saltos al completar un campo, en temas claro/oscuro y anchos de 390/700 px, con Chromium y WebKit.
+
 ## Preparación
 
 Desde la raíz del repositorio:
