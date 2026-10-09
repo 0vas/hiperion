@@ -101,6 +101,30 @@ server.registerTool(
     ),
 );
 server.registerTool(
+  'hyperion_revise_plan',
+  {
+    description:
+      'Exceptionally revise unstarted future work after the user changes scope. Read the current run first and submit the complete revised plan, preserving original request/context/profile, executed or presented steps and their jobs. No task may be running. Requires the current revision and a clear reason. Archives the change and pauses the run for human review; only the person can resume in the canvas. Never use this to bypass a human decision.',
+    inputSchema: {
+      runId: z.string().uuid(),
+      plan: planSchema,
+      reason: z.string().trim().min(1).max(8000),
+      expectedRevision: z.number().int().nonnegative(),
+      commandId: z.string().min(1).max(128),
+    },
+  },
+  ({ runId, plan, reason, expectedRevision, commandId }) =>
+    safe(() =>
+      client.command(runId, {
+        type: 'revise',
+        plan,
+        message: reason,
+        expectedRevision,
+        commandId,
+      }),
+    ),
+);
+server.registerTool(
   'hyperion_wait',
   {
     description:

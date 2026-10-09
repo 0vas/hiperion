@@ -12,6 +12,24 @@ Eso es todo. En este entorno la conexión ya está preparada: no tienes que inst
 
 Si solo dices «Quiero usar Hyperion», el agente te preguntará qué actividad quieres realizar. El plan nace de tu respuesta.
 
+## Tu caso de prueba, desde este chat
+
+Copia este mensaje aquí:
+
+> Usa Hyperion para preparar una guía breve de bienvenida a mi proyecto. Primero pregúntame en el canvas a quién va dirigida. Cuando responda, espera mi siguiente mensaje antes de redactar. Después prepara el borrador y pídeme revisarlo en Hyperion. Muestra las entradas, salidas y logs de cada paso. No publiques ni envíes nada.
+
+1. Abre el enlace que te dé Codex y responde la pregunta del primer paso.
+2. Vuelve aquí y escribe **«Continúa mi flujo de Hyperion»**. Verás avanzar la redacción y después aparecerá tu revisión.
+3. Lee el resultado en el paso, decide y guarda. El estado final y la decisión deben aparecer en Actividad.
+
+**Para probar un cambio de plan:** después de responder el primer paso, en lugar de pedir que continúe, escribe:
+
+> Cambia lo que falta de mi flujo: quiero una checklist de cinco puntos en lugar de una guía. Añade un paso para comprobar que el lenguaje sea sencillo antes de mi revisión. Conserva mi respuesta y todo lo ya ejecutado. Registra el motivo del cambio.
+
+Codex aplica la revisión al mismo flujo y lo deja **en pausa**. Pulsa **El plan cambió** para ver lo añadido, modificado o retirado. Si coincide con tu petición, usa **Más opciones → Reanudar** y escribe aquí **«Continúa con el plan actualizado»**. No necesitas instalar nada ni escribir comandos.
+
+Comprueba que tu respuesta anterior sigue en I/O, que aparecen los pasos nuevos y que Actividad conserva el motivo y el historial. La revisión es excepcional: no se modifican pasos ya ejecutados o iniciados, compuertas resueltas ni decisiones que el canvas ya te haya presentado. Si hay una tarea ejecutándose, primero debe terminar o registrar su fallo. Si el proceso terminó, se crea otro flujo.
+
 ## Qué pasa después
 
 1. **Abre el enlace.** «Petición original» conserva lo que pediste.
@@ -20,7 +38,7 @@ Si solo dices «Quiero usar Hyperion», el agente te preguntará qué actividad 
 4. **Decide cuando diga «Tu turno».** Abre el paso: verás qué se te pregunta, por qué hace falta y qué sucederá después. Elige los valores y pulsa «Guardar elección», o revisa el resultado y aprueba/rechaza.
 5. **Vuelve a este chat y escribe:** «Continúa mi flujo de Hyperion». Codex leerá tu decisión y retomará los pasos habilitados del mismo flujo.
 
-Si tienes varios flujos, pulsa «Continuar en Codex» dentro del que quieres retomar y pega aquí el texto copiado. Ese botón copia la petición; no envía mensajes por ti.
+Si tienes varios flujos, pulsa «Copiar continuación» dentro del que quieres retomar y pega aquí el texto copiado. Ese botón copia la petición; no envía mensajes por ti.
 
 ## Un ejemplo completo
 
@@ -54,7 +72,7 @@ Los ajustes se guardan en este navegador. No alteran tus decisiones ni conceden 
 
 ## Qué significa el estado
 
-**En espera:** falta un paso previo. **Listo:** la IA puede ejecutarlo. **En curso:** la IA registró que empezó. **Tu turno:** necesita tu decisión. **Completado:** hay un resultado. **Omitido:** esa rama no fue elegida. **Falló:** abre los logs y pide al agente que lo revise.
+**En espera:** falta un paso previo. **Espera al agente:** la IA puede retomarlo desde el chat. **En curso:** la IA registró que empezó. **Tu turno:** necesita tu decisión. **Completado:** hay un resultado. **Omitido:** esa rama no fue elegida. **Falló:** abre los logs y pide al agente que lo revise.
 
 Inicio y fin marcan los límites. Las compuertas indican todas las ramas (`+`), una sola (`X`) o las que cumplen una condición (`○`). El agente las usa solo cuando aportan sentido al proceso.
 
@@ -70,7 +88,7 @@ En esta versión, al guardar una decisión debes volver al chat para continuar. 
 
 - **Inicio verde:** círculo de borde fino. **Compuertas amarillas:** rombos con +, X u ○. **Fin rojo:** círculo de borde grueso. Estos colores identifican el símbolo, no su estado.
 - **Verde:** paso completado y ruta recorrida.
-- **Azul:** «Listo» espera al agente; «En curso» indica que el agente inició la tarea.
+- **Azul:** «Espera al agente» indica una tarea habilitada; «En curso» indica que el agente inició la tarea.
 - **Ámbar:** el proceso espera tu intervención o está en pausa. La etiqueta distingue ambos casos.
 - **Rojo en tareas o conexiones:** error o rechazo que requiere revisión. El círculo rojo de fin no es un error.
 - **Gris discontinuo:** ruta pendiente; el punteado más tenue identifica una rama omitida.
@@ -116,4 +134,4 @@ Los instaladores son **DMG para macOS** y **EXE para Windows**. Se generaron DMG
 
 **I/O** abre las entradas, salidas y el contexto anterior. Expande solo la fuente que necesitas consultar. **Logs** muestra registros reales del paso; selecciona **Todo el proceso** para ampliar la vista. Los iconos pulsan brevemente al recibir registros o valores nuevos. Si dejan de pulsar, no significa necesariamente un error: no han llegado datos nuevos. La interfaz no puede mostrar acciones que la herramienta de IA no haya registrado.
 
-Las ramas muestran decisiones legibles («Sí», «No» o el nombre definido para la opción). El símbolo SVG identifica al agente; su nombre sigue disponible como ayuda y para lectores de pantalla.
+Las ramas booleanas muestran **✓** para Sí y **×** para No, dibujados en SVG. Al mantener el cursor aparece su significado; también tienen nombre accesible. La cruz indica una respuesta negativa, no un error. Las opciones con etiquetas específicas conservan su texto. El símbolo SVG identifica al agente; su nombre sigue disponible como ayuda y para lectores de pantalla.

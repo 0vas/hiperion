@@ -1,3 +1,4 @@
+import { PlanChanges } from './PlanChanges';
 import { contextForStep, routeLabel } from '../domain/context';
 import { HarnessIcon } from './HarnessIcon';
 import { useReceiptActivity, mergeRuns } from './receipt-activity';
@@ -104,6 +105,7 @@ const kindLabels = {
 };
 const eventLabels: Record<string, string> = {
   created: 'Plan registrado',
+  revise: 'Plan actualizado',
   route: 'Motor de proceso',
   start: 'Comenzó un paso',
   complete: 'Completó un paso',
@@ -867,6 +869,14 @@ export function App() {
           target: item.id,
           type: 'current',
           data: {
+            decision: (() => {
+              const label = routeLabel(
+                run,
+                run.steps.find((s) => s.id === id),
+                item.id,
+              );
+              return label === 'Sí' ? true : label === 'No' ? false : undefined;
+            })(),
             state,
             current: carriesCurrent(
               state,
@@ -1300,6 +1310,20 @@ export function App() {
                     </button>
                   </div>
                 )}
+                {run.status === 'paused' &&
+                  run.events.at(-1)?.type === 'revise' && (
+                    <button
+                      className="canvas-next"
+                      onClick={() => openPanel('activity')}
+                    >
+                      <History size={17} />
+                      <span>
+                        <strong>El plan cambió</strong>Revisa los cambios antes
+                        de reanudar
+                      </span>
+                      <ArrowUpRight size={16} />
+                    </button>
+                  )}
                 {live && waiting > 0 && (
                   <button
                     className="canvas-next human"
@@ -1606,6 +1630,12 @@ export function App() {
                           ? 'En directo · acciones y decisiones registradas'
                           : 'Actualización periódica · reconectando eventos'}
                       </p>
+                      {!!run.planChanges?.length && (
+                        <PlanChanges
+                          changes={run.planChanges}
+                          revision={run.revision}
+                        />
+                      )}
                       {[...run.events].reverse().map((e) => (
                         <article key={e.sequence}>
                           <span

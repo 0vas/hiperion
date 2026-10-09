@@ -75,7 +75,9 @@ export const commandSchema = z
       'pause',
       'resume',
       'cancel',
+      'revise',
     ]),
+    plan: planSchema.optional(),
     stepId: identifier.optional(),
     message: z.string().trim().max(8000).optional(),
     outputs: outputValuesSchema.optional(),
@@ -116,7 +118,19 @@ export type RunEvent = {
   stepId?: string;
   message: string;
 };
+export type PlanChange = {
+  revision: number;
+  at: string;
+  actor: string;
+  reason: string;
+  previousPlan: Plan;
+  nextPlan: Plan;
+  added: string[];
+  removed: string[];
+  changed: string[];
+};
 export type Run = {
+  planChanges?: PlanChange[];
   context?: Plan['context'];
   jobs?: Plan['jobs'];
   profile?: 'bpmn-lite';
@@ -248,6 +262,12 @@ export function transition(
   const { type, stepId } = command;
   let message = command.message || '';
   requireCondition(
+    !command.plan || type === 'revise',
+    'INVALID_COMMAND',
+    'Plan belongs to a revision',
+    400,
+  );
+  requireCondition(
     !command.outputs || ['complete', 'submit', 'approve'].includes(type),
     'INVALID_COMMAND',
     'Outputs belong to task completion',
@@ -292,7 +312,7 @@ export function transition(
       'This action requires a human',
       403,
     );
-  if (['start', 'complete', 'fail', 'log'].includes(type))
+  if (['start', 'complete', 'fail', 'log', 'revise'].includes(type))
     requireCondition(
       actor.role === 'agent',
       'FORBIDDEN',
@@ -301,14 +321,34 @@ export function transition(
     );
   if (current.status === 'paused')
     requireCondition(
-      ['resume', 'cancel', 'complete', 'fail', 'log'].includes(type),
+      ['resume', 'cancel', 'complete', 'fail', 'log', 'revise'].includes(type),
       'PAUSED',
       'Run is paused',
     );
   const run = structuredClone(current);
   const now = new Date().toISOString();
   run.updatedAt = now;
-  if (['pause', 'resume', 'cancel'].includes(type)) {
+  if (type === 'revise') {
+    requireCondition(
+      !stepId && command.plan,
+      'INVALID_COMMAND',
+      'Provide a complete plan without stepId',
+      400,
+    );
+    requireCondition(
+      command.expectedRevision !== undefined,
+      'REVISION_REQUIRED',
+      'Plan revision requires expectedRevision',
+      400,
+    );
+    requireCondition(
+      message.length > 0,
+      'EVIDENCE_REQUIRED',
+      'A reason for the revision is required',
+      400,
+    );
+    revisePlan(run, command.plan, message, now, actor.id);
+  } else if (['pause', 'resume', 'cancel'].includes(type)) {
     requireCondition(
       !stepId,
       'INVALID_COMMAND',
@@ -429,4 +469,129 @@ export function transition(
   });
   if (!['cancelled', 'rejected'].includes(run.status)) refresh(run);
   return run;
+}
+
+function definition(step: Step): Plan['steps'][number] {
+  return stepSchema.parse(
+    Object.fromEntries(
+      Object.keys(stepSchema.shape)
+        .filter((key) => Object.hasOwn(step, key))
+        .map((key) => [key, step[key as keyof Step]]),
+    ),
+  );
+}
+export function planFromRun(run: Run): Plan {
+  return planSchema.parse(
+    Object.fromEntries(
+      Object.keys(planSchema.shape)
+        .filter((key) => Object.hasOwn(run, key))
+        .map((key) => [
+          key,
+          key === 'steps' ? run.steps.map(definition) : run[key as keyof Run],
+        ]),
+    ),
+  );
+}
+const equalPlanPart = (a: unknown, b: unknown) => {
+  const normalize = (value: unknown): unknown =>
+    Array.isArray(value)
+      ? value.map(normalize)
+      : value && typeof value === 'object'
+        ? Object.fromEntries(
+            Object.entries(value)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([key, v]) => [key, normalize(v)]),
+          )
+        : value;
+  return JSON.stringify(normalize(a)) === JSON.stringify(normalize(b));
+};
+function revisePlan(
+  run: Run,
+  next: Plan,
+  reason: string,
+  at: string,
+  actor: string,
+) {
+  requireCondition(
+    !run.steps.some((s) => s.status === 'running'),
+    'RUNNING_TASKS',
+    'Wait for running tasks to finish before revising',
+  );
+  const previous = planFromRun(run);
+  for (const key of ['request', 'context', 'profile'] as const)
+    requireCondition(
+      equalPlanPart(previous[key], next[key]),
+      'PROTECTED_CONTEXT',
+      `Preserve the original ${key}; pass new requirements in future task inputs`,
+    );
+  const protectedSteps = run.steps.filter(
+    (s) =>
+      ['completed', 'skipped', 'waiting'].includes(s.status) || s.attempt > 0,
+  );
+  for (const step of protectedSteps) {
+    requireCondition(
+      equalPlanPart(
+        definition(step),
+        next.steps.find((s) => s.id === step.id),
+      ),
+      'PROTECTED_STEP',
+      `Preserve executed or presented step: ${step.id}`,
+    );
+    if (step.jobId)
+      requireCondition(
+        equalPlanPart(
+          previous.jobs?.find((j) => j.id === step.jobId),
+          next.jobs?.find((j) => j.id === step.jobId),
+        ),
+        'PROTECTED_JOB',
+        `Preserve executed job: ${step.jobId}`,
+      );
+  }
+  const validated = createRun(next, run.coordinator);
+  const protectedIds = new Set(protectedSteps.map((s) => s.id));
+  const added = next.steps
+    .filter((s) => !previous.steps.some((p) => p.id === s.id))
+    .map((s) => s.id);
+  const removed = previous.steps
+    .filter((s) => !next.steps.some((p) => p.id === s.id))
+    .map((s) => s.id);
+  const changed = next.steps
+    .filter((s) =>
+      previous.steps.some((p) => p.id === s.id && !equalPlanPart(p, s)),
+    )
+    .map((s) => s.id);
+  requireCondition(
+    !equalPlanPart(previous, next),
+    'NO_CHANGE',
+    'The plan has no changes',
+    400,
+  );
+  requireCondition(
+    next.steps.some((s) => !protectedIds.has(s.id)),
+    'NO_FUTURE_WORK',
+    'A revised plan must retain future work',
+    400,
+  );
+  run.planChanges ||= [];
+  run.planChanges.push({
+    revision: run.revision + 1,
+    at,
+    actor,
+    reason,
+    previousPlan: previous,
+    nextPlan: next,
+    added,
+    removed,
+    changed,
+  });
+  run.title = next.title;
+  run.description = next.description;
+  if (next.jobs) run.jobs = next.jobs;
+  else delete run.jobs;
+  run.steps = validated.steps.map((s) =>
+    protectedIds.has(s.id)
+      ? run.steps.find((old) => old.id === s.id)!
+      : { ...definition(s), status: 'blocked', attempt: 0 },
+  );
+  run.status = 'paused';
 }

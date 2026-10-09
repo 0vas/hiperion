@@ -48,7 +48,7 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
     try {
       await client.connect(transport);
       const tools = await client.listTools();
-      assert.equal(tools.tools.length, 6);
+      assert.equal(tools.tools.length, 7);
       assert.ok(!tools.tools.some((t) => /approve|submit/.test(t.name)));
       const created = await client.callTool({
         name: 'hyperion_create_run',
@@ -116,6 +116,47 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
         JSON.parse((changed.content as { text: string }[])[0]!.text).revision,
         2,
       );
+      const revision = await client.callTool({
+        name: 'hyperion_revise_plan',
+        arguments: {
+          runId: run.id,
+          commandId: 'revise',
+          expectedRevision: 2,
+          reason: 'User requested a concise report',
+          plan: {
+            title: 'MCP contract',
+            steps: [
+              { id: 'approval', title: 'Human decision', kind: 'approval' },
+              {
+                id: 'work',
+                title: 'Concise agent report',
+                kind: 'agent',
+                dependencies: ['approval'],
+                outputs: [{ name: 'report', type: 'string', required: true }],
+              },
+            ],
+          },
+        },
+      });
+      assert.ok(!revision.isError);
+      const revised = JSON.parse(
+        (revision.content as { text: string }[])[0]!.text,
+      );
+      assert.equal(revised.status, 'paused');
+      assert.equal(revised.planChanges.length, 1);
+      const resumed = await fetch(url + `/api/runs/${run.id}/commands`, {
+        method: 'POST',
+        headers: {
+          authorization: 'Bearer human-test-token',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'resume',
+          commandId: 'resume-revision',
+          expectedRevision: revised.revision,
+        }),
+      });
+      assert.equal(resumed.status, 200);
       const start = await client.callTool({
         name: 'hyperion_step',
         arguments: {

@@ -60,13 +60,14 @@ codex mcp add hyperion \
 
 Verify with `codex mcp get hyperion` and use a session in which the tools are loaded. This command changes your local Codex MCP configuration; it is an optional setup step, not part of the server startup. Documentation: [official OpenAI MCP guidance](https://developers.openai.com/codex/mcp).
 
-| Tool                  | Behavior                                                     |
-| --------------------- | ------------------------------------------------------------ |
-| `hyperion_create_run` | Validate and persist a plan; return a browser URL            |
-| `hyperion_list_runs`  | Read recent executions                                       |
-| `hyperion_get_run`    | Read state, decisions, results and history                   |
-| `hyperion_step`       | `start`, `log`, `complete`, `fail`, or `retry` an agent step |
-| `hyperion_wait`       | Wait up to 55 seconds for a revision change                  |
+| Tool                   | Behavior                                                        |
+| ---------------------- | --------------------------------------------------------------- |
+| `hyperion_create_run`  | Validate and persist a plan; return a browser URL               |
+| `hyperion_list_runs`   | Read recent executions                                          |
+| `hyperion_get_run`     | Read state, decisions, results and history                      |
+| `hyperion_step`        | `start`, `log`, `complete`, `fail`, or `retry` an agent step    |
+| `hyperion_revise_plan` | Revise future work, preserve history and pause for human review |
+| `hyperion_wait`        | Wait up to 55 seconds for a revision change                     |
 
 Create/step tools require `commandId`. Reuse it when retrying a transport request with the same content. A different action or changed content requires a new ID. The MCP server intentionally exposes no human approval tool. It uses the same HTTP contract as the CLI, with no direct access to the database.
 
@@ -81,3 +82,7 @@ Set `HYPERION_AGENT_ID` to a registered identity when using CLI/MCP. Each identi
 MCP offers `hyperion_open` with `runId` and `presentation: split|desktop`, including hosts without shell access. `hyperion open RUN_ID split` returns the existing browser URL. `hyperion open RUN_ID desktop` authenticates that run and launches the Desktop executable registered by its first launch, with explicit argument arrays (no shell). Presentation changes never create a run. The same loopback service and data directory back both views. Desktop intentionally refuses switching to a different service while a window is open.
 
 The executable registration is local to the current user (`~/.hyperion/desktop.json`); it contains paths, not agent credentials. A development installation can override its home using `HYPERION_HOME`. Desktop includes Electron's Node runtime to start the service when absent. Closing the client preserves the service for chat/split continuation.
+
+## When the conversation changes the remaining plan
+
+Use revision only for an explicit change in the user's activity. Read current state, finish any in-flight task, preserve executed/presented definitions and send `hyperion_revise_plan` (MCP) or a `revise` command (CLI/HTTP). Include the complete plan, latest revision and reason. The run pauses for the person to review the diff and resume. Continue in that same run after their next message. Never replan to bypass a human decision, rewrite evidence or silently recover from an execution failure; use retry for failures. See [protocol](protocol.md#exceptional-plan-revision).

@@ -196,3 +196,9 @@ Genera cada formulario desde la conversación: una pregunta principal en `intera
 Todas las respuestas HTTP/MCP/CLI incluyen `step.availableContext`: `request`, `general` y `previous` (ID, título, resultado y salidas de antecesores completados). Es una proyección de lectura, no se envía dentro del plan ni reemplaza un contrato obligatorio. Excluye tareas futuras, ajenas y omitidas. Los trabajos agrupan tareas; cada tarea conserva su contexto y entradas. El agente debe leer este contexto antes de ejecutar, declarar las salidas que necesita la siguiente fase y pasar sus valores al completar. No copie información sensible que la actividad no necesite.
 
 Una ruta admite `label`, por ejemplo `"Continuar con el informe"`. Sin etiqueta, una condición booleana usa `form.trueLabel` / `form.falseLabel` del campo o «Sí» / «No». La alternativa de una exclusión binaria usa el valor opuesto. Otras alternativas muestran «Otra opción». Las condiciones de ejecución permanecen sin cambios; sus identificadores técnicos no son instrucciones para la persona.
+
+## Revisión excepcional durante una conversación
+
+Un cambio explícito de alcance puede modificar el trabajo futuro dentro del mismo flujo mediante `revise`. Se valida el plan completo, se conserva lo ya ejecutado y se archivan ambas versiones. No se cambian compuertas resueltas ni decisiones ya presentadas; no puede haber trabajo en ejecución. El flujo queda pausado para revisión humana. Las reglas y campos están en [el protocolo](protocol.md#exceptional-plan-revision).
+
+En el canvas, las etiquetas booleanas genéricas se dibujan como check/cruz SVG. Mantienen «Sí» y «No» como nombres accesibles y ayudas; una cruz de decisión no representa un fallo. Las etiquetas específicas conservan su texto.

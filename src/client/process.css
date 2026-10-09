@@ -433,3 +433,44 @@
     filter: none;
   }
 }
+
+.decision-marker {
+  color: var(--ink);
+}
+.decision-marker > rect {
+  fill: var(--node-surface);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.decision-marker[data-decision='yes'] {
+  color: var(--route-completed);
+}
+.plan-changes {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.plan-changes summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 600;
+}
+.plan-changes p,
+.plan-changes details > div {
+  margin-top: 12px;
+}
+.plan-step-change {
+  margin: 6px 0 12px;
+}
+.plan-step-change summary {
+  font-size: 12px;
+  font-weight: 400;
+}
+.plan-step-change pre {
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}

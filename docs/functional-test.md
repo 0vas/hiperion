@@ -228,3 +228,12 @@ El usuario elige split o desktop en su chat. `hyperion_open` (MCP) y `open RUN_I
 - Validación: `npm run check` (51 pruebas de lógica/integración, 2 de producción, tipos, build y formato); 22 escenarios Chromium, con repetición de los casos corregidos; 5 escenarios WebKit. Se conserva la continuidad de las cintas durante revisiones.
 - Verificación local adicional: el flujo anterior aprobado se retomó con su tarea de agente y terminó, sin reenviar decisiones humanas. Un flujo de desarrollo originado en el chat registró trabajo real en cuatro fases con salidas conectadas. Un registro enviado desde Codex apareció por SSE con el panel abierto; la fase final recibió su entrada anterior y tres fuentes de contexto.
 - Reinicio local con comparación completa de los seis flujos, preservando datos, decisiones y revisiones. Capturas ignoradas: `.hyperion/continuity-updated.png` y `.hyperion/live-proof.png`. No se publicaron cambios ni se regeneraron instaladores nativos.
+
+## Decisiones SVG y cambios de plan (ADR 0017)
+
+- Las ramas Sí/No usan check/cruz SVG, con ayudas y nombres accesibles, sin variar la evaluación del proceso. Se inspeccionaron ambos sentidos del flujo y el canvas real en tema oscuro.
+- TDD de revisión: los casos fallaron inicialmente por ausencia del comando. Ahora verifican trabajo futuro, evidencia inalterada, estado pausado, revisión esperada, rechazo de ejecución concurrente, decisiones protegidas, idempotencia y recuperación SQLite después de cerrar/reabrir.
+- Un proceso BPMN con ramas seleccionadas admite un paso futuro nuevo, recibe el resultado anterior, conserva las rutas omitidas y finaliza sin reabrir compuertas. MCP recorre la revisión con las tres identidades de prueba y requiere reanudación humana.
+- El navegador recibe la modificación por SSE, muestra el motivo y la diferencia, y permite reanudar desde el canvas. El historial conserva las versiones completas y detalle desplegable del contrato de cada paso cambiado.
+- `npm run check`: 55 pruebas de lógica/integración, 2 de producción, tipos, build y formato. Chromium: 24 recorridos; WebKit: 7 recorridos. Total: 88 pruebas aprobadas.
+- Servicio local reiniciado con comparación completa antes/después de los seis flujos. No se alteraron decisiones ni ejecuciones existentes. Captura privada ignorada: `.hyperion/decision-icons-live.png`. Manual con caso inicial y cambio de alcance mediante mensajes, sin comandos de usuario. No se publicaron cambios ni instaladores.

@@ -89,7 +89,7 @@ La conversación aporta intención y aclaraciones, pero el estado de ejecución 
 
 ## Escenarios de aceptación para el futuro TDD
 
-Estos escenarios definen la arquitectura objetivo. El primer incremento tiene tests automatizados para coordinación cooperativa, permisos humanos, paralelismo, DAG, historial, persistencia y adaptadores. La modalidad de observación, las modificaciones de planes y la sustitución de ejecutores independientes quedan pendientes; los planes de v0.1 son inmutables.
+Estos escenarios definen la arquitectura objetivo. El primer incremento tiene tests automatizados para coordinación cooperativa, permisos humanos, paralelismo, DAG, historial, persistencia y adaptadores. La revisión excepcional de tareas futuras está implementada con historial y pausa para revisión humana (ADR 0017). La modalidad de observación y la sustitución de ejecutores independientes siguen pendientes.
 
 | Escenario                                                     | Resultado esperado                                                            |
 | ------------------------------------------------------------- | ----------------------------------------------------------------------------- |

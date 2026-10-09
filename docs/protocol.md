@@ -1,6 +1,6 @@
 # Hyperion protocol v0.4
 
-All requests use the loopback HTTP origin. JSON is validated strictly; unknown fields are rejected. Limits: 100 steps per plan, 128 KiB per request, 8,000 characters per result/log message. Plans are immutable, acyclic and contain unique step IDs. Task ports use bounded lists of up to 30 fields.
+All requests use the loopback HTTP origin. JSON is validated strictly; unknown fields are rejected. Limits: 100 steps per plan, 128 KiB per request, 8,000 characters per result/log message. Plans are acyclic and contain unique step IDs. Executed/presented steps are immutable; future work can be revised through the guarded command below. Task ports use bounded lists of up to 30 fields.
 
 Version 0.2 preserves legacy DAG plans and adds the optional `bpmn-lite` profile. See the [process contract](process-contract.md) for structured gateways, typed data and public traces.
 
@@ -49,7 +49,7 @@ The session bootstrap is protected by exact Host/Origin and Fetch Metadata check
 }
 ```
 
-`request` is optional for backward compatibility, with a maximum of 8,000 characters. Request-driven clients should always supply the original user request; it persists with the immutable plan and is displayed in the UI.
+`request` is optional for backward compatibility, with a maximum of 8,000 characters. Request-driven clients should always supply the original user request; it remains immutable across plan revisions and is displayed in the UI.
 
 Legacy step kinds: `agent`, `manual`, `approval`. The process profile adds `start`, `end`, `gateway`. Optional step `description` provides instructions. IDs contain letters, numbers, `_` or `-`, max 64 characters. The authenticated agent becomes the coordinator.
 
@@ -93,7 +93,7 @@ Errors have `{error, message}`. Common statuses: 400 invalid input, 401 missing 
 
 ## Current limits
 
-Snapshots include the full event history and are retained locally without automated expiration. The UI receives committed changes through SSE and polls once per second as a fallback; this implementation targets small local workflows. Large-scale event storage, pagination, remote identity management, cancellation signalling to executors, plan edits and distributed orchestration need later protocol versions and tests.
+Snapshots include the full event history and are retained locally without automated expiration. The UI receives committed changes through SSE and polls once per second as a fallback; this implementation targets small local workflows. Large-scale event storage, pagination, remote identity management, cancellation signalling to executors and distributed orchestration need later protocol versions and tests.
 
 ## Live receipts
 
@@ -102,3 +102,11 @@ Snapshots include the full event history and are retained locally without automa
 Each run includes read-only `steps[].availableContext`, derived from its request, shared context and completed ancestors. Inputs can explicitly use `contextKey`; see the process contract.
 
 Emit `log` before a material action and after its real observation, including failures, then complete with evidence and typed outputs. The UI streams only submitted events: it cannot intercept arbitrary harness tools or private model reasoning. Brief receipt signals mean newly arrived records/data, never an independent agent heartbeat. Human approval enables a task but does not wake an idle host conversation.
+
+## Exceptional plan revision
+
+The coordinator sends `{type: "revise", plan: FULL_REVISED_PLAN, message: REASON, expectedRevision: CURRENT_REVISION, commandId: UNIQUE_ID}` to the existing commands endpoint or CLI `command`. MCP exposes `hyperion_revise_plan` with `reason` instead of `message`. Read the run first; copy only plan/step definition fields, never runtime state, into the plan.
+
+No step may be running. Completed, skipped, previously started (including failed/retried) steps and waiting human decisions must remain unchanged, along with their job definitions. Original `request`, general `context` and `profile` are preserved; supply changed requirements through future task descriptions or literal inputs. The whole plan is validated for contracts, dependency cycles and structured gateways. Resolved gateway definitions cannot be rewritten. At least one future step must remain. Terminal runs cannot be revised.
+
+`planChanges` archives previous/next definitions, revision, actor, reason, and added/removed/changed step IDs. Existing decisions, results and events survive. The resulting run is paused: the human reviews the changes and uses Resume in the canvas; the agent cannot resume or approve for them. There is no silent replacement, rollback of external effects, or automatic replay of completed work. Command IDs retain the usual transactional idempotency semantics, including across restart.

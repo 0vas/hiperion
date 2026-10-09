@@ -65,7 +65,7 @@ Open the returned URL, submit your objective, and ask your agent to read the run
 - Version checks that reject stale human decisions.
 - A JSON HTTP API, CLI, and tested MCP stdio adapter.
 
-The interface refreshes state every second. An agent must cooperate with the protocol; Hyperion cannot stop arbitrary work performed outside it. Plans are immutable in this release. Create a new run when the scope changes.
+The interface receives committed updates through SSE, with periodic reads as a fallback. An agent must cooperate with the protocol; Hyperion cannot stop arbitrary work performed outside it. Future work can be exceptionally revised with a reason and expected revision. Executed/presented work is preserved; revisions pause for human review. Terminal runs require a new run.
 
 ## Connect an agent
 
