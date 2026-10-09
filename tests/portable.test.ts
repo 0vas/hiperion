@@ -29,7 +29,7 @@ test('portable install works without a vendor CLI and preserves unrelated skills
         readFileSync(join(path, 'runtime.json'), 'utf8'),
       );
       assert.equal(config.directory, join(home, 'data'));
-      assert.ok(config.cli.endsWith('/dist/adapters/cli.js'));
+      assert.ok(config.cli.endsWith(join('dist', 'adapters', 'cli.js')));
       assert.equal('token' in config, false);
     }
     installSkill({ home, directory: join(home, 'data') });

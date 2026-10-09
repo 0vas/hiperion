@@ -182,6 +182,11 @@ test('desktop and split share one real service, decisions and agent progress', a
     await app?.close();
     service.kill('SIGTERM');
     if (service.exitCode === null) await once(service, 'exit');
-    rmSync(home, { recursive: true, force: true });
+    rmSync(home, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 100,
+    });
   }
 });

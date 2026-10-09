@@ -41,7 +41,12 @@ test('compiled launcher serves the UI and generates usable MCP paths', async () 
         await new Promise((r) => setTimeout(r, 20));
       }
     }
-    rmSync(directory, { recursive: true, force: true });
+    rmSync(directory, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 100,
+    });
   }
 });
 
@@ -180,6 +185,11 @@ test('installed skill starts Hyperion from another workspace and an arbitrary to
         await new Promise((r) => setTimeout(r, 20));
       }
     }
-    rmSync(workspace, { recursive: true, force: true });
+    rmSync(workspace, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 100,
+    });
   }
 });

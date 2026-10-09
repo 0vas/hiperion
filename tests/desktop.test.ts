@@ -10,10 +10,11 @@ import {
   rememberWorkspace,
 } from '../src/adapters/desktop.js';
 test('desktop targets reuse one local run, reject remote navigation and launch without shell interpolation', () => {
+  const directory = join(tmpdir(), 'local data');
   const target = desktopTarget([
     '--hyperion-run=abc-123',
     '--hyperion-url=http://127.0.0.1:4317',
-    '--hyperion-directory=/tmp/local data',
+    `--hyperion-directory=${directory}`,
   ]);
   assert.equal(target.url, 'http://127.0.0.1:4317/?run=abc-123');
   assert.throws(
@@ -34,7 +35,7 @@ test('desktop targets reuse one local run, reject remote navigation and launch w
     assert.deepEqual(launch.args, [
       '--hyperion-run=abc-123',
       '--hyperion-url=http://127.0.0.1:4317',
-      '--hyperion-directory=/tmp/local data',
+      `--hyperion-directory=${directory}`,
     ]);
   } finally {
     rmSync(home, { recursive: true, force: true });

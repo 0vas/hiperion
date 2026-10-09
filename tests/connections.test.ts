@@ -106,7 +106,7 @@ test('connection generator emits usable absolute MCP configuration without crede
     assert.equal(result.config.mcpServers.hyperion.env.HYPERION_DATA_DIR, dir);
     assert.ok(
       result.config.mcpServers.hyperion.args[0]!.endsWith(
-        '/dist/adapters/mcp.js',
+        join('dist', 'adapters', 'mcp.js'),
       ),
     );
     for (const secret of Object.values(credentials.agents))

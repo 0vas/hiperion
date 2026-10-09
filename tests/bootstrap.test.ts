@@ -91,7 +91,12 @@ test('launcher starts one authenticated local server on demand and refuses a mis
         await new Promise((r) => setTimeout(r, 20));
       }
     }
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, {
+      recursive: true,
+      force: true,
+      maxRetries: 10,
+      retryDelay: 100,
+    });
     rmSync(other, { recursive: true, force: true });
   }
 });
