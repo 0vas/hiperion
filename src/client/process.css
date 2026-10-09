@@ -1,0 +1,479 @@
+.bpmn-symbol {
+  width: 56px;
+  height: 56px;
+  display: block;
+  margin: 0 auto;
+  color: var(--symbol-color);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.bpmn-symbol .symbol-outline {
+  fill: var(--symbol-fill);
+}
+.gateway-legend {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.gateway-legend > div {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin: 16px 0;
+}
+.gateway-legend .bpmn-symbol {
+  flex-shrink: 0;
+  margin: 0;
+}
+.gateway-legend strong {
+  display: block;
+  margin-bottom: 4px;
+}
+.gateway-legend span {
+  font-size: 13px;
+  line-height: 1.5;
+}
+/* Human decisions use one primary surface and disclose secondary information. */
+.form-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.canvas-app .answering-step h2 {
+  font-size: 22px;
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+.canvas-app .answering-step .focus-detail {
+  background: none;
+  padding: 3px 0;
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.canvas-app .human-action {
+  background: var(--node-surface);
+  padding: 22px;
+  margin: 20px 0 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 3px 14px rgb(0 0 0 / 3%);
+}
+.canvas-app .human-action .action-title {
+  display: block;
+  font-size: 19px;
+  line-height: 1.45;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+.canvas-app .human-action .decision-context {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0 0 18px;
+}
+.decision-checklist {
+  margin: 18px 0;
+}
+.checklist-progress {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.decision-checklist ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.canvas-app .decision-item {
+  display: flex;
+  gap: 10px;
+  padding: 14px 0;
+  margin: 0;
+  border-bottom: 1px solid var(--line);
+}
+.decision-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.decision-item:first-child {
+  padding-top: 0;
+}
+.canvas-app .decision-check {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin: 0;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--muted);
+}
+.canvas-app .decision-item[data-answered='true'] .decision-check {
+  color: var(--route-completed);
+  border-color: currentColor;
+}
+.decision-field {
+  flex: 1;
+  min-width: 0;
+}
+.decision-field fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.canvas-app .decision-field legend,
+.canvas-app .decision-field > label,
+.canvas-app .free-answer > label {
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0 0 9px;
+  padding: 0;
+  display: block;
+}
+.decision-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.canvas-app .decision-choices label {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 80px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  background: var(--stone);
+}
+.decision-choices label:has(input:checked) {
+  background: color-mix(in srgb, var(--gold) 12%, var(--node-surface));
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.decision-choices label:has(input:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+.decision-choices input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.canvas-app .human-action :is(textarea, input[type='number']) {
+  background: var(--stone);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 44px;
+  resize: vertical;
+}
+.canvas-app .human-action [aria-invalid='true'] {
+  border-color: var(--route-error);
+}
+.canvas-app .human-action .field-hint {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.canvas-app .human-action .field-error {
+  color: var(--route-error);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 7px 0 0;
+}
+.optional-fields {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.optional-fields summary,
+.decision-help summary,
+.step-secondary > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 5px 0;
+}
+.optional-fields summary {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  list-style: none;
+  color: var(--ink);
+}
+.optional-fields summary::-webkit-details-marker {
+  display: none;
+}
+.optional-fields summary small {
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: 6px;
+  font-weight: 400;
+}
+.optional-fields[open] > summary {
+  margin-bottom: 12px;
+}
+.optional-fields[open] summary > svg {
+  transform: rotate(45deg);
+}
+.decision-help {
+  margin: 8px 0 14px;
+}
+.canvas-app .decision-help p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--muted);
+  margin: 8px 0;
+}
+.decision-footer {
+  margin-top: 22px;
+}
+.canvas-app .human-action .decision-footer .primary {
+  min-height: 44px;
+  border-radius: 10px;
+}
+.canvas-app .decision-return {
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+.canvas-app .human-action .decision-next {
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+.step-secondary {
+  margin-top: 20px;
+}
+.step-secondary > summary {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+}
+.step-secondary[open] .step-meta {
+  margin-top: 4px;
+}
+@media (max-width: 600px) {
+  .canvas-app .human-action {
+    padding: 18px;
+    margin-top: 16px;
+  }
+  .canvas-app .human-action .action-title {
+    font-size: 18px;
+  }
+  .canvas-app .answering-step h2 {
+    font-size: 20px;
+  }
+}
+
+/* Symbol kind is independent of the execution status shown by its label. */
+.bpmn-symbol {
+  --symbol-color: #89670c;
+  --symbol-fill: #fff2a8;
+}
+.bpmn-symbol[data-bpmn='start'] {
+  --symbol-color: #2e7531;
+  --symbol-fill: #e5f4d6;
+}
+.bpmn-symbol[data-bpmn='end'] {
+  --symbol-color: #ae3840;
+  --symbol-fill: #ffdfdf;
+}
+[data-theme='dark'] .bpmn-symbol {
+  --symbol-color: #f3d25d;
+  --symbol-fill: #423b1e;
+}
+[data-theme='dark'] .bpmn-symbol[data-bpmn='start'] {
+  --symbol-color: #8fda85;
+  --symbol-fill: #243e2c;
+}
+[data-theme='dark'] .bpmn-symbol[data-bpmn='end'] {
+  --symbol-color: #ff9b9e;
+  --symbol-fill: #4b292f;
+}
+
+/* A quiet channel anchors the ribbons while their wave carries direction. */
+.react-flow__edge.animated .react-flow__edge-path {
+  animation: none;
+  stroke-dasharray: none;
+}
+.liquid-channel {
+  fill: none;
+  pointer-events: none;
+  stroke-linecap: round;
+}
+.react-flow__edge path.liquid-channel {
+  animation: none;
+  stroke-dasharray: none;
+  stroke-width: 7;
+  stroke-opacity: 0.12;
+}
+/* Three shaded ribbons travel together without changing the process route. */
+.flow-ribbons {
+  pointer-events: none;
+}
+.flow-ribbons .ribbon-light {
+  stop-color: color-mix(in srgb, currentColor 48%, white);
+}
+.flow-ribbons .ribbon-shade {
+  stop-color: color-mix(in srgb, currentColor 80%, #172333);
+}
+.react-flow__edge path.ribbon-guide,
+.react-flow__edge path.flow-ribbon {
+  animation: none;
+  stroke: none;
+  stroke-dasharray: none;
+}
+.flow-ribbon.strand-0 {
+  opacity: 0.65;
+}
+.flow-ribbon.strand-1 {
+  opacity: 0.8;
+}
+.flow-ribbon.strand-2 {
+  opacity: 0.95;
+}
+
+/* A brief receipt signal, never a claim that the agent is still working. */
+[data-receiving='true'] > svg {
+  animation: receipt-glow 1s ease-in-out infinite;
+  color: var(--route-active);
+}
+@keyframes receipt-glow {
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 3px currentColor);
+  }
+}
+.harness-icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  align-items: center;
+  vertical-align: middle;
+}
+.harness-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.harness-icon > span {
+  width: 100%;
+  height: 100%;
+}
+.context-sources details {
+  border-bottom: 1px solid var(--line);
+  padding: 12px 0;
+}
+.context-sources summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+.context-sources pre,
+.context-sources p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.canvas-popup .trace-scope {
+  color: var(--ink);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 16px 0;
+}
+.trace-scope select {
+  min-height: 36px;
+  padding: 6px 10px;
+  color: inherit;
+  background: var(--node-surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-receiving='true'] > svg {
+    animation: none;
+    filter: none;
+  }
+}
+
+.decision-marker {
+  color: var(--ink);
+}
+.decision-marker > rect {
+  fill: var(--node-surface);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.decision-marker[data-decision='yes'] {
+  color: var(--route-completed);
+}
+.plan-changes {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.plan-changes summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 600;
+}
+.plan-changes p,
+.plan-changes details > div {
+  margin-top: 12px;
+}
+.plan-step-change {
+  margin: 6px 0 12px;
+}
+.plan-step-change summary {
+  font-size: 12px;
+  font-weight: 400;
+}
+.plan-step-change pre {
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}

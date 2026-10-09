@@ -1,0 +1,40 @@
+{
+  "title": "Tu primera misión con Codex",
+  "description": "Define el objetivo, observa el trabajo y decide cuándo continuar. Una prueba real de colaboración contigo.",
+  "steps": [
+    {
+      "id": "objective",
+      "title": "Definir tu objetivo",
+      "kind": "manual",
+      "description": "Escribe una actividad pequeña que quieras realizar con Codex sobre este proyecto. Por ejemplo: preparar una guía de contribución, revisar el contrato de integración o diseñar el próximo incremento. Después de enviar tu respuesta, vuelve a este chat y pide continuar."
+    },
+    {
+      "id": "inspect",
+      "title": "Revisar el contexto",
+      "kind": "agent",
+      "description": "Codex leerá tu respuesta e inspeccionará los archivos pertinentes. Registrará lo que encuentre y la evidencia consultada.",
+      "dependencies": ["objective"]
+    },
+    {
+      "id": "proposal",
+      "title": "Preparar una propuesta",
+      "kind": "agent",
+      "description": "Codex elaborará una propuesta acotada a tu objetivo. Este paso y la revisión de contexto son independientes; el coordinador decide si puede realizarlos en paralelo.",
+      "dependencies": ["objective"]
+    },
+    {
+      "id": "approval",
+      "title": "Validar la propuesta",
+      "kind": "approval",
+      "description": "Revisa los resultados de ambos pasos. Aprueba para autorizar a Codex a elaborar el resultado final, o rechaza indicando qué debe cambiar.",
+      "dependencies": ["inspect", "proposal"]
+    },
+    {
+      "id": "deliver",
+      "title": "Entregar el resultado",
+      "kind": "agent",
+      "description": "Codex usará tu aprobación y las evidencias registradas para realizar la entrega acordada. No comenzará antes de tu aprobación.",
+      "dependencies": ["approval"]
+    }
+  ]
+}

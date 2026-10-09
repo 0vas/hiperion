@@ -1,0 +1,19 @@
+{
+  "title": "Review a repository",
+  "description": "A minimal human-guided review",
+  "steps": [
+    { "id": "inspect", "title": "Inspect the repository", "kind": "agent" },
+    {
+      "id": "approve",
+      "title": "Approve the proposed changes",
+      "kind": "approval",
+      "dependencies": ["inspect"]
+    },
+    {
+      "id": "deliver",
+      "title": "Deliver the agreed changes",
+      "kind": "agent",
+      "dependencies": ["approve"]
+    }
+  ]
+}

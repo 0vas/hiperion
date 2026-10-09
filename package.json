@@ -1,0 +1,119 @@
+{
+  "name": "hyperion-workflows",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Human-guided workflows for any AI tool",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server/main.ts",
+    "dev:ui": "vite --host 127.0.0.1",
+    "build": "tsc -p tsconfig.server.json && vite build",
+    "start": "node dist/server/main.js",
+    "hyperion": "tsx src/adapters/cli.ts",
+    "mcp": "node dist/adapters/mcp.js",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run typecheck && npm test && npm run build && npm run test:production && npm run format:check",
+    "test:production": "node --test tests/production-smoke.mjs tests/desktop-onboarding.mjs",
+    "prepack": "npm run build",
+    "desktop": "npm run build && electron desktop/main.mjs",
+    "desktop:pack": "npm run build && electron-builder --dir --publish never",
+    "desktop:dist": "npm run build && electron-builder --publish never",
+    "test:desktop": "node --test tests/desktop-smoke.mjs tests/desktop-runtime.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@xyflow/react": "^12.12.0",
+    "lucide-react": "^1.52.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "smol-toml": "1.9.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.3"
+  },
+  "bin": {
+    "hyperion": "dist/adapters/cli.js"
+  },
+  "files": [
+    "dist/",
+    "skills/",
+    "docs/",
+    "examples/",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0vas/hiperion.git"
+  },
+  "main": "desktop/main.mjs",
+  "build": {
+    "appId": "org.hyperion.workflows",
+    "productName": "Hyperion",
+    "asar": false,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "desktop/**/*",
+      "package.json",
+      "LICENSE",
+      "skills/**/*",
+      "docs/**/*",
+      "SECURITY.md",
+      "examples/**/*"
+    ],
+    "artifactName": "Hyperion-${version}-${os}-${arch}.${ext}",
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "desktop/icon.png"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "desktop/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": null
+  },
+  "author": "Hyperion contributors"
+}

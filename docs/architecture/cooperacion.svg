@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1450" height="830" viewBox="0 0 1450 830" role="img" aria-labelledby="title desc">
+<title id="title">Hyperion — cooperación de aplicaciones</title>
+<desc id="desc">Borrador ArchiMate 3.2. Seis componentes de aplicación conectados por flujos dirigidos. Una herramienta externa integra Hyperion; la ejecución puede permanecer en ella o delegarse al coordinador de Hyperion.</desc>
+<defs><marker id="flow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#334b63"/></marker></defs>
+<style>text{font-family:Arial,sans-serif;fill:#173149}.title{font-size:29px;font-weight:700}.sub{font-size:16px;fill:#4b6275}.type{font-size:13px;fill:#42657a}.name{font-size:21px;font-weight:700}.note{font-size:15px;fill:#3c566d}.label{font-size:14px;fill:#334b63}.edge{fill:none;stroke:#334b63;stroke-width:2;stroke-dasharray:8 5;marker-end:url(#flow)}</style>
+<rect width="1450" height="830" fill="#f7fafc"/>
+<text x="50" y="52" class="title">Hyperion · Cooperación de aplicaciones</text>
+<text x="50" y="84" class="sub">ArchiMate 3.2 · Vista lógica inicial · Borrador para discusión · 7 de octubre de 2026</text>
+<text x="50" y="130" class="note">Dos modos alternativos de coordinación; una única autoridad por ejecución. Los componentes no implican servicios separados.</text>
+
+<g id="A1" data-archimate-type="ApplicationComponent"><rect x="50" y="180" width="330" height="120" fill="#e2f2fb" stroke="#366781" stroke-width="1.6"/>
+<text x="68" y="206" class="type" text-anchor="start">«Application Component»</text>
+<text x="68" y="246" class="name" text-anchor="start">Herramienta anfitriona</text>
+<text x="68" y="274" class="note" text-anchor="start">Incluye adaptador de integración</text>
+<g fill="#e2f2fb" stroke="#366781" stroke-width="1.4"><rect x="344" y="194" width="21" height="28"/><rect x="338" y="199" width="12" height="7"/><rect x="338" y="210" width="12" height="7"/></g></g>
+<g id="A2" data-archimate-type="ApplicationComponent"><rect x="560" y="180" width="330" height="120" fill="#e2f2fb" stroke="#366781" stroke-width="1.6"/>
+<text x="578" y="206" class="type" text-anchor="start">«Application Component»</text>
+<text x="578" y="246" class="name" text-anchor="start">Núcleo Hyperion</text>
+<text x="578" y="274" class="note" text-anchor="start">Planes, estado, reglas y decisiones</text>
+<g fill="#e2f2fb" stroke="#366781" stroke-width="1.4"><rect x="854" y="194" width="21" height="28"/><rect x="848" y="199" width="12" height="7"/><rect x="848" y="210" width="12" height="7"/></g></g>
+<g id="A3" data-archimate-type="ApplicationComponent"><rect x="1070" y="180" width="330" height="120" fill="#e2f2fb" stroke="#366781" stroke-width="1.6"/>
+<text x="1088" y="206" class="type" text-anchor="start">«Application Component»</text>
+<text x="1088" y="246" class="name" text-anchor="start">Interfaz visual</text>
+<text x="1088" y="274" class="note" text-anchor="start">Workflow e intervención humana</text>
+<g fill="#e2f2fb" stroke="#366781" stroke-width="1.4"><rect x="1364" y="194" width="21" height="28"/><rect x="1358" y="199" width="12" height="7"/><rect x="1358" y="210" width="12" height="7"/></g></g>
+<g id="A4" data-archimate-type="ApplicationComponent"><rect x="50" y="530" width="330" height="120" fill="#e2f2fb" stroke="#366781" stroke-width="1.6"/>
+<text x="68" y="556" class="type" text-anchor="start">«Application Component»</text>
+<text x="68" y="596" class="name" text-anchor="start">Ejecutor externo</text>
+<text x="68" y="624" class="note" text-anchor="start">Coordinación en la herramienta</text>
+<g fill="#e2f2fb" stroke="#366781" stroke-width="1.4"><rect x="344" y="544" width="21" height="28"/><rect x="338" y="549" width="12" height="7"/><rect x="338" y="560" width="12" height="7"/></g></g>
+<g id="A5" data-archimate-type="ApplicationComponent"><rect x="560" y="530" width="330" height="120" fill="#e2f2fb" stroke="#366781" stroke-width="1.6"/>
+<text x="578" y="556" class="type" text-anchor="start">«Application Component»</text>
+<text x="578" y="596" class="name" text-anchor="start">Coordinador delegado</text>
+<text x="578" y="624" class="note" text-anchor="start">Opcional · despacha trabajo habilitado</text>
+<g fill="#e2f2fb" stroke="#366781" stroke-width="1.4"><rect x="854" y="544" width="21" height="28"/><rect x="848" y="549" width="12" height="7"/><rect x="848" y="560" width="12" height="7"/></g></g>
+<g id="A6" data-archimate-type="ApplicationComponent"><rect x="1070" y="530" width="330" height="120" fill="#e2f2fb" stroke="#366781" stroke-width="1.6"/>
+<text x="1088" y="556" class="type" text-anchor="start">«Application Component»</text>
+<text x="1088" y="596" class="name" text-anchor="start">Agentes y herramientas</text>
+<text x="1088" y="624" class="note" text-anchor="start">Uno o varios ejecutores registrados</text>
+<g fill="#e2f2fb" stroke="#366781" stroke-width="1.4"><rect x="1364" y="544" width="21" height="28"/><rect x="1358" y="549" width="12" height="7"/><rect x="1358" y="560" width="12" height="7"/></g></g>
+<g id="F1" data-archimate-type="Flow" data-source="A1" data-target="A2"><path class="edge" d="M380 220 H560"/>
+<text x="470" y="197" class="label" text-anchor="middle">Plan y eventos</text>
+</g>
+<g id="F2" data-archimate-type="Flow" data-source="A2" data-target="A1"><path class="edge" d="M560 270 H380"/>
+<text x="470" y="294" class="label" text-anchor="middle">Estado y permisos</text>
+</g>
+<g id="F3" data-archimate-type="Flow" data-source="A2" data-target="A3"><path class="edge" d="M890 220 H1070"/>
+<text x="980" y="197" class="label" text-anchor="middle">Estado y actividad</text>
+</g>
+<g id="F4" data-archimate-type="Flow" data-source="A3" data-target="A2"><path class="edge" d="M1070 270 H890"/>
+<text x="980" y="294" class="label" text-anchor="middle">Decisiones</text>
+</g>
+<g id="F5" data-archimate-type="Flow" data-source="A1" data-target="A4"><path class="edge" d="M170 300 V530"/>
+<text x="109" y="402" class="label" text-anchor="middle">Trabajo</text>
+<text x="109" y="423" class="label" text-anchor="middle">autorizado</text>
+</g>
+<g id="F6" data-archimate-type="Flow" data-source="A4" data-target="A1"><path class="edge" d="M260 530 V300"/>
+<text x="328" y="402" class="label" text-anchor="middle">Resultados</text>
+<text x="328" y="423" class="label" text-anchor="middle">y eventos</text>
+</g>
+<g id="F7" data-archimate-type="Flow" data-source="A2" data-target="A5"><path class="edge" d="M680 300 V530"/>
+<text x="612" y="402" class="label" text-anchor="middle">Trabajo</text>
+<text x="612" y="423" class="label" text-anchor="middle">habilitado</text>
+</g>
+<g id="F8" data-archimate-type="Flow" data-source="A5" data-target="A2"><path class="edge" d="M770 530 V300"/>
+<text x="842" y="402" class="label" text-anchor="middle">Avances</text>
+<text x="842" y="423" class="label" text-anchor="middle">y resultados</text>
+</g>
+<g id="F9" data-archimate-type="Flow" data-source="A5" data-target="A6"><path class="edge" d="M890 570 H1070"/>
+<text x="980" y="547" class="label" text-anchor="middle">Tareas asignadas</text>
+</g>
+<g id="F10" data-archimate-type="Flow" data-source="A6" data-target="A5"><path class="edge" d="M1070 620 H890"/>
+<text x="980" y="644" class="label" text-anchor="middle">Eventos y resultados</text>
+</g>
+<text x="215" y="685" class="note" text-anchor="middle">Modo externo: observa o coopera</text>
+<text x="980" y="685" class="note" text-anchor="middle">Modo delegado: Hyperion coordina</text>
+<path d="M50 720 H1400" stroke="#ccd8e1"/>
+<path class="edge" d="M55 756 H125"/>
+<text x="145" y="761" class="note" text-anchor="start">Flow: transferencia dirigida de información o trabajo.</text>
+<text x="50" y="799" class="note" text-anchor="start">Tipos e iconos explícitos. Vista de arquitectura; no representa un workflow de usuario ni su orden temporal.</text>
+</svg>
