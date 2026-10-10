@@ -14,7 +14,7 @@ import { registerAgent } from '../server/config.js';
 import { installSkill, defaultDirectory } from './install.js';
 import { setupClient } from './setup.js';
 import { HyperionClient } from './client.js';
-import { followHumanInput, withHandoff } from './handoff.js';
+import { followHumanInput, withHandoff, withGuideResult } from './handoff.js';
 import type { Run } from '../domain/workflow.js';
 import { commandSchema } from '../domain/workflow.js';
 import { generateConnection } from './connections.js';
@@ -214,7 +214,9 @@ try {
       'steps' in result &&
       'revision' in result
     )
-      result = withHandoff(result as Run);
+      result = ['guide', 'follow'].includes(operation)
+        ? withGuideResult(result as Run)
+        : withHandoff(result as Run);
     console.log(
       JSON.stringify(
         result,

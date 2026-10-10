@@ -25,7 +25,9 @@ El canvas distingue **Reanudación pendiente**, **Conector retomando** y **Solic
 | Cursor         | MCP/skill disponible. Conector de sesión CLI pendiente.                                             |
 | Hermes Agent   | MCP stdio configurable. Conector de sesión persistida pendiente.                                    |
 
-Sin ese conector, la integración usa la espera cooperativa: puede continuar mientras el chat mantiene la llamada abierta. No se debe prometer que instalar MCP basta para despertar un chat cerrado.
+Si ves **Continuar desde el chat**, la respuesta ya está guardada pero no hay un conector de reanudación asignado. Reintentar no crea un agente ni abre un chat por sí solo.
+
+Sin ese conector, la integración usa la espera cooperativa: puede continuar mientras el chat mantiene la llamada abierta. La llamada guiada espera como máximo diez minutos; al terminar, informa la desconexión una sola vez. Renovar esa espera indefinidamente no crea ejecución en segundo plano. No se debe prometer que instalar MCP basta para despertar un chat cerrado.
 
 La identidad del harness no altera las reglas del workflow. La referencia de sesión y las capacidades pertenecen al conector, que debe respetar permisos y evitar turnos duplicados.
 

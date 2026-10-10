@@ -103,21 +103,28 @@ test('guided handoff renews timed out waits and returns saved input for immediat
     });
     assert.equal(handoff(run).action, 'wait');
     let renewals = 0;
+    let announcements = 0;
+    const originalWait = agent.wait.bind(agent);
+    agent.wait = async (...args) => {
+      if (++renewals === 3)
+        await human.command(run.id, {
+          type: 'submit',
+          stepId: 'choose',
+          outputs: { product: 'idea' },
+          expectedRevision: run.revision,
+        });
+      return originalWait(...args);
+    };
     const updated = await followHumanInput(
       agent,
       run,
-      async (event) => {
-        if (event.event === 'waiting' && ++renewals === 3)
-          await human.command(run.id, {
-            type: 'submit',
-            stepId: 'choose',
-            outputs: { product: 'idea' },
-            expectedRevision: run.revision,
-          });
+      () => {
+        announcements++;
       },
       { waitSeconds: 0.01, maxSeconds: 2 },
     );
     assert.equal(renewals, 3);
+    assert.equal(announcements, 1);
     assert.equal(handoff(updated).action, 'execute');
     assert.deepEqual(updated.steps[0]!.outputValues, { product: 'idea' });
     assert.equal(updated.steps[1]!.status, 'ready');
@@ -201,6 +208,86 @@ test('new choice forms in a plan revision are checked without changing saved his
     assert.equal(
       store.create(open, actor, 'open-description').steps[0]!.status,
       'waiting',
+    );
+  } finally {
+    store.close();
+  }
+});
+
+test('a response arriving at the wait deadline is read before returning a stale handoff', async () => {
+  const { followHumanInput } = await import('../src/adapters/handoff.js');
+  const store = new Store(':memory:');
+  try {
+    const run = store.create(
+      {
+        title: 'Late answer',
+        steps: [
+          { id: 'input', title: 'Your answer', kind: 'manual' },
+          {
+            id: 'work',
+            title: 'Use answer',
+            kind: 'agent',
+            dependencies: ['input'],
+          },
+        ],
+      },
+      { role: 'agent', id: 'codex' },
+      'create',
+    );
+    let reads = 0;
+    const client = {
+      get: async () => {
+        if (++reads === 2)
+          return store.command(
+            run.id,
+            {
+              type: 'submit',
+              stepId: 'input',
+              message: 'Saved just before disconnect',
+              expectedRevision: 1,
+              commandId: 'answer',
+            },
+            { role: 'human', id: 'user' },
+          );
+        return run;
+      },
+    } as unknown as HyperionClient;
+    const result = await followHumanInput(client, run, () => {}, {
+      maxSeconds: 0,
+    });
+    assert.equal(result.steps[1]!.status, 'ready');
+  } finally {
+    store.close();
+  }
+});
+
+test('an expired guide reports disconnection rather than directing an endless wait loop', async () => {
+  const { withGuideResult } = await import('../src/adapters/handoff.js');
+  const store = new Store(':memory:');
+  try {
+    const run = store.create(
+      {
+        title: 'Waiting',
+        steps: [{ id: 'input', title: 'Input', kind: 'manual' }],
+      },
+      { role: 'agent', id: 'codex' },
+      'create',
+    );
+    const result = withGuideResult(run);
+    assert.equal(result.agentNext.action, 'disconnected');
+    assert.match(result.agentNext.instruction, /ended|closed/i);
+    assert.equal(
+      withGuideResult({
+        ...run,
+        continuation: {
+          status: 'waiting',
+          connectorId: 'real-bridge',
+          harness: 'codex',
+          scope: 'managed-session',
+          updatedAt: 1,
+        },
+      }).agentNext.action,
+      'suspended',
     );
   } finally {
     store.close();

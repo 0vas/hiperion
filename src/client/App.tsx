@@ -973,7 +973,11 @@ export function App() {
           updated.status === 'completed'
             ? 'Elección guardada. El proceso terminó.'
             : updated.steps.some((s) => s.status === 'ready')
-              ? 'Elección guardada. El siguiente paso ya está habilitado.'
+              ? updated.continuation
+                ? 'Elección guardada. Sigue la reanudación en el canvas.'
+                : run.agentWaiting
+                  ? 'Elección guardada. El siguiente paso ya está habilitado.'
+                  : 'Elección guardada. Este flujo continúa desde el chat; no tiene reanudación automática.'
               : 'Elección guardada. Sigue el estado de la siguiente tarea en el canvas.',
         );
       if (type === 'retry')
@@ -1385,10 +1389,10 @@ export function App() {
                   <button className="canvas-next" onClick={copyPrompt}>
                     <HarnessIcon name={run.coordinator} />
                     <span>
-                      <strong>Espera al agente</strong>
+                      <strong>Continuar desde el chat</strong>
                       {copied
                         ? 'Pégala en tu chat para continuar'
-                        : 'Copiar continuación para tu chat'}
+                        : 'Respuesta guardada · Copiar continuación'}
                     </span>
                     <Copy size={15} />
                   </button>

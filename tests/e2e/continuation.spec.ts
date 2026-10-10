@@ -113,3 +113,62 @@ test('a suspended harness receives a canvas decision and executes without a seco
     'Destino: guide',
   );
 });
+
+test('a saved decision without an executor explains the handoff instead of suggesting automatic progress', async ({
+  page,
+}) => {
+  const client = new HyperionClient({
+    url: 'http://127.0.0.1:4318',
+    token: JSON.parse(readFileSync('.hyperion-e2e/credentials.json', 'utf8'))
+      .agentToken,
+  });
+  const run = await client.create({
+    title: 'Respuesta sin conector',
+    steps: [
+      {
+        id: 'input',
+        title: 'Tu decisión',
+        kind: 'manual',
+        outputs: [
+          {
+            name: 'product',
+            type: 'string',
+            required: true,
+            form: {
+              label: 'Producto',
+              options: [{ value: 'idea', label: 'IntelliJ IDEA' }],
+            },
+          },
+        ],
+      },
+      {
+        id: 'work',
+        title: 'Comprobar equipo',
+        kind: 'agent',
+        dependencies: ['input'],
+      },
+    ],
+  });
+  await page.goto(`/?run=${run.id}`);
+  await page
+    .getByRole('button', { name: 'Ver paso: Tu decisión', exact: true })
+    .click();
+  await page
+    .getByRole('combobox', { name: 'Producto', exact: true })
+    .selectOption('idea');
+  await page
+    .getByRole('button', { name: 'Guardar elección', exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      'Elección guardada. Este flujo continúa desde el chat; no tiene reanudación automática.',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(page.locator('.canvas-next')).toContainText(
+    'Continuar desde el chat',
+  );
+  const current = await client.get(run.id);
+  expect(current.steps[0]!.outputValues!.product).toBe('idea');
+  expect(current.steps[1]!.attempt).toBe(0);
+});

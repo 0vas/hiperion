@@ -51,6 +51,19 @@ export function handoff(run: Run) {
   };
 }
 export const withHandoff = (run: Run) => ({ ...run, agentNext: handoff(run) });
+/** The CLI's bounded invocation has ended; it no longer owns a wait. */
+export function withGuideResult(run: Run) {
+  const result = withHandoff(run);
+  if (result.agentNext.action !== 'wait') return result;
+  return {
+    ...result,
+    agentNext: {
+      action: 'disconnected',
+      instruction:
+        'The bounded guide has ended. No resumable connector is assigned. Report this once, with the saved canvas URL, and do not renew unchanged waits indefinitely. Do not claim to be connected or to resume a closed chat automatically. Read current state before any later continuation; saved answers never need to be repeated.',
+    },
+  };
+}
 type Progress = {
   event: 'waiting';
   runId: string;
@@ -77,15 +90,19 @@ export async function followHumanInput(
   // A retried create may return an old idempotent receipt. Always follow current state.
   let run = await client.get(initial.id);
   const deadline = performance.now() + maxSeconds * 1000;
+  let announcedRevision: number | undefined;
   while (handoff(run).action === 'wait') {
     const remaining = (deadline - performance.now()) / 1000;
-    if (remaining <= 0) break;
-    await onProgress({
-      event: 'waiting',
-      runId: run.id,
-      url: client.link(run),
-      agentNext: handoff(run),
-    });
+    if (remaining <= 0) return client.get(run.id);
+    if (announcedRevision !== run.revision) {
+      await onProgress({
+        event: 'waiting',
+        runId: run.id,
+        url: client.link(run),
+        agentNext: handoff(run),
+      });
+      announcedRevision = run.revision;
+    }
     run = await client.wait(
       run.id,
       run.revision,
