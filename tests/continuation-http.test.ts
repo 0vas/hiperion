@@ -145,3 +145,59 @@ test('ambiguous connector exceptions retain the lease instead of triggering anot
   );
   assert.equal(settlements, 0);
 });
+
+test('the canvas learns that a delivery expired even when its worker has stopped', async (t) => {
+  let now = 1000;
+  const store = new Store(':memory:', { now: () => now });
+  const app = createApp({
+    store,
+    agentToken: 'agent',
+    humanToken: 'human',
+    agentId: 'hermes',
+  });
+  const url = await app.listen(0);
+  const client = new HyperionClient({ url, token: 'agent' });
+  const human = new HyperionClient({ url, token: 'human' });
+  t.mock.timers.enable({ apis: ['setInterval'] });
+  const abort = new AbortController();
+  try {
+    const run = await client.create({
+      title: 'Lost worker',
+      steps: [
+        { id: 'human', title: 'Approve', kind: 'approval' },
+        { id: 'work', title: 'Work', kind: 'agent', dependencies: ['human'] },
+      ],
+    });
+    await client.suspend(run.id, {
+      expectedRevision: 1,
+      connector: {
+        id: 'bridge',
+        harness: 'hermes',
+        sessionId: 'real-session',
+        scope: 'managed-session',
+        capabilities: { resume: true, idempotentDelivery: true },
+      },
+    });
+    await human.command(run.id, {
+      type: 'approve',
+      stepId: 'human',
+      expectedRevision: 1,
+    });
+    await client.claimContinuation('bridge');
+    const response = await fetch(url + '/api/events', {
+      headers: { authorization: 'Bearer human' },
+      signal: AbortSignal.any([abort.signal, AbortSignal.timeout(2000)]),
+    });
+    const reader = response.body!.getReader();
+    await reader.read();
+    now += 301000;
+    t.mock.timers.tick(15000);
+    const frame = new TextDecoder().decode((await reader.read()).value);
+    assert.match(frame, /"status":"uncertain"/);
+    await reader.cancel();
+  } finally {
+    abort.abort();
+    await app.close();
+    store.close();
+  }
+});

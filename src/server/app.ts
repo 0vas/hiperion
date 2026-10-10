@@ -78,6 +78,19 @@ export function createApp(options: Options) {
     );
     for (const res of streams) send(res, 'run', present(run));
   };
+  const refreshContinuations = (owner?: string) => {
+    for (const run of options.store.list()) {
+      const state = options.store.continuations.state(run.id);
+      if (
+        (!owner || run.coordinator === owner) &&
+        state &&
+        continuationViews.get(run.id) !== JSON.stringify(state)
+      ) {
+        touchPresence();
+        publish(run);
+      }
+    }
+  };
   const notify = (run: Run) => {
     publish(run);
     for (const listener of [...(waits.get(run.id) || [])]) listener(run);
@@ -156,6 +169,7 @@ export function createApp(options: Options) {
           streams.add(res);
           send(res, 'snapshot', options.store.list().map(present));
           const heartbeat = setInterval(() => {
+            refreshContinuations();
             if (!res.write(': heartbeat\n\n')) res.destroy();
           }, 15000);
           heartbeat.unref();
@@ -212,17 +226,7 @@ export function createApp(options: Options) {
             connectorId,
             actor,
           );
-          for (const run of options.store.list()) {
-            const state = options.store.continuations.state(run.id);
-            if (
-              run.coordinator === actor.id &&
-              state &&
-              continuationViews.get(run.id) !== JSON.stringify(state)
-            ) {
-              touchPresence();
-              publish(run);
-            }
-          }
+          refreshContinuations(actor.id);
           json(res, 200, delivery);
           return;
         }
