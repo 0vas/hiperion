@@ -35,7 +35,9 @@ Si no avanza, comprueba si está pausado, si falta otra respuesta o si el agente
 
 ## Reintentar
 
-Cuando una tarea falla, revisa su log. Pide al agente reintentar tras corregir la causa. El reintento conserva la evidencia del fallo y permite volver a ejecutar la tarea; no borra el historial ni repite aprobaciones humanas automáticamente.
+Pulsa **Reintentar** en una tarea de IA pendiente o fallida. Si quedó en curso, usa **Recuperar tarea** y confirma. Se conservan tus respuestas y los logs; el agente que esté esperando recibe la solicitud por evento. La recuperación no cancela herramientas externas: el agente debe comprobar qué ocurrió antes de repetir una acción. Los resultados tardíos de un intento anterior se rechazan.
+
+Con el runtime 0.4.1, el formulario muestra **Agente conectado** cuando hay una espera activa. Al confirmar, la respuesta se entrega sin pedir otro mensaje. Si el chat terminó su turno, todavía necesita una continuación para reconectarse. El instalador preview 0.4.0 aún no incluye estas mejoras.
 
 ## Cambiar el plan
 

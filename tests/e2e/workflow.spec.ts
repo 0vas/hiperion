@@ -916,17 +916,23 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   });
   expect(response.status()).toBe(201);
   const run = await response.json();
+  let attempt: number | undefined;
   const command = async (type: string) => {
     const res = await request.post(`/api/runs/${run.id}/commands`, {
       headers,
       data: {
         type,
+        ...(['complete', 'fail', 'log'].includes(type) ? { attempt } : {}),
         stepId: 'work',
         message: 'Resultado de prueba',
         commandId: crypto.randomUUID(),
       },
     });
     expect(res.status()).toBe(200);
+    if (type === 'start')
+      attempt = (await res.json()).steps.find(
+        (step: { id: string }) => step.id === 'work',
+      ).attempt;
   };
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto(`/?run=${run.id}`);
@@ -1225,7 +1231,7 @@ test('a human retries a failed task from its card without starting it or losing 
     .getByRole('button', { name: 'Reintentar: Preparar entrega', exact: true })
     .click();
   await expect(
-    page.getByText('Reintento habilitado.', { exact: false }),
+    page.getByText('Solicitud de reintento enviada.', { exact: false }),
   ).toBeVisible();
   const after = await request.get(`/api/runs/${run.id}`, { headers });
   const state = await after.json();
@@ -1237,7 +1243,7 @@ test('a human retries a failed task from its card without starting it or losing 
   expect(state.events.at(-1).actor).not.toBe('codex');
   await expect(
     page.getByRole('button', { name: 'Reintentar: Preparar entrega' }),
-  ).toHaveCount(0);
+  ).toBeEnabled();
 });
 
 test('liquid current follows reached routes and BPMN symbol colors stay tied to their kind', async ({

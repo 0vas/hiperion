@@ -51,6 +51,16 @@ async function body(req: IncomingMessage) {
 export function createApp(options: Options) {
   let baseUrl = '';
   const streams = new Set<ServerResponse>();
+  const waits = new Map<string, Set<(run: Run) => void>>();
+  let presenceAt = Date.now();
+  const touchPresence = () => {
+    presenceAt = Math.max(Date.now(), presenceAt + 1);
+  };
+  const present = (run: Run): Run => ({
+    ...presentRun(run),
+    agentWaiting: !!waits.get(run.id)?.size,
+    agentPresenceAt: presenceAt,
+  });
   const send = (res: ServerResponse, event: string, value: unknown) => {
     res.write(`event: ${event}\ndata: ${JSON.stringify(value)}\n\n`);
     if (res.writableLength > 4 * 1024 * 1024) {
@@ -59,7 +69,11 @@ export function createApp(options: Options) {
     }
   };
   const publish = (run: Run) => {
-    for (const res of streams) send(res, 'run', presentRun(run));
+    for (const res of streams) send(res, 'run', present(run));
+  };
+  const notify = (run: Run) => {
+    publish(run);
+    for (const listener of [...(waits.get(run.id) || [])]) listener(run);
   };
   const server = createServer(async (req, res) => {
     res.setHeader('cache-control', 'no-store');
@@ -133,7 +147,7 @@ export function createApp(options: Options) {
             'x-accel-buffering': 'no',
           });
           streams.add(res);
-          send(res, 'snapshot', options.store.list().map(presentRun));
+          send(res, 'snapshot', options.store.list().map(present));
           const heartbeat = setInterval(() => {
             if (!res.write(': heartbeat\n\n')) res.destroy();
           }, 15000);
@@ -145,14 +159,74 @@ export function createApp(options: Options) {
           return;
         }
         if (url.pathname === '/api/runs' && req.method === 'GET') {
-          json(res, 200, options.store.list().map(presentRun));
+          json(res, 200, options.store.list().map(present));
           return;
         }
         if (url.pathname === '/api/runs' && req.method === 'POST') {
           const data = createSchema.parse(await body(req));
           const run = options.store.create(data.plan, actor, data.commandId);
           publish(run);
-          json(res, 201, presentRun(run));
+          json(res, 201, present(run));
+          return;
+        }
+        const waiting = /^\/api\/runs\/([a-f0-9-]+)\/wait$/.exec(url.pathname);
+        if (waiting && req.method === 'GET') {
+          const run = options.store.get(waiting[1]!);
+          if (actor.role !== 'agent' || actor.id !== run.coordinator)
+            throw new WorkflowError(
+              'FORBIDDEN',
+              'Only the coordinator can wait for execution',
+              403,
+            );
+          const query = z
+            .object({
+              afterRevision: z.coerce.number().int().nonnegative(),
+              timeoutSeconds: z.coerce.number().min(0).max(55).default(30),
+            })
+            .strict()
+            .parse(Object.fromEntries(url.searchParams));
+          const changed = (value: Run) =>
+            value.revision > query.afterRevision ||
+            ['completed', 'cancelled', 'rejected'].includes(value.status);
+          if (changed(run) || query.timeoutSeconds === 0) {
+            json(res, 200, present(run));
+            return;
+          }
+          const listeners = waits.get(run.id) || new Set<(run: Run) => void>();
+          if (listeners.size >= 8)
+            throw new WorkflowError(
+              'TOO_MANY_WAITS',
+              'Too many waits for this run',
+              429,
+            );
+          let finished = false;
+          const cleanup = () => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(timer);
+            listeners.delete(onChange);
+            touchPresence();
+            if (!listeners.size) waits.delete(run.id);
+            publish(options.store.get(run.id));
+          };
+          const finish = (value: Run) => {
+            if (finished) return;
+            cleanup();
+            json(res, 200, present(value));
+          };
+          const onChange = (value: Run) => {
+            if (changed(value)) finish(value);
+          };
+          const timer = setTimeout(
+            () => finish(options.store.get(run.id)),
+            query.timeoutSeconds * 1000,
+          );
+          timer.unref();
+          listeners.add(onChange);
+          waits.set(run.id, listeners);
+          touchPresence();
+          res.once('close', cleanup);
+          publish(run);
           return;
         }
         const match = /^\/api\/runs\/([a-f0-9-]+)(\/commands)?$/.exec(
@@ -161,7 +235,7 @@ export function createApp(options: Options) {
         if (match) {
           const id = match[1]!;
           if (!match[2] && req.method === 'GET') {
-            json(res, 200, presentRun(options.store.get(id)));
+            json(res, 200, present(options.store.get(id)));
             return;
           }
           if (match[2] && req.method === 'POST') {
@@ -178,8 +252,8 @@ export function createApp(options: Options) {
                 400,
               );
             const run = options.store.command(id, data, actor);
-            publish(run);
-            json(res, 200, presentRun(run));
+            notify(options.store.get(id));
+            json(res, 200, present(run));
             return;
           }
         }

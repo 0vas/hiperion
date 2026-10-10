@@ -179,17 +179,22 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
   const { step } = data;
   const tools = (
     <div className="node-tools">
-      {step.status === 'failed' && (
-        <button
-          aria-label={`Reintentar: ${step.title}`}
-          title="Reintentar paso"
-          disabled={!data.canRetry}
-          onClick={() => data.onRetry(step.id)}
-        >
-          <RotateCcw size={14} />
-          <span>Reintentar</span>
-        </button>
-      )}
+      {step.kind === 'agent' &&
+        ['failed', 'ready', 'running'].includes(step.status) && (
+          <button
+            aria-label={`${step.status === 'running' ? 'Recuperar' : 'Reintentar'}: ${step.title}`}
+            title={
+              step.status === 'running'
+                ? 'Recuperar tarea atascada'
+                : 'Reintentar paso'
+            }
+            disabled={!data.canRetry}
+            onClick={() => data.onRetry(step.id)}
+          >
+            <RotateCcw size={14} />
+            {step.status === 'failed' && <span>Reintentar</span>}
+          </button>
+        )}
 
       <button
         aria-label={`Ver datos: ${step.title}`}
@@ -630,9 +635,10 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [help, setHelp] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [confirmation, setConfirmation] = useState<'cancel' | 'reject' | null>(
-    null,
-  );
+  const [retryTarget, setRetryTarget] = useState<string>();
+  const [confirmation, setConfirmation] = useState<
+    'cancel' | 'reject' | 'retry' | null
+  >(null);
   const run = runId ? runs.find((r) => r.id === runId) : runs[0];
   const activity = useReceiptActivity(run);
   useEffect(() => {
@@ -844,7 +850,7 @@ export function App() {
           })(),
           horizontal: preferences.orientation === 'horizontal',
           canRetry: online && run.status === 'active' && !busy,
-          onRetry: (id: string) => void act('retry', id),
+          onRetry: requestRetry,
           flowState: nodeState(item, run.status),
           index,
           coordinator: run.coordinator,
@@ -929,6 +935,13 @@ export function App() {
     preferences.reduceMotion,
     online,
   ]);
+  function requestRetry(id: string) {
+    const target = run?.steps.find((item) => item.id === id);
+    if (target?.status === 'running') {
+      setRetryTarget(id);
+      setConfirmation('retry');
+    } else void act('retry', id);
+  }
   async function act(type: string, target?: string) {
     if (!run || busy) return;
     setBusy(true);
@@ -959,12 +972,12 @@ export function App() {
           updated.status === 'completed'
             ? 'Elección guardada. El proceso terminó.'
             : updated.steps.some((s) => s.status === 'ready')
-              ? 'Elección guardada. Si el agente ya terminó su turno, usa «Copiar continuación» y envíala en tu chat.'
+              ? 'Elección guardada. El siguiente paso ya está habilitado.'
               : 'Elección guardada. Sigue el estado de la siguiente tarea en el canvas.',
         );
       if (type === 'retry')
         setNotice(
-          `Reintento habilitado. Pide a ${titleCase(run.coordinator)} continuar desde el chat. La ejecución aún no ha empezado.`,
+          'Solicitud de reintento enviada. Se conserva el historial y tus respuestas.',
         );
       setConfirmation(null);
       if (['submit', 'approve', 'reject', 'cancel', 'retry'].includes(type))
@@ -1464,15 +1477,20 @@ export function App() {
                                     : 'El agente ejecutará este paso y registrará su resultado aquí.')}
                           </p>
                         )}
-                      {step.status === 'failed' && live && (
-                        <button
-                          className="secondary full"
-                          disabled={busy || !online}
-                          onClick={() => void act('retry', step.id)}
-                        >
-                          <RotateCcw size={16} /> Reintentar paso
-                        </button>
-                      )}
+                      {step.kind === 'agent' &&
+                        ['failed', 'ready', 'running'].includes(step.status) &&
+                        live && (
+                          <button
+                            className="secondary full recovery-button"
+                            disabled={busy || !online}
+                            onClick={() => requestRetry(step.id)}
+                          >
+                            <RotateCcw size={16} />{' '}
+                            {step.status === 'running'
+                              ? 'Recuperar tarea'
+                              : 'Reintentar paso'}
+                          </button>
+                        )}
                       {step.status === 'waiting' && live && (
                         <HumanForm
                           key={step.id}
@@ -1483,6 +1501,7 @@ export function App() {
                           onValues={setOutputDraft}
                           busy={busy}
                           online={online}
+                          agentWaiting={!!run.agentWaiting}
                           onSubmit={() =>
                             void act(
                               step.kind === 'manual' ? 'submit' : 'approve',
@@ -1896,7 +1915,7 @@ export function App() {
           onClose={() => setConfirmation(null)}
         >
           <section
-            className="modal compact"
+            className={`modal compact ${confirmation === 'retry' ? 'recovery-confirm' : ''}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-title"
@@ -1904,11 +1923,14 @@ export function App() {
             <h2 id="confirm-title">
               {confirmation === 'cancel'
                 ? 'Cancelar este flujo'
-                : 'Rechazar este paso'}
+                : confirmation === 'retry'
+                  ? 'Recuperar tarea atascada'
+                  : 'Rechazar este paso'}
             </h2>
             <p>
-              El flujo quedará cerrado. Esta decisión no deshace acciones que el
-              agente ya haya ejecutado.
+              {confirmation === 'retry'
+                ? 'Se habilitará un nuevo intento conservando tus respuestas y el historial. Esto no cancela herramientas externas: el agente debe comprobar qué terminó antes de repetir acciones.'
+                : 'El flujo quedará cerrado. Esta decisión no deshace acciones que el agente ya haya ejecutado.'}
             </p>
             {confirmation === 'reject' && (
               <>
@@ -1944,12 +1966,20 @@ export function App() {
                 onClick={() =>
                   void act(
                     confirmation,
-                    confirmation === 'reject' ? step?.id : undefined,
+                    confirmation === 'retry'
+                      ? retryTarget
+                      : confirmation === 'reject'
+                        ? step?.id
+                        : undefined,
                   )
                 }
               >
                 Confirmar{' '}
-                {confirmation === 'cancel' ? 'cancelación' : 'rechazo'}
+                {confirmation === 'cancel'
+                  ? 'cancelación'
+                  : confirmation === 'retry'
+                    ? 'recuperación'
+                    : 'rechazo'}
               </button>
             </div>
           </section>

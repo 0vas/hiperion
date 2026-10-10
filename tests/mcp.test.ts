@@ -94,6 +94,17 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
         },
       });
       assert.equal(blocked.isError, true);
+      const waiting = client.callTool({
+        name: 'hyperion_wait',
+        arguments: { runId: run.id, afterRevision: 1, timeoutSeconds: 5 },
+      });
+      for (let i = 0; i < 100; i++) {
+        const response = await fetch(url + `/api/runs/${run.id}`, {
+          headers: { authorization: 'Bearer mcp-test-token' },
+        });
+        if ((await response.json()).agentWaiting) break;
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
       const approved = await fetch(url + `/api/runs/${run.id}/commands`, {
         method: 'POST',
         headers: {
@@ -108,10 +119,7 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
         }),
       });
       assert.equal(approved.status, 200);
-      const changed = await client.callTool({
-        name: 'hyperion_wait',
-        arguments: { runId: run.id, afterRevision: 1, timeoutSeconds: 1 },
-      });
+      const changed = await waiting;
       assert.equal(
         JSON.parse((changed.content as { text: string }[])[0]!.text).revision,
         2,

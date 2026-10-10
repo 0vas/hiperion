@@ -18,6 +18,9 @@ if (args[0] === '--agent') {
   args.splice(0, 2);
 }
 process.env.HYPERION_DATA_DIR ||= defaultDirectory();
+const attemptIndex = args.indexOf('--attempt');
+const attempt = attemptIndex >= 0 ? Number(args[attemptIndex + 1]) : undefined;
+if (attemptIndex >= 0) args.splice(attemptIndex, 2);
 const [operation, first, second, ...rest] = args;
 const help = `Hyperion — cooperative workflow adapter
   install [skills-directory]  # portable skill, no vendor CLI or MCP required
@@ -30,11 +33,21 @@ const help = `Hyperion — cooperative workflow adapter
   list
   get <run-id>
   start|complete|fail|log|retry <run-id> <step-id> [message]
+  complete|fail|log <run-id> <step-id> --attempt NUMBER [message]
   wait <run-id> [after-revision] [timeout-seconds, max 55]
 
 Human approvals and manual input belong in the web interface.
 Set HYPERION_URL and HYPERION_DATA_DIR to target another local instance.`;
 try {
+  if (
+    attemptIndex >= 0 &&
+    (!Number.isInteger(attempt) ||
+      attempt! < 1 ||
+      !['complete', 'fail', 'log'].includes(operation || ''))
+  )
+    throw new Error(
+      '--attempt requires a positive execution attempt for complete/fail/log',
+    );
   if (!operation || operation === '--help') console.log(help);
   else if (operation === 'install' || (operation === 'setup' && first)) {
     const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -127,6 +140,7 @@ try {
         first,
         commandSchema.parse({
           type: operation,
+          ...(attempt !== undefined ? { attempt } : {}),
           stepId: second,
           message: rest.join(' ') || undefined,
         }),

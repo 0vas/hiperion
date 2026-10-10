@@ -77,7 +77,7 @@ server.registerTool(
   'hyperion_step',
   {
     description:
-      'Start a ready agent step or report real progress/results. complete, fail and log require evidence in message. Supply declared output values when completing tasks. For log use trace.kind summary (public decision summary), action or observation, optionally trace.tool. Never request private chain-of-thought. Human decisions are deliberately unavailable.',
+      'Start a ready agent step or report real progress/results. complete, fail and log require evidence in message. Supply declared output values when completing tasks. Send the attempt returned by start with every complete/fail/log; required after a retry. Recovery invalidates old attempts but cannot cancel external tools; inspect their effects before repeating work. For log use trace.kind summary (public decision summary), action or observation, optionally trace.tool. Never request private chain-of-thought. Human decisions are deliberately unavailable.',
     inputSchema: {
       runId: z.string().uuid(),
       stepId: z.string(),
@@ -85,10 +85,11 @@ server.registerTool(
       message: z.string().max(8000).optional(),
       outputs: outputValuesSchema.optional(),
       trace: traceSchema.optional(),
+      attempt: z.number().int().positive().optional(),
       commandId: z.string().min(1).max(128),
     },
   },
-  ({ runId, stepId, action, message, commandId, outputs, trace }) =>
+  ({ runId, stepId, action, message, commandId, outputs, trace, attempt }) =>
     safe(() =>
       client.command(runId, {
         type: action,
@@ -97,6 +98,7 @@ server.registerTool(
         commandId,
         outputs,
         trace,
+        attempt,
       }),
     ),
 );
@@ -128,7 +130,7 @@ server.registerTool(
   'hyperion_wait',
   {
     description:
-      'Wait up to 55 seconds for a revision change. A timeout does not mean approval. Resume only according to returned state.',
+      'Subscribe for up to 55 seconds. A human confirmation or retry delivers the new state immediately without polling. Continue ready work in this turn, without requesting another chat message. A timeout does not mean approval. Resume only according to returned state.',
     inputSchema: {
       runId: z.string().uuid(),
       afterRevision: z.number().int().nonnegative(),

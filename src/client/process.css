@@ -491,3 +491,12 @@
 .canvas-app .step-detail .step-hint button.secondary:hover {
   background: var(--node-surface);
 }
+
+.canvas-app .step-detail button.recovery-button,
+.canvas-app .recovery-confirm button.secondary {
+  background: var(--stone);
+  color: var(--ink);
+  border-color: var(--line);
+  min-height: 44px;
+  transition: none;
+}

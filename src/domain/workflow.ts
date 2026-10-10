@@ -82,6 +82,7 @@ export const commandSchema = z
     message: z.string().trim().max(8000).optional(),
     outputs: outputValuesSchema.optional(),
     trace: traceSchema.optional(),
+    attempt: z.number().int().positive().optional(),
     expectedRevision: z.number().int().nonnegative().optional(),
     commandId: z.string().min(1).max(128).optional(),
   })
@@ -130,6 +131,9 @@ export type PlanChange = {
   changed: string[];
 };
 export type Run = {
+  /** Live transport presence; never persisted as workflow state. */
+  agentWaiting?: boolean;
+  agentPresenceAt?: number;
   planChanges?: PlanChange[];
   context?: Plan['context'];
   jobs?: Plan['jobs'];
@@ -260,6 +264,12 @@ export function transition(
 ): Run {
   const command = commandSchema.parse(input);
   const { type, stepId } = command;
+  requireCondition(
+    command.attempt === undefined || ['complete', 'fail', 'log'].includes(type),
+    'INVALID_COMMAND',
+    'Attempt belongs to an execution result',
+    400,
+  );
   let message = command.message || '';
   requireCondition(
     !command.plan || type === 'revise',
@@ -414,6 +424,12 @@ export function transition(
           'NOT_RUNNING',
           'Step must be running',
         );
+        requireCondition(
+          command.attempt === step.attempt ||
+            (command.attempt === undefined && step.attempt === 1),
+          'STALE_ATTEMPT',
+          'Send the attempt returned by start; an earlier attempt cannot update this task',
+        );
         if (type === 'complete')
           step.outputValues = validateOutputs(step, command.outputs);
         if (type !== 'log') {
@@ -444,10 +460,14 @@ export function transition(
         break;
       case 'retry':
         requireCondition(
-          step.status === 'failed',
-          'NOT_FAILED',
-          'Only a failed step can be retried',
+          ['failed', 'ready', 'running'].includes(step.status),
+          'NOT_RETRYABLE',
+          'Only a failed, ready or running agent step can be retried',
         );
+        message ||=
+          step.status === 'running'
+            ? `Recuperación solicitada. Intento ${step.attempt} invalidado; revisar acciones externas antes de repetirlas.`
+            : 'Se solicitó al agente retomar esta tarea.';
         step.status = 'blocked';
         delete step.result;
         delete step.outputValues;
