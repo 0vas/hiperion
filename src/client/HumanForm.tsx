@@ -122,7 +122,8 @@ export function HumanForm({
           </p>
         ) : (
           <p className="decision-return">
-            Después de guardar, vuelve al chat para continuar.
+            Al guardar, habilitas el siguiente paso. Si el chat terminó su
+            turno, envíale la continuación.
           </p>
         )}
         {!manual && (
