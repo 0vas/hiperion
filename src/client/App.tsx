@@ -1581,8 +1581,9 @@ export function App() {
                           <div className="step-hint">
                             <Bot size={17} />
                             <p>
-                              Tu respuesta está guardada. Si tu chat terminó su
-                              turno, necesita un nuevo mensaje para continuar.
+                              Este paso está listo. Si tu chat terminó su turno,
+                              envía la continuación para que el agente lo
+                              retome.
                               <button
                                 className="secondary"
                                 onClick={copyPrompt}
