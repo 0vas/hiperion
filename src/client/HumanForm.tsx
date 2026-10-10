@@ -1,4 +1,5 @@
 import { Check, LoaderCircle } from 'lucide-react';
+import type { ContinuationState } from '../domain/continuation';
 import type { Step } from '../domain/workflow';
 import { DecisionFields } from './DecisionFields';
 import { fieldError } from './decision-form';
@@ -11,6 +12,7 @@ export function HumanForm({
   busy,
   online,
   agentWaiting,
+  continuation,
   onSubmit,
   onReject,
 }: {
@@ -22,6 +24,7 @@ export function HumanForm({
   busy: boolean;
   online: boolean;
   agentWaiting: boolean;
+  continuation?: ContinuationState;
   onSubmit: () => void;
   onReject: () => void;
 }) {
@@ -124,9 +127,11 @@ export function HumanForm({
           </p>
         ) : (
           <p className="decision-return">
-            {agentWaiting
-              ? 'Agente conectado. Al confirmar, recibirá tu respuesta para continuar.'
-              : 'No hay un agente esperando. Tu respuesta se guardará; si el chat terminó su turno, envíale la continuación.'}
+            {continuation?.status === 'waiting'
+              ? 'Pausa guardada. Tu respuesta se enviará al conector para continuar.'
+              : agentWaiting
+                ? 'Agente conectado. Al confirmar, recibirá tu respuesta para continuar.'
+                : 'No hay un agente esperando. Tu respuesta se guardará; si el chat terminó su turno, envíale la continuación.'}
           </p>
         )}
         {!manual && (

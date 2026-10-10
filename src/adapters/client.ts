@@ -1,3 +1,9 @@
+import type {
+  Suspension,
+  Settlement,
+  Delivery,
+  ContinuationState,
+} from '../domain/continuation.js';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { Run, Command } from '../domain/workflow.js';
@@ -91,6 +97,28 @@ export class HyperionClient {
       ...command,
       commandId: command.commandId || crypto.randomUUID(),
     });
+  }
+  suspend(id: string, suspension: Suspension) {
+    return this.request<Run>(
+      `/api/runs/${encodeURIComponent(id)}/suspend`,
+      suspension,
+    );
+  }
+  pendingContinuations(connectorId: string) {
+    return this.request<Delivery[]>('/api/continuations/pending', {
+      connectorId,
+    });
+  }
+  claimContinuation(connectorId: string) {
+    return this.request<Delivery | null>('/api/continuations/claim', {
+      connectorId,
+    });
+  }
+  settleContinuation(id: string, settlement: Settlement) {
+    return this.request<ContinuationState>(
+      `/api/continuations/${encodeURIComponent(id)}/settle`,
+      settlement,
+    );
   }
   async wait(id: string, afterRevision: number, timeoutSeconds = 30) {
     if (

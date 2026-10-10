@@ -25,6 +25,12 @@ export function handoff(run: Run) {
       instruction:
         'Continue your active work or reconcile the running execution. Do not start a duplicate attempt.',
     };
+  if (run.continuation?.status === 'waiting')
+    return {
+      action: 'suspended',
+      instruction:
+        'The durable connector owns resumption. Show the canvas URL and end this turn. Do not keep a model waiting or ask for another chat message. Delivery is not execution.',
+    };
   if (run.steps.some((s) => s.status === 'waiting'))
     return {
       action: 'wait',

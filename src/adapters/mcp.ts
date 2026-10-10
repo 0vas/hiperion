@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { suspendSchema } from '../domain/continuation.js';
 import { VERSION } from '../version.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -14,7 +15,7 @@ const server = new McpServer(
   { name: 'hyperion', version: VERSION },
   {
     instructions:
-      'Turn the given request into a specific plan, preserve the original text in plan.request, and show the returned URL. Do not require the human to write JSON or reuse a canned demo. Start only ready agent steps, execute actual work, then report evidence. Human input and approvals must happen in the Hyperion UI. After showing the canvas URL in a progress message, use hyperion_wait to receive human decisions before ending your turn. On a changed revision, continue ready work in the same turn. If you end your turn, explain that an idle chat needs the canvas continuation message. For known choices use string output form.options [{value,label}], never a free-text list. Never impersonate the human or bypass a blocked step. This server does not execute the work for you.',
+      'Turn the given request into a specific plan, preserve the original text in plan.request, and show the returned URL. Do not require the human to write JSON or reuse a canned demo. Start only ready agent steps, execute actual work, then report evidence. Human input and approvals must happen in the Hyperion UI. If an installed resumable connector supplies its session reference, use hyperion_suspend and end the turn. Otherwise, after showing the canvas URL in a progress message, use hyperion_wait to receive human decisions before ending your turn. On a changed revision, continue ready work in the same turn. If you end your turn, explain that an idle chat needs the canvas continuation message. For known choices use string output form.options [{value,label}], never a free-text list. Never impersonate the human or bypass a blocked step. This server does not execute the work for you.',
   },
 );
 const output = (value: unknown) => ({
@@ -150,5 +151,14 @@ server.registerTool(
   },
   ({ runId, afterRevision, timeoutSeconds }) =>
     safe(() => client.wait(runId, afterRevision, timeoutSeconds)),
+);
+server.registerTool(
+  'hyperion_suspend',
+  {
+    description:
+      'Persist a human-input checkpoint and end this turn ONLY when your installed connector can resume this exact session with idempotent delivery. Supply its real ID, session reference and scope. Never invent a connector or session. A saved answer enqueues one delivery; the connector starts a new turn. Without a connector use hyperion_wait. Does not pause the workflow or approve a decision.',
+    inputSchema: { runId: z.string().uuid(), ...suspendSchema.shape },
+  },
+  ({ runId, ...data }) => safe(() => client.suspend(runId, data)),
 );
 await server.connect(new StdioServerTransport());

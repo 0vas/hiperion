@@ -29,7 +29,7 @@ Esta vista describe los componentes implementados y sus relaciones. El formato d
 4. El usuario responde o aprueba desde el canvas.
 5. El agente lee el cambio, retoma el trabajo y registra el resultado.
 
-El servicio no lanza un agente en segundo plano. La actualización en vivo del canvas y la continuidad de una conversación son capacidades diferentes.
+El servicio no lanza un agente por sí solo. El núcleo 0.5 añade una cola persistente y un worker de IO que delega en un conector instalado; los conectores nativos de reanudación siguen pendientes. Consulta [Pausa y reanudación](../guia/reanudacion.md). La actualización en vivo del canvas y la continuidad de una conversación son capacidades diferentes.
 
 ## Datos y evolución
 

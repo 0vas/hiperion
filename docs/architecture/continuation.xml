@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model xmlns="http://www.opengroup.org/xsd/archimate/3.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" identifier="hyperion-continuation-v05" version="0.5">
+<name>Hyperion — reanudación independiente del harness</name>
+<documentation>Vista lógica ArchiMate 3.2. Cinco componentes de Hyperion y un conector externo a implementar por el integrador. Relaciones Flow; layout en continuation.svg. El conector de proveedor no está incluido ni certificado en este incremento.</documentation>
+<elements>
+<element identifier="C1" xsi:type="ApplicationComponent"><name>Canvas</name><documentation>Respuesta humana · estado SSE</documentation></element>
+<element identifier="C2" xsi:type="ApplicationComponent"><name>API local</name><documentation>Roles · revisión · validación</documentation></element>
+<element identifier="C3" xsi:type="ApplicationComponent"><name>Store + motor</name><documentation>Snapshot y recibo atómicos</documentation></element>
+<element identifier="C4" xsi:type="ApplicationComponent"><name>Cola de reanudación</name><documentation>Binding · entrega · lease · SQLite</documentation></element>
+<element identifier="C5" xsi:type="ApplicationComponent"><name>Worker genérico</name><documentation>IO local · sin espera del modelo</documentation></element>
+<element identifier="C6" xsi:type="ApplicationComponent"><name>Conector de harness</name><documentation>Implementado por el integrador</documentation></element>
+</elements>
+<relationships>
+<relationship identifier="F1" source="C1" target="C2" xsi:type="Flow"><name>Decisión</name></relationship>
+<relationship identifier="F2" source="C2" target="C3" xsi:type="Flow"><name>Comando</name></relationship>
+<relationship identifier="F3" source="C3" target="C4" xsi:type="Flow"><name>Encola en transacción</name></relationship>
+<relationship identifier="F4" source="C4" target="C5" xsi:type="Flow"><name>Entrega con lease</name></relationship>
+<relationship identifier="F5" source="C5" target="C6" xsi:type="Flow"><name>Retomar sesión</name></relationship>
+<relationship identifier="F6" source="C6" target="C2" xsi:type="Flow"><name>Plan y resultados</name></relationship>
+<relationship identifier="F7" source="C6" target="C5" xsi:type="Flow"><name>Acuse / reconciliación</name></relationship>
+<relationship identifier="F8" source="C5" target="C4" xsi:type="Flow"><name>Confirmar entrega</name></relationship>
+</relationships>
+</model>

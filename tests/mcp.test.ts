@@ -8,7 +8,14 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { createApp } from '../src/server/app.js';
 import { Store } from '../src/server/store.js';
 
-for (const coordinator of ['codex', 'claude', 'cursor'])
+for (const coordinator of [
+  'codex',
+  'chatgpt',
+  'claude',
+  'claude-code',
+  'cursor',
+  'hermes',
+])
   test(`MCP stdio respects human gates with ${coordinator} identity`, async () => {
     const dir = mkdtempSync(join(tmpdir(), 'hyperion-mcp-'));
     const store = new Store(':memory:');
@@ -48,7 +55,8 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
     try {
       await client.connect(transport);
       const tools = await client.listTools();
-      assert.equal(tools.tools.length, 7);
+      assert.equal(tools.tools.length, 8);
+      assert.ok(tools.tools.some((t) => t.name === 'hyperion_suspend'));
       assert.ok(!tools.tools.some((t) => /approve|submit/.test(t.name)));
       const created = await client.callTool({
         name: 'hyperion_create_run',

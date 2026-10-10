@@ -1,3 +1,4 @@
+import { continuationLabel } from './continuation-label';
 import { PlanChanges } from './PlanChanges';
 import { contextForStep, routeLabel } from '../domain/context';
 import { HarnessIcon } from './HarnessIcon';
@@ -1357,7 +1358,30 @@ export function App() {
                     <ArrowUpRight size={16} />
                   </button>
                 )}
-                {live && !waiting && ready > 0 && (
+                {live && !waiting && ready > 0 && run.continuation && (
+                  <button
+                    className="canvas-next"
+                    onClick={() =>
+                      selectStep(
+                        run.steps.find(
+                          (s) => s.kind === 'agent' && s.status === 'ready',
+                        )!.id,
+                      )
+                    }
+                  >
+                    <HarnessIcon name={run.coordinator} />
+                    <span>
+                      <strong>{continuationLabel(run.continuation)}</strong>
+                      {run.continuation.status === 'uncertain'
+                        ? 'El conector debe verificar si inició el turno'
+                        : run.continuation.status === 'failed'
+                          ? 'Abre la tarea para reintentar'
+                          : 'Ver estado de la tarea'}
+                    </span>
+                    <ArrowUpRight size={16} />
+                  </button>
+                )}
+                {live && !waiting && ready > 0 && !run.continuation && (
                   <button className="canvas-next" onClick={copyPrompt}>
                     <HarnessIcon name={run.coordinator} />
                     <span>
@@ -1502,6 +1526,7 @@ export function App() {
                           busy={busy}
                           online={online}
                           agentWaiting={!!run.agentWaiting}
+                          continuation={run.continuation}
                           onSubmit={() =>
                             void act(
                               step.kind === 'manual' ? 'submit' : 'approve',

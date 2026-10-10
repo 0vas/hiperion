@@ -1,5 +1,7 @@
 # Hyperion
 
+[Reanudación agnóstica: contrato y alcance por herramienta](docs/continuacion-agnostica.md). El núcleo 0.5 guarda pausas y solicitudes de continuación; los conectores nativos para reactivar chats todavía deben integrarse.
+
 **Human-guided workflows for any AI tool.** Turn a conversation into a visible plan: see what your agent is doing, supply information, review evidence, and decide when it can continue.
 
 Hyperion is an independent, MIT-licensed module. It can accompany Codex or another compatible agent through HTTP, a CLI, or MCP. It has no dependency on Olimpo and does not require an AI API key.

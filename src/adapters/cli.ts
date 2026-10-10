@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import {
+  runContinuationWorker,
+  type ResumeConnector,
+} from './continuation-worker.js';
+import { suspendSchema } from '../domain/continuation.js';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { openPresentation, rememberWorkspace } from './desktop.js';
 import { ensureServer } from './bootstrap.js';
@@ -31,6 +36,8 @@ const help = `Hyperion — cooperative workflow adapter
   setup <codex|claude|cursor>  # configure the client; local server starts on demand
   connect <client-id>  # codex, claude, cursor, or your own ID
   guide <plan.json> [idempotency-key] # stream URL and keep waiting for canvas input
+  suspend <run-id> <connector.json> # persist checkpoint for a real resumable connector
+  bridge <trusted-connector.mjs> # run an installed connector; no LLM during human input
   follow <run-id>             # keep the host tool open until work is ready
   create <plan.json> [idempotency-key] # nonblocking API-style result
   command <run-id> <command.json>  # typed outputs or structured traces
@@ -78,6 +85,8 @@ try {
   else {
     if (
       ![
+        'suspend',
+        'bridge',
         'up',
         'open',
         'list',
@@ -107,7 +116,40 @@ try {
       directory: process.env.HYPERION_DATA_DIR!,
     });
     let result: unknown;
-    if (operation === 'up') result = { ...startup, url: client.url };
+    if (operation === 'bridge' && first) {
+      const connector = (await import(pathToFileURL(resolve(first)).href))
+        .default as ResumeConnector;
+      if (
+        !connector ||
+        typeof connector.id !== 'string' ||
+        typeof connector.resume !== 'function'
+      )
+        throw new Error(
+          'Connector must export default {id, resume, reconcile?}',
+        );
+      const abort = new AbortController();
+      const stop = () => abort.abort();
+      process.once('SIGINT', stop);
+      process.once('SIGTERM', stop);
+      try {
+        await runContinuationWorker(client, connector, {
+          signal: abort.signal,
+          onError: () =>
+            console.error(
+              'Continuation delivery unresolved; inspect the connector receipt before retrying.',
+            ),
+        });
+      } finally {
+        process.removeListener('SIGINT', stop);
+        process.removeListener('SIGTERM', stop);
+      }
+      result = { stopped: true };
+    } else if (operation === 'suspend' && first && second)
+      result = await client.suspend(
+        first,
+        suspendSchema.parse(JSON.parse(readFileSync(second, 'utf8'))),
+      );
+    else if (operation === 'up') result = { ...startup, url: client.url };
     else if (
       operation === 'open' &&
       first &&

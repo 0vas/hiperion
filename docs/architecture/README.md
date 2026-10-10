@@ -1,6 +1,8 @@
 # Hyperion — contexto y propuesta de arquitectura
 
-Estado: arquitectura de referencia y evolución hasta el incremento 0.4. Propuesta original: 2026-10-07, America/Lima.
+Estado: arquitectura de referencia y evolución hasta el incremento 0.5. Propuesta original: 2026-10-07, America/Lima.
+
+El núcleo 0.5 incorpora [pausa persistente independiente del harness](../continuacion-agnostica.md), con [vista ArchiMate](continuation.svg) y [modelo de intercambio](continuation.xml). Los conectores nativos de reanudación siguen pendientes.
 
 El usuario autorizó posteriormente iniciar la implementación en el repositorio y probarla con Codex. El [ADR 0001](../decisions/0001-functional-increment.md) concreta ese incremento; el [protocolo](../protocol.md) describe su comportamiento implementado.
 Nombre del producto: Hyperion. Nombre actual del repositorio: `hiperion`.

@@ -27,6 +27,7 @@ export default defineConfig({
           { text: 'Tu primer flujo', link: '/guia/primeros-pasos' },
           { text: 'Usar el canvas', link: '/guia/usar-el-flujo' },
           { text: 'Conectar tu IA', link: '/guia/integraciones' },
+          { text: 'Pausa y reanudación', link: '/guia/reanudacion' },
         ],
       },
       {

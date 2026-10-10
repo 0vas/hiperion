@@ -1,3 +1,4 @@
+import { ContinuationQueue } from './continuations.js';
 import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
@@ -16,12 +17,18 @@ const keySchema = z.string().min(1).max(128);
 /** One transaction covers the snapshot and its idempotent command receipt. */
 export class Store {
   private db: DatabaseSync;
-  constructor(path: string) {
+  readonly continuations: ContinuationQueue;
+  constructor(path: string, options: { now?: () => number } = {}) {
     this.db = new DatabaseSync(path);
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;
       CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY, snapshot TEXT NOT NULL, created_at TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS receipts (scope TEXT NOT NULL, key TEXT NOT NULL, fingerprint TEXT NOT NULL, response TEXT NOT NULL, PRIMARY KEY(scope,key));
-      PRAGMA user_version=1;`);
+      PRAGMA user_version=2;`);
+    this.continuations = new ContinuationQueue(
+      this.db,
+      (id) => this.get(id),
+      options.now,
+    );
   }
   private transact(
     scope: string,
@@ -60,6 +67,8 @@ export class Store {
           'INSERT INTO receipts(scope,key,fingerprint,response) VALUES(?,?,?,?)',
         )
         .run(scope, key, fingerprint, data);
+      const command = (payload as { command?: { type: string } }).command;
+      this.continuations.onRunChanged(run, command?.type);
       this.db.exec('COMMIT');
       return run;
     } catch (error) {

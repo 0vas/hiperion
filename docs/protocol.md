@@ -1,5 +1,7 @@
 # Hyperion protocol v0.4.2
 
+La pausa persistente y el alcance por herramienta se explican en [Reanudación agnóstica](https://github.com/0vas/hiperion/blob/main/docs/continuacion-agnostica.md). La conexión MCP local y la reanudación de un chat cerrado son capacidades distintas.
+
 All requests use the loopback HTTP origin. JSON is validated strictly; unknown fields are rejected. Limits: 100 steps per plan, 128 KiB per request, 8,000 characters per result/log message. Plans are acyclic and contain unique step IDs. Executed/presented steps are immutable; future work can be revised through the guarded command below. Task ports use bounded lists of up to 30 fields.
 
 Version 0.2 preserves legacy DAG plans and adds the optional `bpmn-lite` profile. See the [process contract](process-contract.md) for structured gateways, typed data and public traces.

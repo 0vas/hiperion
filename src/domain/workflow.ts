@@ -1,3 +1,4 @@
+import type { ContinuationState } from './continuation.js';
 import { z } from 'zod';
 import type { AvailableContext } from './context.js';
 import { validateJobs } from './jobs.js';
@@ -132,6 +133,7 @@ export type PlanChange = {
 };
 export type Run = {
   /** Live transport presence; never persisted as workflow state. */
+  continuation?: ContinuationState;
   agentWaiting?: boolean;
   agentPresenceAt?: number;
   planChanges?: PlanChange[];
