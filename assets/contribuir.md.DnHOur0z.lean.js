@@ -1,0 +1,1 @@
+import{_t as e,it as t,n,rt as r}from"./chunks/framework.BzA9dy5I.js";var i=JSON.parse(`{"title":"Contribuir","description":"","frontmatter":{},"headers":[],"relativePath":"contribuir.md","filePath":"contribuir.md"}`),a={name:`contribuir.md`};function o(n,i,a,o,s,c){return e(),r(`div`,null,[...i[0]||=[t("",16)]])}var s=n(a,[[`render`,o]]);export{i as __pageData,s as default};

@@ -1,0 +1,1 @@
+var e=`/hiperion/assets/implemented.DkZStEw5.svg`;export{e as t};
