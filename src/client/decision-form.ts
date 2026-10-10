@@ -1,5 +1,5 @@
 import type { Step } from '../domain/workflow';
-import { matchesType } from '../domain/value-types';
+import { matchesPort } from '../domain/value-types';
 export type FormPort = NonNullable<Step['outputs']>[number];
 export function fieldLabel(port: FormPort) {
   return (
@@ -18,15 +18,16 @@ export function parseField(port: FormPort, value: string): unknown {
 export function fieldError(port: FormPort, value: string): string | undefined {
   if (!value.trim())
     return port.required
-      ? port.type === 'boolean'
+      ? port.type === 'boolean' || port.form?.options
         ? 'Elige una opción.'
         : 'Completa este campo.'
       : undefined;
   try {
-    if (matchesType(port.type, parseField(port, value))) return;
+    if (matchesPort(port, parseField(port, value))) return;
   } catch {
     /* Present a field-specific message below. */
   }
+  if (port.form?.options) return 'Elige una de las opciones disponibles.';
   return port.type === 'number'
     ? 'Escribe un número válido.'
     : port.type === 'boolean'

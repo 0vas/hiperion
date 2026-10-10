@@ -12,7 +12,7 @@ const server = new McpServer(
   { name: 'hyperion', version: VERSION },
   {
     instructions:
-      'Turn the given request into a specific plan, preserve the original text in plan.request, and show the returned URL. Do not require the human to write JSON or reuse a canned demo. Start only ready agent steps, execute actual work, then report evidence. Human input and approvals must happen in the Hyperion UI. Use get/wait to read decisions. Never impersonate the human or bypass a blocked step. This server does not execute the work for you.',
+      'Turn the given request into a specific plan, preserve the original text in plan.request, and show the returned URL. Do not require the human to write JSON or reuse a canned demo. Start only ready agent steps, execute actual work, then report evidence. Human input and approvals must happen in the Hyperion UI. After showing the canvas URL in a progress message, use hyperion_wait to receive human decisions before ending your turn. On a changed revision, continue ready work in the same turn. If you end your turn, explain that an idle chat needs the canvas continuation message. For known choices use string output form.options [{value,label}], never a free-text list. Never impersonate the human or bypass a blocked step. This server does not execute the work for you.',
   },
 );
 const output = (value: unknown) => ({

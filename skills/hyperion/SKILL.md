@@ -30,7 +30,7 @@ Always preserve the original text in `plan.request`. Prefer `bpmn-lite` for proc
 
 Group a multi-stage activity with `jobs: [{id, title, description?}]` and assign steps using `jobId`. Each step is independently executable with its own evidence and I/O; a job only summarizes them. Keep each job contiguous in the dependency graph (no reentry after leaving it). Group internal gateways with their job when needed. The canvas can show jobs or their steps.
 
-For human steps, declare `interaction: {question, context, next}`: the exact decision, why it matters, and what follows. Use clear output descriptions as field labels. Prefer simple booleans, text or numbers for nontechnical users; do not make them author JSON. Typed fields are the response: do not ask for the same information again in free text. Do not add artificial approvals or choices unrelated to the request.
+For human steps, declare `interaction: {question, context, next}`: the exact decision, why it matters, and what follows. Use clear output descriptions as field labels. For known choices, declare a string output with `form.options: [{value, label}]` so the canvas renders a dropdown without a preselected answer. Use booleans for yes/no and free text only for open answers. Prefer simple fields for nontechnical users; do not make them author JSON. Typed fields are the response: do not ask for the same information again in free text. Do not add artificial approvals or choices unrelated to the request.
 
 ## Start without prior context
 
@@ -46,7 +46,7 @@ Use `get RUN_ID` to read current state and decisions. For an existing run use it
 
 Logs may contain public summaries, actions and observations. Do not expose or request private chain-of-thought. Hyperion only displays the events you submit; it does not intercept your tools. Parallel gates make work eligible together; report simultaneous execution only when it actually happened.
 
-Manual responses and approvals happen in the canvas. Never submit or approve for the person. Provide the URL and the waiting step, then yield or use `wait RUN_ID REVISION 30` for a bounded wait. A timeout is not approval. Continue after a new user message or actual state change; do not promise background wakeups. Respect pause, cancellation, rejection and the user's explicit instructions.
+Manual responses and approvals happen in the canvas. Never submit or approve for the person. Provide the URL and waiting step in a progress message, then use `hyperion_wait` (MCP) or `wait RUN_ID REVISION 30` (CLI) while the person answers. When the revision changes, read the decision and continue ready work in this same turn; do not demand an extra chat message if you already received the answer. Waits are bounded: a timeout is neither approval nor a failure. If you end your turn before an answer arrives, explain that the person must send the canvas continuation in their chat. Never promise background wakeups; an idle host requires a new message. Respect pause, cancellation, rejection and the user's explicit instructions.
 
 If only “quiero usar Hyperion” is given without an activity, start the canvas and ask what activity they want to guide. Do not invent a task.
 

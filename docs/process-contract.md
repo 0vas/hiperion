@@ -202,3 +202,24 @@ Una ruta admite `label`, por ejemplo `"Continuar con el informe"`. Sin etiqueta,
 Un cambio explícito de alcance puede modificar el trabajo futuro dentro del mismo flujo mediante `revise`. Se valida el plan completo, se conserva lo ya ejecutado y se archivan ambas versiones. No se cambian compuertas resueltas ni decisiones ya presentadas; no puede haber trabajo en ejecución. El flujo queda pausado para revisión humana. Las reglas y campos están en [el protocolo](protocol.md#exceptional-plan-revision).
 
 En el canvas, las etiquetas booleanas genéricas se dibujan como check/cruz SVG. Mantienen «Sí» y «No» como nombres accesibles y ayudas; una cruz de decisión no representa un fallo. Las etiquetas específicas conservan su texto.
+
+### Opciones conocidas
+
+En una salida de tipo `string`, `form.options` define un desplegable sin respuesta preseleccionada. El dominio rechaza valores fuera de la lista, también por API. Admite de 1 a 100 opciones con valores únicos y etiquetas de hasta 160 caracteres. En campos opcionales puede quitarse la elección.
+
+```json
+{
+  "name": "product",
+  "type": "string",
+  "required": true,
+  "form": {
+    "label": "Producto",
+    "options": [
+      { "value": "idea", "label": "IntelliJ IDEA" },
+      { "value": "pycharm", "label": "PyCharm" }
+    ]
+  }
+}
+```
+
+Usa opciones cuando el conjunto es conocido, booleanos para Sí/No y texto para respuestas abiertas. Si hace falta «Otro», decláralo y añade un campo de detalle opcional. Los planes existentes conservan sus campos originales; no se infieren opciones interpretando descripciones.

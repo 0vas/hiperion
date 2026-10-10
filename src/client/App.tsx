@@ -959,7 +959,7 @@ export function App() {
           updated.status === 'completed'
             ? 'Elección guardada. El proceso terminó.'
             : updated.steps.some((s) => s.status === 'ready')
-              ? 'Elección guardada. El siguiente paso espera al agente. Copia la continuación y envíala en tu chat.'
+              ? 'Elección guardada. Si el agente ya terminó su turno, usa «Copiar continuación» y envíala en tu chat.'
               : 'Elección guardada. Sigue el estado de la siguiente tarea en el canvas.',
         );
       if (type === 'retry')
@@ -1581,7 +1581,8 @@ export function App() {
                           <div className="step-hint">
                             <Bot size={17} />
                             <p>
-                              El agente aún no ha retomado este paso.
+                              Tu respuesta está guardada. Si tu chat terminó su
+                              turno, necesita un nuevo mensaje para continuar.
                               <button
                                 className="secondary"
                                 onClick={copyPrompt}

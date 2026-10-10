@@ -189,7 +189,7 @@
   width: 1px;
   height: 1px;
 }
-.canvas-app .human-action :is(textarea, input[type='number']) {
+.canvas-app .human-action :is(textarea, input[type='number'], select) {
   background: var(--stone);
   color: var(--ink);
   border: 1px solid var(--line);
@@ -476,4 +476,18 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font-size: 12px;
+}
+
+.canvas-app .step-detail .step-hint button.secondary {
+  color: var(--ink);
+  background: var(--stone);
+  border-color: var(--line);
+  font-size: 13px;
+  min-height: 44px;
+  margin-top: 10px;
+  transition: none;
+  display: flex;
+}
+.canvas-app .step-detail .step-hint button.secondary:hover {
+  background: var(--node-surface);
 }

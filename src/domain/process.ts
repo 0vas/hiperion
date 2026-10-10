@@ -1,3 +1,4 @@
+import { matchesPort } from './value-types.js';
 import { WorkflowError, type Plan, type Run, type Step } from './workflow.js';
 import { matchesType } from './contracts.js';
 const check = (ok: unknown, message: string): void => {
@@ -205,12 +206,12 @@ export function validateProcess(plan: Plan) {
       else if (p.contextKey) {
         const value = plan.context?.[p.contextKey];
         check(
-          value === undefined ? !p.required : matchesType(p.type, value),
+          value === undefined ? !p.required : matchesPort(p, value),
           `Invalid context input: ${s.id}.${p.name}`,
         );
       } else
         check(
-          p.value === undefined ? !p.required : matchesType(p.type, p.value),
+          p.value === undefined ? !p.required : matchesPort(p, p.value),
           `Invalid input literal: ${s.id}.${p.name}`,
         );
     }
@@ -237,7 +238,7 @@ export function resolveInputs(run: Run, step: Step) {
         ? run.context?.[p.contextKey]
         : p.value;
     if (value === undefined && !p.required) return [];
-    if (!matchesType(p.type, value))
+    if (!matchesPort(p, value))
       throw new WorkflowError(
         'INVALID_INPUT',
         `Missing or invalid input ${step.id}.${p.name}`,
@@ -264,7 +265,7 @@ export function validateOutputs(
     const present = Object.hasOwn(data, port.name);
     if (
       (port.required && !present) ||
-      (present && !matchesType(port.type, data[port.name]))
+      (present && !matchesPort(port, data[port.name]))
     )
       throw new WorkflowError(
         'INVALID_OUTPUT',

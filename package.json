@@ -60,7 +60,8 @@
     "docs/",
     "examples/",
     "LICENSE",
-    "SECURITY.md"
+    "SECURITY.md",
+    "!docs/site"
   ],
   "repository": {
     "type": "git",
@@ -82,7 +83,8 @@
       "skills/**/*",
       "docs/**/*",
       "SECURITY.md",
-      "examples/**/*"
+      "examples/**/*",
+      "!docs/site{,/**/*}"
     ],
     "artifactName": "Hyperion-${version}-${os}-${arch}.${ext}",
     "mac": {
