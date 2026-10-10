@@ -5,6 +5,8 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { openPresentation } from './desktop.js';
 import { HyperionClient } from './client.js';
+import { withHandoff } from './handoff.js';
+import type { Run } from '../domain/workflow.js';
 import { outputValuesSchema, traceSchema } from '../domain/contracts.js';
 import { planSchema } from '../domain/workflow.js';
 const client = new HyperionClient();
@@ -20,6 +22,14 @@ const output = (value: unknown) => ({
 });
 const safe = (action: () => Promise<unknown>) =>
   action()
+    .then((value) =>
+      value &&
+      typeof value === 'object' &&
+      'steps' in value &&
+      'revision' in value
+        ? withHandoff(value as Run)
+        : value,
+    )
     .then(output)
     .catch((error: unknown) => ({
       isError: true,

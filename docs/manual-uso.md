@@ -38,7 +38,7 @@ El agente construye el plan desde tu petición y utiliza contexto adicional solo
 
 1. Abre el enlace y observa el plan generado para tu objetivo.
 2. Si aparece **Tu turno**, responde la pregunta o decisión concreta. No todos los flujos necesitan una intervención humana.
-3. Si aparece **Espera al agente**, usa **Copiar continuación** y envía el texto en este chat. Es una limitación actual de la conexión con el chat, no una instrucción que debas incluir al pedir tu actividad.
+3. Mientras aparezca **Agente conectado**, confirma en el canvas: la integración devuelve tu respuesta al agente y este continúa en el mismo turno. Si el chat se cerró o la conexión se perdió, usa **Copiar continuación**; no repitas tus respuestas.
 4. Consulta el resultado y sus registros. Solo debe pedirse aprobación cuando corresponda a la actividad o tú la hayas solicitado.
 
 **Para probar un cambio de plan:** mientras quede trabajo pendiente, puedes escribir:
@@ -69,7 +69,7 @@ Si tienes varios flujos, pulsa «Copiar continuación» dentro del que quieres r
 
 **Si falta el público destinatario**, Hyperion puede preguntarte «¿Para quién es la guía?». Respondes en el canvas. Si el contexto ya lo aclara, no repite la pregunta.
 
-**Tú, aquí:** «Continúa mi flujo de Hyperion».
+**Tú, en el canvas:** guardas tu respuesta mientras el agente sigue conectado.
 
 **Codex:** recoge tu respuesta, redacta la guía y registra el resultado. Puedes leerlo y pedir ajustes en lenguaje natural.
 
@@ -103,7 +103,7 @@ La misma petición funciona en un harness que tenga Hyperion conectado. Hyperion
 
 En otra herramienta puedes pedir: «Conecta Hyperion y úsalo para [actividad]». Si aún no tiene acceso a Hyperion, necesitará que su integración esté habilitada; reconocer el nombre no instala una aplicación por sí solo. La [guía de conexión para integradores](conexion.md) contiene esa configuración, separada del uso diario.
 
-En esta versión, al guardar una decisión debes volver al chat para continuar. El canvas no despierta conversaciones cerradas ni ejecuta por sí mismo las herramientas de la IA.
+La integración actualizada mantiene la espera mientras respondes. El canvas no despierta conversaciones cerradas ni ejecuta por sí mismo las herramientas de la IA; si la conexión terminó, retoma con **Copiar continuación**.
 
 ## Leer los colores y las flechas
 
@@ -147,11 +147,11 @@ Los instaladores son **DMG para macOS** y **EXE para Windows**. Se generaron DMG
 - **Animación:** la corriente avanza por las rutas alcanzadas y llega hasta el punto de espera. Las rutas pendientes no se mueven. Funciona en horizontal y vertical, en split y escritorio; respeta el movimiento reducido.
 - **Tu respuesta:** responde la pregunta principal y pulsa **Guardar elección**. Si hay varias preguntas obligatorias, verás cuántas faltan. Sí y No son respuestas válidas; ninguna viene seleccionada.
 - **Ayuda y comentarios:** abre **Ver instrucciones** si necesitas contexto. Los campos **Opcionales** se despliegan al pulsarlos y conservan lo escrito al cerrarlos. Cada campo puede incluir una ayuda o un ejemplo; los errores se explican junto al dato. **Detalles del paso** reúne responsable, dependencias e historial.
-- **Reintentar:** aparece en la caja y el detalle de una tarea que falló. Conserva el error en el historial y habilita otro intento. Después pide al chat «Continúa mi flujo de Hyperion». El botón no ejecuta herramientas por su cuenta.
+- **Reintentar:** aparece en tareas pendientes o fallidas y avisa al agente que esté esperando. Conserva el historial y habilita otro intento. Para una tarea en curso, usa **Recuperar tarea**. El botón no ejecuta herramientas por su cuenta.
 
 ## Si aprobaste y el flujo está esperando
 
-**Espera al agente** significa que tu decisión se guardó y la siguiente tarea está habilitada. Pulsa **Copiar continuación**, vuelve al mismo chat y pega la petición. También puedes escribir «Continúa mi flujo de Hyperion». No necesitas comandos. En esta versión el canvas no puede despertar por sí solo un chat inactivo.
+**Espera al agente** significa que tu decisión se guardó y la siguiente tarea está habilitada. Si el agente sigue conectado, debe retomarla en su turno. Si la conexión terminó, pulsa **Copiar continuación**, vuelve al mismo chat y pega la petición. También puedes escribir «Continúa mi flujo de Hyperion». No necesitas comandos. En esta versión el canvas no puede despertar por sí solo un chat inactivo.
 
 **I/O** abre las entradas, salidas y el contexto anterior. Expande solo la fuente que necesitas consultar. **Logs** muestra registros reales del paso; selecciona **Todo el proceso** para ampliar la vista. Los iconos pulsan brevemente al recibir registros o valores nuevos. Si dejan de pulsar, no significa necesariamente un error: no han llegado datos nuevos. La interfaz no puede mostrar acciones que la herramienta de IA no haya registrado.
 
@@ -164,3 +164,9 @@ En una tarea de IA pendiente o fallida, pulsa **Reintentar** (icono de flecha ci
 El botón avisa al agente que esté esperando este flujo. Sin un agente esperando, la solicitud queda en el historial y puedes retomar desde el chat mediante **Copiar continuación**. Recuperar no cancela descargas ni otras herramientas externas: el agente comprueba lo que ya ocurrió antes de repetirlo.
 
 Esta capacidad corresponde al runtime 0.4.1 del repositorio; el instalador preview 0.4.0 publicado anteriormente no la incluye.
+
+## Probar la integración actualizada
+
+Desde un chat nuevo, pide **«Usa Hyperion para [tu actividad]»**. Si falta una decisión, el agente comparte el canvas y mantiene su herramienta esperando. Abre el enlace sin detener la ejecución del chat. Para una elección conocida debe aparecer un desplegable vacío, con opciones concretas y «Otro» o ayuda cuando corresponda. Al guardar, la respuesta se devuelve al agente y continúa la tarea; no necesitas avisarle otra vez.
+
+Esta espera adjunta corresponde al runtime **0.4.2** y a su skill actualizada. La distribución anterior y las integraciones que solo crean un plan por HTTP no incorporan ese ciclo. Una conversación ya cerrada no se reactiva retroactivamente. Los flujos anteriores conservan sus formularios y respuestas, incluso si fueron creados como texto libre.

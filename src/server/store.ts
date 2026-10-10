@@ -1,6 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
+import { validateHumanForms } from '../domain/human-forms.js';
 import {
   createRun,
   transition,
@@ -70,16 +71,27 @@ export class Store {
     if (actor.role !== 'agent')
       throw new WorkflowError('FORBIDDEN', 'An agent creates the plan', 403);
     const plan = planSchema.parse(input);
-    return this.transact('create', keySchema.parse(key), { plan, actor }, () =>
-      createRun(plan, actor.id),
+    return this.transact(
+      'create',
+      keySchema.parse(key),
+      { plan, actor },
+      () => {
+        validateHumanForms(plan);
+        return createRun(plan, actor.id);
+      },
     );
   }
   command(id: string, input: unknown, actor: Principal): Run {
     const command = commandSchema.parse(input);
     const key = keySchema.parse(command.commandId);
-    return this.transact(id, key, { command, actor }, () =>
-      transition(this.get(id), command, actor),
-    );
+    return this.transact(id, key, { command, actor }, () => {
+      const current = this.get(id);
+      // Authorization and revision validation precede authoring feedback.
+      const updated = transition(current, command, actor);
+      if (command.type === 'revise' && command.plan)
+        validateHumanForms(command.plan, current);
+      return updated;
+    });
   }
   get(id: string): Run {
     const row = this.db.prepare('SELECT snapshot FROM runs WHERE id=?').get(id);

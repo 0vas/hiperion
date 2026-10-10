@@ -50,3 +50,9 @@ Puedes decir en el chat: «Desde esta fase, necesitamos añadir una revisión».
 - **Paralela (+):** habilita varios caminos y espera su reunión.
 
 Que dos tareas estén habilitadas no implica que se ejecuten simultáneamente: depende de las capacidades reales del agente.
+
+## Espera conectada desde el chat
+
+La skill del runtime **0.4.2** crea el flujo y mantiene la herramienta esperando mientras respondes. Abre el canvas desde el mensaje de progreso sin detener el chat. Cuando confirmas, el agente recibe tus datos y puede ejecutar el siguiente paso en ese mismo turno. Los desplegables necesitan opciones declaradas; ahora se rechazan nuevas listas de elección escritas como instrucciones de texto libre en el patrón detectado.
+
+Las integraciones MCP reciben la siguiente acción y los argumentos de espera en cada respuesta. Un host que termina su turno todavía necesita reconexión. El instalador preview anterior no incluye este cambio y los formularios ya creados se conservan.

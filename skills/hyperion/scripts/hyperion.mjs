@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { readFileSync, existsSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 let config;
 try {
   config = JSON.parse(
@@ -16,7 +16,12 @@ if (!existsSync(config.cli)) {
   );
   process.exit(1);
 }
-const result = spawnSync(config.node, [config.cli, ...process.argv.slice(2)], {
+// The portable skill is interactive: keep creation attached to human decisions,
+// including invocations from conversations that cached older skill instructions.
+const args = process.argv.slice(2);
+const operationIndex = args[0] === '--agent' ? 2 : 0;
+if (args[operationIndex] === 'create') args[operationIndex] = 'guide';
+const child = spawn(config.node, [config.cli, ...args], {
   stdio: 'inherit',
   shell: false,
   env: {
@@ -26,5 +31,12 @@ const result = spawnSync(config.node, [config.cli, ...process.argv.slice(2)], {
     HYPERION_URL: config.url,
   },
 });
-if (result.error) console.error(result.error.message);
-process.exit(result.status ?? 1);
+for (const signal of ['SIGINT', 'SIGTERM'])
+  process.on(signal, () => child.kill(signal));
+child.on('error', (error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});
+child.on('exit', (code, signal) => {
+  process.exitCode = code ?? (signal ? 1 : 0);
+});

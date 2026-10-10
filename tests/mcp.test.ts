@@ -72,6 +72,9 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
       const run = JSON.parse((created.content as { text: string }[])[0]!.text);
       assert.match(run.url, /\?run=/);
       assert.equal(run.coordinator, coordinator);
+      assert.equal(run.agentNext.action, 'wait');
+      assert.equal(run.agentNext.tool, 'hyperion_wait');
+      assert.equal(run.agentNext.arguments.runId, run.id);
       const presented = await client.callTool({
         name: 'hyperion_open',
         arguments: { runId: run.id, presentation: 'split' },
@@ -120,6 +123,11 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
       });
       assert.equal(approved.status, 200);
       const changed = await waiting;
+      assert.equal(
+        JSON.parse((changed.content as { text: string }[])[0]!.text).agentNext
+          .action,
+        'execute',
+      );
       assert.equal(
         JSON.parse((changed.content as { text: string }[])[0]!.text).revision,
         2,

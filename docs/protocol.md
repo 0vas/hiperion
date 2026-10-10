@@ -1,4 +1,4 @@
-# Hyperion protocol v0.4.1
+# Hyperion protocol v0.4.2
 
 All requests use the loopback HTTP origin. JSON is validated strictly; unknown fields are rejected. Limits: 100 steps per plan, 128 KiB per request, 8,000 characters per result/log message. Plans are acyclic and contain unique step IDs. Executed/presented steps are immutable; future work can be revised through the guarded command below. Task ports use bounded lists of up to 30 fields.
 
@@ -122,3 +122,13 @@ Read responses include ephemeral `agentWaiting` and `agentPresenceAt` fields for
 Each `start` returns the task's `attempt`. Send this number with `complete`, `fail` and `log`. After the first attempt it is required; missing or older attempts return `STALE_ATTEMPT`, so interrupted work cannot overwrite a recovery. CLI shorthand accepts `--attempt NUMBER`; JSON commands and MCP expose `attempt`. Do not replace an old attempt number with a current one to resubmit stale work.
 
 Runtime 0.4.1 requires its matching local service. Restart an older instance before reconnecting; retain its data directory. Previously released 0.4.0 installers do not include this endpoint.
+
+## Attached guided execution (0.4.2)
+
+The portable skill runs `guide PLAN KEY` (legacy skill `create` invocations map to it). It streams a JSON line containing `event: waiting`, the canvas URL and `agentNext`, then keeps the shell tool attached across 30-second event waits, up to ten minutes per invocation. The host should use a short initial shell yield, share the URL in a progress message, and poll the running tool. The final JSON line contains the current run, saved input and `agentNext`. The host executes eligible tasks; the adapter never performs or fabricates that work.
+
+Use `follow RUN_ID` when a later human decision becomes available or to renew an expired guided session. Pause, cancellation, completion, running work or ready agent tasks return control to the host immediately. Timeouts never authorize work. Killing the portable wrapper forwards the signal to its child so it cannot leave a false connected wait. This is an attached host tool, not a background executor or a mechanism for waking closed chats.
+
+Direct CLI `create` remains nonblocking for programmatic clients. CLI and MCP run responses include `agentNext` with the next action and, for human waits, the exact wait arguments. MCP hosts show the URL and call `hyperion_wait`, renewing normal timeouts in the same turn. This guidance is not a guarantee that an arbitrary host will follow it.
+
+New plan creation and revised forms reject `CHOICES_REQUIRE_OPTIONS` when a human string field lists options using an imperative comma-separated Spanish/English sentence (for example “Escribe A, B o C”) without `form.options`. Write/enter instructions additionally require a selection title. This is a bounded authoring guard, not general language understanding or a product catalog. It does not infer option values from prose, mutate existing plans or rewrite previous responses. Use structured options; “Otro” / “Necesito ayuda” may lead to an optional text field or a subsequent question.

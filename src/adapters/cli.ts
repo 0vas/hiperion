@@ -9,6 +9,8 @@ import { registerAgent } from '../server/config.js';
 import { installSkill, defaultDirectory } from './install.js';
 import { setupClient } from './setup.js';
 import { HyperionClient } from './client.js';
+import { followHumanInput, withHandoff } from './handoff.js';
+import type { Run } from '../domain/workflow.js';
 import { commandSchema } from '../domain/workflow.js';
 import { generateConnection } from './connections.js';
 const args = process.argv.slice(2);
@@ -28,7 +30,9 @@ const help = `Hyperion — cooperative workflow adapter
   up                         # start/reuse local Hyperion, return URL
   setup <codex|claude|cursor>  # configure the client; local server starts on demand
   connect <client-id>  # codex, claude, cursor, or your own ID
-  create <plan.json> [idempotency-key]
+  guide <plan.json> [idempotency-key] # stream URL and keep waiting for canvas input
+  follow <run-id>             # keep the host tool open until work is ready
+  create <plan.json> [idempotency-key] # nonblocking API-style result
   command <run-id> <command.json>  # typed outputs or structured traces
   list
   get <run-id>
@@ -78,6 +82,8 @@ try {
         'open',
         'list',
         'create',
+        'guide',
+        'follow',
         'command',
         'get',
         'wait',
@@ -113,16 +119,30 @@ try {
         second as 'split' | 'desktop',
       );
     } else if (operation === 'list') result = await client.list();
-    else if (operation === 'create' && first) {
+    else if (['create', 'guide'].includes(operation) && first) {
       const run = await client.create(
         JSON.parse(readFileSync(first, 'utf8')),
         second,
       );
-      result = { ...run, url: client.link(run) };
+      const current =
+        operation === 'guide'
+          ? await followHumanInput(client, run, (event) => {
+              console.log(JSON.stringify(event));
+            })
+          : run;
+      result = { ...withHandoff(current), url: client.link(current) };
     } else if (operation === 'command' && first && second)
       result = await client.command(
         first,
         commandSchema.parse(JSON.parse(readFileSync(second, 'utf8'))),
+      );
+    else if (operation === 'follow' && first)
+      result = await followHumanInput(
+        client,
+        await client.get(first),
+        (event) => {
+          console.log(JSON.stringify(event));
+        },
       );
     else if (operation === 'get' && first) result = await client.get(first);
     else if (operation === 'wait' && first)
@@ -146,7 +166,20 @@ try {
         }),
       );
     else throw new Error(help);
-    console.log(JSON.stringify(result, null, 2));
+    if (
+      result &&
+      typeof result === 'object' &&
+      'steps' in result &&
+      'revision' in result
+    )
+      result = withHandoff(result as Run);
+    console.log(
+      JSON.stringify(
+        result,
+        null,
+        ['guide', 'follow'].includes(operation) ? undefined : 2,
+      ),
+    );
   }
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
