@@ -10,3 +10,17 @@ export function matchesType(
     return value !== null && typeof value === 'object' && !Array.isArray(value);
   return typeof value === type && (type !== 'number' || Number.isFinite(value));
 }
+
+export function matchesPort(
+  port: {
+    type: z.infer<typeof valueType>;
+    form?: { options?: { value: string; label: string }[] };
+  },
+  value: unknown,
+): boolean {
+  return (
+    matchesType(port.type, value) &&
+    (!port.form?.options ||
+      port.form.options.some((option) => option.value === value))
+  );
+}

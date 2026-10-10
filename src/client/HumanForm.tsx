@@ -10,6 +10,7 @@ export function HumanForm({
   onValues,
   busy,
   online,
+  agentWaiting,
   onSubmit,
   onReject,
 }: {
@@ -20,6 +21,7 @@ export function HumanForm({
   onValues: (values: Record<string, string>) => void;
   busy: boolean;
   online: boolean;
+  agentWaiting: boolean;
   onSubmit: () => void;
   onReject: () => void;
 }) {
@@ -122,7 +124,9 @@ export function HumanForm({
           </p>
         ) : (
           <p className="decision-return">
-            Después de guardar, vuelve al chat para continuar.
+            {agentWaiting
+              ? 'Agente conectado. Al confirmar, recibirá tu respuesta para continuar.'
+              : 'No hay un agente esperando. Tu respuesta se guardará; si el chat terminó su turno, envíale la continuación.'}
           </p>
         )}
         {!manual && (

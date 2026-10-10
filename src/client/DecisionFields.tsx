@@ -105,7 +105,26 @@ export function DecisionFields({
                   {hint}
                 </p>
               )}
-              {port.type === 'number' ? (
+              {port.form?.options ? (
+                <select
+                  id={id}
+                  value={value}
+                  required={port.required}
+                  onChange={(e) => change(e.target.value)}
+                  onBlur={blur}
+                  aria-invalid={!!error}
+                  aria-describedby={describedBy}
+                >
+                  <option value="">
+                    {port.form.placeholder || 'Elige una opción…'}
+                  </option>
+                  {port.form.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              ) : port.type === 'number' ? (
                 <input
                   id={id}
                   type="number"

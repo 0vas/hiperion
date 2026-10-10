@@ -1,4 +1,4 @@
-# Hyperion protocol v0.4
+# Hyperion protocol v0.4.1
 
 All requests use the loopback HTTP origin. JSON is validated strictly; unknown fields are rejected. Limits: 100 steps per plan, 128 KiB per request, 8,000 characters per result/log message. Plans are acyclic and contain unique step IDs. Executed/presented steps are immutable; future work can be revised through the guarded command below. Task ports use bounded lists of up to 30 fields.
 
@@ -67,15 +67,15 @@ Legacy step kinds: `agent`, `manual`, `approval`. The process profile adds `star
 
 `expectedRevision` is mandatory for every human command and optional for agent commands. An outdated revision returns 409. Agent operations still enforce the current step status, dependencies and coordinator identity.
 
-| Command                 | Actor                | Required state/result                              |
-| ----------------------- | -------------------- | -------------------------------------------------- |
-| start                   | Agent                | Agent step ready, run active                       |
-| log                     | Agent                | Agent step running, nonempty message               |
-| complete / fail         | Agent                | Agent step running, nonempty evidence/error        |
-| submit                  | Human                | Manual step waiting, nonempty response             |
-| approve / reject        | Human                | Approval step waiting; rejection needs explanation |
-| retry                   | Human or coordinator | Failed agent step; prior history retained          |
-| pause / resume / cancel | Human                | Run-level command, no step ID                      |
+| Command                 | Actor                | Required state/result                                       |
+| ----------------------- | -------------------- | ----------------------------------------------------------- |
+| start                   | Agent                | Agent step ready, run active                                |
+| log                     | Agent                | Agent step running, nonempty message                        |
+| complete / fail         | Agent                | Agent step running, nonempty evidence/error                 |
+| submit                  | Human                | Manual step waiting, nonempty response                      |
+| approve / reject        | Human                | Approval step waiting; rejection needs explanation          |
+| retry                   | Human or coordinator | Failed, ready or running agent step; prior history retained |
+| pause / resume / cancel | Human                | Run-level command, no step ID                               |
 
 A step waits until **all** dependencies complete. Agent steps then become `ready`; human steps become `waiting`. After all steps complete, the run is `completed`. Rejection and cancellation close the run. They do not undo external effects.
 
@@ -110,3 +110,15 @@ The coordinator sends `{type: "revise", plan: FULL_REVISED_PLAN, message: REASON
 No step may be running. Completed, skipped, previously started (including failed/retried) steps and waiting human decisions must remain unchanged, along with their job definitions. Original `request`, general `context` and `profile` are preserved; supply changed requirements through future task descriptions or literal inputs. The whole plan is validated for contracts, dependency cycles and structured gateways. Resolved gateway definitions cannot be rewritten. At least one future step must remain. Terminal runs cannot be revised.
 
 `planChanges` archives previous/next definitions, revision, actor, reason, and added/removed/changed step IDs. Existing decisions, results and events survive. The resulting run is paused: the human reviews the changes and uses Resume in the canvas; the agent cannot resume or approve for them. There is no silent replacement, rollback of external effects, or automatic replay of completed work. Command IDs retain the usual transactional idempotency semantics, including across restart.
+
+## Event-driven continuation and recovery (0.4.1)
+
+`GET /api/runs/:id/wait?afterRevision=N&timeoutSeconds=30` is an authenticated, coordinator-only long poll, bounded to 55 seconds. Confirmation, retry, pause and other accepted changes return the authoritative snapshot immediately; timeout returns unchanged state and never authorizes work. CLI/MCP `wait` uses this endpoint without snapshot polling. Disconnected requests and timed-out waits release their listeners. Each run allows up to eight concurrent waits.
+
+Read responses include ephemeral `agentWaiting` and `agentPresenceAt` fields for canvas feedback. These represent an active wait, not an installed connector, a model's availability, or a background execution service. They do not increment the workflow revision or persist in SQLite. An idle host still needs a new turn; a connected coordinator must perform the work after receiving the event.
+
+`retry` can re-notify a ready task or recover a running/failed agent task. It keeps completed human decisions and prior logs and enables the task again. It does not stop external tools, reverse effects or bypass dependencies. The canvas asks for confirmation before invalidating a running attempt; the coordinator must reconcile external effects before repeating work.
+
+Each `start` returns the task's `attempt`. Send this number with `complete`, `fail` and `log`. After the first attempt it is required; missing or older attempts return `STALE_ATTEMPT`, so interrupted work cannot overwrite a recovery. CLI shorthand accepts `--attempt NUMBER`; JSON commands and MCP expose `attempt`. Do not replace an old attempt number with a current one to resubmit stale work.
+
+Runtime 0.4.1 requires its matching local service. Restart an older instance before reconnecting; retain its data directory. Previously released 0.4.0 installers do not include this endpoint.

@@ -54,3 +54,86 @@ test('form validation preserves zero and flags malformed typed data before submi
   assert.equal(fieldError(object, '{"ok":true}'), undefined);
   assert.equal(fieldError({ ...object, required: false }, ''), undefined);
 });
+
+test('known choices require an explicit allowed value in both the form and domain', async () => {
+  const { validateOutputs } = await import('../src/domain/process.js');
+  const run = createRun(
+    {
+      title: 'Choose a product',
+      steps: [
+        {
+          id: 'choose',
+          title: 'Product',
+          kind: 'manual',
+          outputs: [
+            {
+              name: 'product',
+              type: 'string',
+              required: true,
+              form: {
+                options: [
+                  { value: 'idea', label: 'IntelliJ IDEA' },
+                  { value: 'pycharm', label: 'PyCharm' },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    },
+    'codex',
+  );
+  const step = run.steps[0]!;
+  const port = step.outputs![0]!;
+  assert.equal(step.outputValues, undefined);
+  assert.equal(fieldError(port, ''), 'Elige una opción.');
+  assert.equal(fieldError(port, 'idea'), undefined);
+  assert.equal(
+    fieldError(port, 'unknown'),
+    'Elige una de las opciones disponibles.',
+  );
+  assert.throws(() => validateOutputs(step, { product: 'unknown' }));
+  assert.deepEqual(validateOutputs(step, { product: 'idea' }), {
+    product: 'idea',
+  });
+  for (const options of [
+    [],
+    [
+      { value: 'a', label: 'A' },
+      { value: 'a', label: 'Again' },
+    ],
+  ]) {
+    assert.throws(() =>
+      createRun(
+        {
+          title: 'Bad options',
+          steps: [
+            {
+              id: 'choose',
+              title: 'Choose',
+              kind: 'manual',
+              outputs: [{ name: 'product', type: 'string', form: { options } }],
+            },
+          ],
+        },
+        'codex',
+      ),
+    );
+  }
+  assert.throws(() =>
+    createRun(
+      {
+        title: 'Bad type',
+        steps: [
+          {
+            id: 'choose',
+            title: 'Choose',
+            kind: 'manual',
+            outputs: [{ ...port, type: 'number' }],
+          },
+        ],
+      },
+      'codex',
+    ),
+  );
+});

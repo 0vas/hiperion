@@ -51,3 +51,16 @@ test('only real new records and values trigger receipt signals; older snapshots 
   ]);
   assert.equal(mergeRuns([done], [first])[0]!.revision, done.revision);
 });
+
+test('live agent presence updates at the same workflow revision without replaying an older observation', () => {
+  const base = createRun(
+    { title: 'Presence', steps: [{ id: 'a', title: 'A', kind: 'agent' }] },
+    'codex',
+  );
+  const initial = { ...base, agentWaiting: false, agentPresenceAt: 1 };
+  const waiting = { ...base, agentWaiting: true, agentPresenceAt: 2 };
+  const updated = mergeRuns([initial], [waiting]);
+  assert.equal(updated[0]!.agentWaiting, true);
+  assert.equal(updated[0]!.revision, base.revision);
+  assert.equal(mergeRuns(updated, [initial])[0]!.agentWaiting, true);
+});

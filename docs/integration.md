@@ -34,7 +34,7 @@ Use the repository CLI. New MCP configuration does not automatically inject tool
 4. Read `get RUN_ID`. Start only agent steps whose status is `ready` while the run is `active`.
 5. Execute real work. Report progress with `log`; report an actual result with `complete`, or a failure with `fail`.
 6. For `manual` and `approval` steps, wait for the user's action in the browser. Never submit or approve on the user's behalf.
-7. Use `wait RUN_ID REVISION 30` for a bounded wait, or resume after the user's next message. A timeout is not approval. Re-read the run before acting.
+7. Show the URL in a progress message and use `wait RUN_ID REVISION 30` (or MCP `hyperion_wait`) before ending the turn. On a revision change, read the human decision and continue ready work in this same turn. A timeout is not approval. If ending the turn, explain that the idle chat needs the canvas continuation message; do not promise automatic wakeups.
 8. If the run is cancelled or rejected, stop scheduling. Respect pauses. A pause permits reporting the result of work already started.
 
 Independent ready steps may be active together. Only do this when the underlying actions are genuinely independent. A running indicator means a start was recorded; it does not prove the external agent is still alive.

@@ -57,7 +57,7 @@ Si respondiste preguntas anteriores, comprueba que esas respuestas siguen en I/O
 2. **Revisa el plan.** «Ver trabajos» resume las fases. Pulsa un trabajo para desplegar los pasos en el canvas. Cada paso conserva su responsable, estado, datos y logs.
 3. **Enfoca el trabajo.** Selecciona un paso en «Ir a tarea» y activa «Seguir actividad». La vista acompaña el avance; al arrastrar o cambiar el zoom puedes explorar libremente.
 4. **Decide cuando diga «Tu turno».** Abre el paso: verás qué se te pregunta, por qué hace falta y qué sucederá después. Elige los valores y pulsa «Guardar elección», o revisa el resultado y aprueba/rechaza.
-5. **Vuelve a este chat y escribe:** «Continúa mi flujo de Hyperion». Codex leerá tu decisión y retomará los pasos habilitados del mismo flujo.
+5. **Confirma y sigue el avance.** Si ves «Agente conectado», tu respuesta se entrega al agente que está esperando y puede continuar en ese turno. Si el chat terminó, usa «Copiar continuación» para conectarlo de nuevo. No repitas la respuesta.
 
 Si tienes varios flujos, pulsa «Copiar continuación» dentro del que quieres retomar y pega aquí el texto copiado. Ese botón copia la petición; no envía mensajes por ti.
 
@@ -156,3 +156,11 @@ Los instaladores son **DMG para macOS** y **EXE para Windows**. Se generaron DMG
 **I/O** abre las entradas, salidas y el contexto anterior. Expande solo la fuente que necesitas consultar. **Logs** muestra registros reales del paso; selecciona **Todo el proceso** para ampliar la vista. Los iconos pulsan brevemente al recibir registros o valores nuevos. Si dejan de pulsar, no significa necesariamente un error: no han llegado datos nuevos. La interfaz no puede mostrar acciones que la herramienta de IA no haya registrado.
 
 Las ramas booleanas muestran **✓** para Sí y **×** para No, dibujados en SVG. Al mantener el cursor aparece su significado; también tienen nombre accesible. La cruz indica una respuesta negativa, no un error. Las opciones con etiquetas específicas conservan su texto. El símbolo SVG identifica al agente; su nombre sigue disponible como ayuda y para lectores de pantalla.
+
+## Recuperar una tarea atascada
+
+En una tarea de IA pendiente o fallida, pulsa **Reintentar** (icono de flecha circular). Si sigue marcada en curso, abre **Recuperar tarea** y confirma la recuperación. El historial y tus respuestas se conservan; solo se habilita de nuevo esa tarea.
+
+El botón avisa al agente que esté esperando este flujo. Sin un agente esperando, la solicitud queda en el historial y puedes retomar desde el chat mediante **Copiar continuación**. Recuperar no cancela descargas ni otras herramientas externas: el agente comprueba lo que ya ocurrió antes de repetirlo.
+
+Esta capacidad corresponde al runtime 0.4.1 del repositorio; el instalador preview 0.4.0 publicado anteriormente no la incluye.

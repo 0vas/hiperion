@@ -9,9 +9,30 @@ export type ReceiptActivity = {
 const empty = (): ReceiptActivity => ({ logs: {}, io: {}, process: 0 });
 export function mergeRuns(previous: Run[], incoming: Run[]): Run[] {
   const next = new Map(previous.map((r) => [r.id, r]));
-  for (const run of incoming)
-    if (!next.has(run.id) || next.get(run.id)!.revision < run.revision)
-      next.set(run.id, run);
+  for (const run of incoming) {
+    const current = next.get(run.id);
+    if (!current || current.revision < run.revision) {
+      next.set(
+        run.id,
+        current && (current.agentPresenceAt || 0) > (run.agentPresenceAt || 0)
+          ? {
+              ...run,
+              agentWaiting: current.agentWaiting,
+              agentPresenceAt: current.agentPresenceAt,
+            }
+          : run,
+      );
+    } else if (
+      current.revision === run.revision &&
+      (run.agentPresenceAt || 0) > (current.agentPresenceAt || 0)
+    ) {
+      next.set(run.id, {
+        ...current,
+        agentWaiting: run.agentWaiting,
+        agentPresenceAt: run.agentPresenceAt,
+      });
+    }
+  }
   return [...next.values()].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt),
   );

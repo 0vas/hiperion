@@ -23,13 +23,35 @@ export const portSchema = z
         placeholder: z.string().trim().min(1).max(160).optional(),
         trueLabel: z.string().trim().min(1).max(80).optional(),
         falseLabel: z.string().trim().min(1).max(80).optional(),
+        options: z
+          .array(
+            z
+              .object({
+                value: z.string().trim().min(1).max(160),
+                label: z.string().trim().min(1).max(160),
+              })
+              .strict(),
+          )
+          .min(1)
+          .max(100)
+          .refine(
+            (options) =>
+              new Set(options.map((option) => option.value)).size ===
+              options.length,
+            'Choice values must be unique',
+          )
+          .optional(),
       })
       .strict()
       .optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (port) => !port.form?.options || port.type === 'string',
+    'Options require a string port',
+  );
 export const inputSchema = portSchema
-  .extend({
+  .safeExtend({
     source: referenceSchema.optional(),
     value: z.json().optional(),
     contextKey: identifier.optional(),

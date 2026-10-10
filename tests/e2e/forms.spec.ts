@@ -183,7 +183,7 @@ test('a compact decision reveals help and optional detail without losing a negat
   await expect(notes).toHaveValue('Necesito saber quién realiza cada tarea.');
   await optional.click();
   const { default: AxeBuilder } = await import('@axe-core/playwright');
-  for (const theme of ['light', 'dark']) {
+  for (const theme of ['light', 'dark'] as const) {
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
     await page.getByLabel('Tema', { exact: true }).selectOption(theme);
@@ -283,4 +283,97 @@ test('field hints and inline validation explain what to enter before submitting 
     count: 0,
     config: { tema: 'claro' },
   });
+});
+
+test('known choices use a dropdown and the saved decision has a readable handoff', async ({
+  page,
+  request,
+}) => {
+  const response = await request.post('/api/runs', {
+    headers: headers(),
+    data: {
+      commandId: crypto.randomUUID(),
+      plan: {
+        title: 'Product choice',
+        steps: [
+          {
+            id: 'choose',
+            title: 'Elegir producto',
+            kind: 'manual',
+            outputs: [
+              {
+                name: 'product',
+                type: 'string',
+                required: true,
+                description: 'Producto',
+                form: {
+                  options: [
+                    { value: 'idea', label: 'IntelliJ IDEA' },
+                    { value: 'pycharm', label: 'PyCharm' },
+                  ],
+                },
+              },
+            ],
+          },
+          {
+            id: 'prepare',
+            title: 'Preparar guía',
+            kind: 'agent',
+            dependencies: ['choose'],
+            inputs: [
+              {
+                name: 'product',
+                type: 'string',
+                required: true,
+                source: { stepId: 'choose', output: 'product' },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  });
+  expect(response.status(), await response.text()).toBe(201);
+  const run = await response.json();
+  await page.setViewportSize({ width: 540, height: 900 });
+  await page.goto(`/?run=${run.id}`);
+  await page
+    .getByRole('button', { name: 'Ver paso: Elegir producto', exact: true })
+    .click();
+  const select = page.getByRole('combobox', { name: 'Producto', exact: true });
+  await expect(select).toHaveValue('');
+  await expect(
+    page.getByRole('button', { name: 'Guardar elección', exact: true }),
+  ).toBeDisabled();
+  await select.selectOption('idea');
+  await page
+    .getByRole('button', { name: 'Guardar elección', exact: true })
+    .click();
+  const updated = await (
+    await request.get(`/api/runs/${run.id}`, { headers: headers() })
+  ).json();
+  expect(updated.steps[0].outputValues).toEqual({ product: 'idea' });
+  expect(updated.steps[1].status).toBe('ready');
+  await page
+    .getByRole('button', { name: 'Ver paso: Preparar guía', exact: true })
+    .click();
+  const { default: AxeBuilder } = await import('@axe-core/playwright');
+  for (const theme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: theme });
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    await expect(
+      page
+        .locator('.step-hint')
+        .getByRole('button', { name: 'Copiar continuación', exact: true }),
+    ).toBeVisible();
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .include('.step-hint')
+          .withTags(['wcag2a', 'wcag2aa'])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    await page.screenshot({ path: `test-results/handoff-${theme}.png` });
+  }
 });

@@ -8,6 +8,8 @@ Hyperion is an independent, MIT-licensed module. It can accompany Codex or anoth
 
 ![Hyperion landscape canvas with interactive workflow nodes](docs/images/workflow.png)
 
+**[Documentation · Guía en español](https://0vas.github.io/hiperion/)** — setup, daily use, integrations and architecture.
+
 ## Start in your conversation
 
 Say **“Usa Hyperion para [tu actividad]”** to a connected agent. It starts Hyperion, creates jobs and executable steps from the request, and shares the canvas. Choose between the job overview and detailed steps; focus or follow the active task. Human decisions show a concrete question, context and next action. Appearance and navigation preferences live in **Ajustes**. Switch vertical/horizontal from the direction button. SVG BPMN gateways, animated execution, waiting pulses, decision checklists and visible retries make the process readable.

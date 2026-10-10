@@ -59,7 +59,11 @@ export class HyperionClient {
       }
     }
   }
-  private async request<T>(path: string, data?: unknown): Promise<T> {
+  private async request<T>(
+    path: string,
+    data?: unknown,
+    timeoutMs = 10000,
+  ): Promise<T> {
     const response = await fetch(this.url + path, {
       method: data ? 'POST' : 'GET',
       headers: {
@@ -67,7 +71,7 @@ export class HyperionClient {
         'content-type': 'application/json',
       },
       ...(data ? { body: JSON.stringify(data) } : {}),
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     const body = await response.json();
     if (!response.ok) throw new Error(`${body.error}: ${body.message}`);
@@ -97,18 +101,13 @@ export class HyperionClient {
       throw new Error('timeoutSeconds must be finite and between 0 and 55');
     if (!Number.isInteger(afterRevision) || afterRevision < 0)
       throw new Error('afterRevision must be a nonnegative integer');
-    const until = Date.now() + timeoutSeconds * 1000;
-    do {
-      const run = await this.get(id);
-      if (
-        run.revision > afterRevision ||
-        ['completed', 'cancelled', 'rejected'].includes(run.status)
-      )
-        return run;
-      if (Date.now() >= until) return run;
-      await new Promise((done) => setTimeout(done, 500));
-    } while (true);
+    return this.request<Run>(
+      `/api/runs/${encodeURIComponent(id)}/wait?afterRevision=${afterRevision}&timeoutSeconds=${timeoutSeconds}`,
+      undefined,
+      Math.ceil(timeoutSeconds * 1000) + 10000,
+    );
   }
+
   link(run: Run) {
     return `${this.url}/?run=${run.id}`;
   }

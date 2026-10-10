@@ -12,7 +12,7 @@ const server = new McpServer(
   { name: 'hyperion', version: VERSION },
   {
     instructions:
-      'Turn the given request into a specific plan, preserve the original text in plan.request, and show the returned URL. Do not require the human to write JSON or reuse a canned demo. Start only ready agent steps, execute actual work, then report evidence. Human input and approvals must happen in the Hyperion UI. Use get/wait to read decisions. Never impersonate the human or bypass a blocked step. This server does not execute the work for you.',
+      'Turn the given request into a specific plan, preserve the original text in plan.request, and show the returned URL. Do not require the human to write JSON or reuse a canned demo. Start only ready agent steps, execute actual work, then report evidence. Human input and approvals must happen in the Hyperion UI. After showing the canvas URL in a progress message, use hyperion_wait to receive human decisions before ending your turn. On a changed revision, continue ready work in the same turn. If you end your turn, explain that an idle chat needs the canvas continuation message. For known choices use string output form.options [{value,label}], never a free-text list. Never impersonate the human or bypass a blocked step. This server does not execute the work for you.',
   },
 );
 const output = (value: unknown) => ({
@@ -77,7 +77,7 @@ server.registerTool(
   'hyperion_step',
   {
     description:
-      'Start a ready agent step or report real progress/results. complete, fail and log require evidence in message. Supply declared output values when completing tasks. For log use trace.kind summary (public decision summary), action or observation, optionally trace.tool. Never request private chain-of-thought. Human decisions are deliberately unavailable.',
+      'Start a ready agent step or report real progress/results. complete, fail and log require evidence in message. Supply declared output values when completing tasks. Send the attempt returned by start with every complete/fail/log; required after a retry. Recovery invalidates old attempts but cannot cancel external tools; inspect their effects before repeating work. For log use trace.kind summary (public decision summary), action or observation, optionally trace.tool. Never request private chain-of-thought. Human decisions are deliberately unavailable.',
     inputSchema: {
       runId: z.string().uuid(),
       stepId: z.string(),
@@ -85,10 +85,11 @@ server.registerTool(
       message: z.string().max(8000).optional(),
       outputs: outputValuesSchema.optional(),
       trace: traceSchema.optional(),
+      attempt: z.number().int().positive().optional(),
       commandId: z.string().min(1).max(128),
     },
   },
-  ({ runId, stepId, action, message, commandId, outputs, trace }) =>
+  ({ runId, stepId, action, message, commandId, outputs, trace, attempt }) =>
     safe(() =>
       client.command(runId, {
         type: action,
@@ -97,6 +98,7 @@ server.registerTool(
         commandId,
         outputs,
         trace,
+        attempt,
       }),
     ),
 );
@@ -128,7 +130,7 @@ server.registerTool(
   'hyperion_wait',
   {
     description:
-      'Wait up to 55 seconds for a revision change. A timeout does not mean approval. Resume only according to returned state.',
+      'Subscribe for up to 55 seconds. A human confirmation or retry delivers the new state immediately without polling. Continue ready work in this turn, without requesting another chat message. A timeout does not mean approval. Resume only according to returned state.',
     inputSchema: {
       runId: z.string().uuid(),
       afterRevision: z.number().int().nonnegative(),
