@@ -383,3 +383,109 @@ test('quickstart offers specific use cases, copyable prompts and source commands
     ).toBeVisible();
   }
 });
+
+test('cinematic home fills the viewport with an accessible, controllable landscape', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  for (const en of [false, true]) {
+    await page.goto(`/hiperion/${en ? 'en/' : ''}`);
+    const hero = page.locator('.landscape-hero');
+    await expect(hero).toBeVisible();
+    const bounds = await hero.boundingBox();
+    expect(bounds.width).toBe(1440);
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(905);
+    const bottom = await hero.locator('.landscape-bottom').boundingBox();
+    expect(bottom.y + bottom.height).toBeLessThanOrEqual(
+      bounds.y + bounds.height,
+    );
+    await expect(hero.locator('h1')).toBeVisible();
+    const atmosphere = hero.locator('.solar-atmosphere');
+    await expect(atmosphere).toHaveCSS('animation-play-state', 'running');
+    const frames = await atmosphere.evaluate((element) =>
+      element.getAnimations()[0].effect.getKeyframes(),
+    );
+    expect(frames[0].opacity).toBe(frames.at(-1).opacity);
+    expect(frames[0].transform).toBe(frames.at(-1).transform);
+    await hero
+      .getByRole('button', {
+        name: en ? 'Pause landscape' : 'Pausar paisaje',
+        exact: true,
+      })
+      .click();
+    await expect(atmosphere).toHaveCSS('animation-play-state', 'paused');
+    await hero
+      .getByRole('button', {
+        name: en ? 'Resume landscape' : 'Reanudar paisaje',
+        exact: true,
+      })
+      .click();
+    await expect(atmosphere).toHaveCSS('animation-play-state', 'running');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(atmosphere).toHaveCSS('animation-name', 'none');
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    await hero.screenshot({
+      path: `../../test-results/docs/landscape-${en ? 'en' : 'es'}.png`,
+    });
+    await hero
+      .getByRole('link', {
+        name: en ? 'Try the canvas' : 'Probar el canvas',
+        exact: true,
+      })
+      .click();
+    await expect(page).toHaveURL(/#(try-a-workflow|prueba-un-flujo)$/);
+    await expect(
+      page.getByRole('region', {
+        name: en ? 'Interactive example' : 'Ejemplo interactivo',
+        exact: true,
+      }),
+    ).toBeInViewport();
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+  }
+});
+
+test('landscape adapts to split windows and small phones without hiding actions', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const width of [320, 820, 1024]) {
+    await page.setViewportSize({ width, height: 768 });
+    await page.goto('/hiperion/');
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    const hero = page.locator('.landscape-hero');
+    const box = await hero.boundingBox();
+    for (const element of [
+      hero.locator('h1'),
+      hero.locator('.landscape-actions'),
+      hero.locator('.landscape-product'),
+      hero.locator('.landscape-bottom'),
+    ]) {
+      const bounds = await element.boundingBox();
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(
+        box.y + box.height + 1,
+      );
+    }
+    if (width === 320) {
+      await page.getByRole('button', { name: /Navegación móvil/ }).click();
+      await page.getByRole('link', { name: 'Guía', exact: true }).click();
+      await expect(page.locator('h1')).toHaveText('Tu primer flujo');
+    } else {
+      await hero.screenshot({
+        path: `../../test-results/docs/landscape-split-${width}.png`,
+      });
+    }
+  }
+});
