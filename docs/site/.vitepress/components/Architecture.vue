@@ -70,7 +70,7 @@ const source = computed(
       sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-downloads"
     ></iframe>
     <div class="architecture-links">
-      <a :href="url"
+      <a :href="url" target="_self"
         ><DocIcon name="external" />{{
           en ? 'Explore in Archify' : 'Explorar en Archify'
         }}</a

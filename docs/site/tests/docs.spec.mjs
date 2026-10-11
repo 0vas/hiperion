@@ -164,12 +164,20 @@ test('branded pages offer direct installers and a working Archify viewer in both
       path: `../../test-results/docs/architecture-${locale ? 'en' : 'es'}.png`,
       fullPage: true,
     });
-    await page
-      .getByRole('link', {
-        name: locale ? 'Explore in Archify' : 'Explorar en Archify',
-        exact: true,
-      })
-      .click();
+    const fullViewer = page.getByRole('link', {
+      name: locale ? 'Explore in Archify' : 'Explorar en Archify',
+      exact: true,
+    });
+    await expect(fullViewer).toHaveAttribute('target', '_self');
+    await Promise.all([
+      page.waitForEvent(
+        'request',
+        (request) =>
+          request.resourceType() === 'document' &&
+          request.url().includes('/architecture/hyperion-'),
+      ),
+      fullViewer.click(),
+    ]);
     await expect(page.locator('svg').first()).toBeVisible();
     await expect(page.locator('body')).toContainText('Hyperion');
   }
