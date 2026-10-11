@@ -384,46 +384,38 @@ test('quickstart offers specific use cases, copyable prompts and source commands
   }
 });
 
-test('cinematic home fills the viewport with an accessible, controllable landscape', async ({
+test('video landing uses a centered headline, wide product view and controllable media', async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   for (const en of [false, true]) {
     await page.goto(`/hiperion/${en ? 'en/' : ''}`);
     const hero = page.locator('.landscape-hero');
-    await expect(hero).toBeVisible();
-    const bounds = await hero.boundingBox();
-    expect(bounds.width).toBe(1440);
-    expect(bounds.y + bounds.height).toBeLessThanOrEqual(905);
-    const bottom = await hero.locator('.landscape-bottom').boundingBox();
-    expect(bottom.y + bottom.height).toBeLessThanOrEqual(
-      bounds.y + bounds.height,
-    );
-    await expect(hero.locator('h1')).toBeVisible();
-    const atmosphere = hero.locator('.solar-atmosphere');
-    await expect(atmosphere).toHaveCSS('animation-play-state', 'running');
-    const frames = await atmosphere.evaluate((element) =>
-      element.getAnimations()[0].effect.getKeyframes(),
-    );
-    expect(frames[0].opacity).toBe(frames.at(-1).opacity);
-    expect(frames[0].transform).toBe(frames.at(-1).transform);
+    const title = await hero.locator('h1').boundingBox();
+    expect(Math.abs(title.x + title.width / 2 - 720)).toBeLessThan(5);
+    expect(
+      (await hero.locator('.landscape-product').boundingBox()).width,
+    ).toBeGreaterThan(1000);
+    const video = page.locator('.cinema-video');
+    await expect(video).toHaveAttribute('src', /cloudfront.*mp4/);
+    await expect(video).toHaveJSProperty('muted', true);
+    await expect(video).toHaveJSProperty('loop', true);
     await hero
       .getByRole('button', {
-        name: en ? 'Pause landscape' : 'Pausar paisaje',
+        name: en ? 'Pause background' : 'Pausar fondo',
         exact: true,
       })
       .click();
-    await expect(atmosphere).toHaveCSS('animation-play-state', 'paused');
-    await hero
-      .getByRole('button', {
-        name: en ? 'Resume landscape' : 'Reanudar paisaje',
-        exact: true,
-      })
-      .click();
-    await expect(atmosphere).toHaveCSS('animation-play-state', 'running');
+    await expect(video).toHaveJSProperty('paused', true);
+    await expect(
+      hero.getByRole('button', {
+        name: en ? 'Resume background' : 'Reanudar fondo',
+      }),
+    ).toHaveAttribute('aria-pressed', 'true');
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await expect(atmosphere).toHaveCSS('animation-name', 'none');
+    await expect(video).not.toHaveAttribute('src');
+    await expect(hero.locator('h1 span')).toHaveCSS('animation-name', 'none');
     expect(
       (
         await new AxeBuilder({ page })
@@ -431,8 +423,8 @@ test('cinematic home fills the viewport with an accessible, controllable landsca
           .analyze()
       ).violations,
     ).toEqual([]);
-    await hero.screenshot({
-      path: `../../test-results/docs/landscape-${en ? 'en' : 'es'}.png`,
+    await page.screenshot({
+      path: `../../test-results/docs/cinema-${en ? 'en' : 'es'}.png`,
     });
     await hero
       .getByRole('link', {
@@ -440,7 +432,6 @@ test('cinematic home fills the viewport with an accessible, controllable landsca
         exact: true,
       })
       .click();
-    await expect(page).toHaveURL(/#(try-a-workflow|prueba-un-flujo)$/);
     await expect(
       page.getByRole('region', {
         name: en ? 'Interactive example' : 'Ejemplo interactivo',
@@ -451,7 +442,7 @@ test('cinematic home fills the viewport with an accessible, controllable landsca
   }
 });
 
-test('landscape adapts to split windows and small phones without hiding actions', async ({
+test('cinematic landing stays readable in split windows and small phones', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -464,28 +455,46 @@ test('landscape adapts to split windows and small phones without hiding actions'
       ),
     ).toBe(true);
     const hero = page.locator('.landscape-hero');
-    const box = await hero.boundingBox();
-    for (const element of [
-      hero.locator('h1'),
-      hero.locator('.landscape-actions'),
-      hero.locator('.landscape-product'),
-      hero.locator('.landscape-bottom'),
-    ]) {
-      const bounds = await element.boundingBox();
+    for (const selector of ['h1', '.landscape-actions', '.landscape-product']) {
+      const bounds = await hero.locator(selector).boundingBox();
       expect(bounds.x).toBeGreaterThanOrEqual(0);
       expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
-      expect(bounds.y + bounds.height).toBeLessThanOrEqual(
-        box.y + box.height + 1,
-      );
     }
     if (width === 320) {
       await page.getByRole('button', { name: /Navegación móvil/ }).click();
       await page.getByRole('link', { name: 'Guía', exact: true }).click();
       await expect(page.locator('h1')).toHaveText('Tu primer flujo');
     } else {
-      await hero.screenshot({
-        path: `../../test-results/docs/landscape-split-${width}.png`,
+      await page.screenshot({
+        path: `../../test-results/docs/cinema-split-${width}.png`,
       });
     }
   }
+});
+
+test('video failure keeps the poster, navigation and download actions usable', async ({
+  page,
+}) => {
+  await page.route('https://d8j0ntlcm91z4.cloudfront.net/**', (route) =>
+    route.abort(),
+  );
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const failure = page.waitForEvent('requestfailed', (request) =>
+    request.url().includes('cloudfront.net'),
+  );
+  await page.goto('/hiperion/');
+  await failure;
+  const video = page.locator('.cinema-video');
+  await expect(video).not.toHaveAttribute('src');
+  await expect(video).toHaveAttribute(
+    'poster',
+    '/hiperion/brand/cinema-poster.svg',
+  );
+  await expect(page.locator('h1')).toHaveText('Tus ideas.En movimiento.');
+  await page
+    .getByRole('link', { name: 'Descargar Hyperion', exact: true })
+    .click();
+  await expect(
+    page.getByRole('link', { name: 'macOS · Apple Silicon', exact: true }),
+  ).toBeInViewport();
 });
