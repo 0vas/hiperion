@@ -88,8 +88,8 @@ const t = (es: string, en: string) => (lang.value === 'es' ? es : en);
             </p>
             <a :href="lang === 'es' ? '#prueba-un-flujo' : '#try-a-workflow'"
               >{{ t('Probar la revisión', 'Try the review')
-              }}<span aria-hidden="true">↗</span></a
-            >
+              }}<DocIcon name="external"
+            /></a>
           </div>
           <div class="cinema-log">
             <span

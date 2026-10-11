@@ -2,6 +2,10 @@
 
 ![Hyperion — original solar identity](docs/site/public/brand/hyperion-banner.svg)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-755922?labelColor=273139)](LICENSE)
+[![Documentation build](https://img.shields.io/github/actions/workflow/status/0vas/hiperion/pages.yml?branch=main&label=Docs&labelColor=273139)](https://github.com/0vas/hiperion/actions/workflows/pages.yml)
+[![GitHub repository](https://img.shields.io/badge/GitHub-0vas%2Fhiperion-755922?logo=github&logoColor=white&labelColor=273139)](https://github.com/0vas/hiperion)
+
 [Reanudación agnóstica: contrato y alcance por herramienta](docs/continuacion-agnostica.md). El núcleo 0.5 guarda pausas y solicitudes de continuación; los conectores nativos para reactivar chats todavía deben integrarse.
 
 **Human-guided workflows for any AI tool.** Turn a conversation into a visible plan: see what your agent is doing, supply information, review evidence, and decide when it can continue.

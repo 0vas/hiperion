@@ -1,6 +1,9 @@
 <script setup lang="ts">
 defineProps<{ name: string }>();
 const paths: Record<string, string> = {
+  external: 'M7 17 17 7M7 7h10v10',
+  arrow: 'M4 12h16m-6-6 6 6-6 6',
+  repository: 'M4 4h16v16H4zM8 4v16M12 8h4M12 12h4',
   chat: 'M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 4V6a2 2 0 0 1 2-2ZM7 9h10M7 13h6',
   flow: 'M4 3h6v6H4zM14 15h6v6h-6zM7 9v9h7M14 6h6M17 3v6',
   check: 'm5 12 4 4L19 6',

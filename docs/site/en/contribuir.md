@@ -1,5 +1,7 @@
 # Contribute
 
+<RepositoryCard />
+
 Hyperion is independent and [MIT-licensed](https://github.com/0vas/hiperion/blob/main/LICENSE). Improvements must work without depending on a single AI provider.
 
 ## Prepare the project

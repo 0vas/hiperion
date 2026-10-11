@@ -1,36 +1,37 @@
-/* Cinematic home; documentation articles retain their chosen reader theme. */
-body:has(.landscape-hero) .VPHome,
-body:has(.landscape-hero) .VPNav,
-body:has(.landscape-hero) .VPFooter {
-  --vp-c-bg: #0c0d11;
-  --vp-c-bg-alt: #14171c;
-  --vp-c-bg-soft: #1c222a;
-  --vp-c-text-1: #f4f5f7;
-  --vp-c-text-2: #b9c3cf;
-  --vp-c-text-3: #a6b2c2;
-  --vp-c-divider: #ffffff24;
-  --vp-c-brand-1: #a7daff;
-  --vp-c-brand-2: #cee9ff;
-  --vp-c-brand-soft: #7cbfff14;
-  --vp-button-brand-bg: #f2f5f8;
-  --vp-button-brand-text: #141a20;
-  --vp-button-brand-hover-bg: #fff;
-  --vp-button-brand-hover-text: #141a20;
-  --canvas-bg: #10171fe8;
-  --canvas-card: #1a2732;
-  --canvas-ink: #edf4f6;
-  --canvas-muted: #b6c7d2;
-  --canvas-border: #566b7b;
-  --canvas-green: #8bd3b2;
-  --canvas-amber: #f2d196;
-  --canvas-red: #fb8e95;
-  color: var(--vp-c-text-1);
+/* Solar palette: appearance is inherited from VitePress, never forced by the home. */
+:root {
+  --home-surface: #fffdf7f5;
+  --home-scrim: linear-gradient(180deg, #faf7efdf, #faf7efe6 55%, #faf7effa);
+  --home-title-gradient: linear-gradient(
+    100deg,
+    #79501d,
+    #95682c 25%,
+    #68461c 50%,
+    #95682c 75%,
+    #79501d
+  );
+  --home-video-filter: grayscale(1) sepia(0.8) saturate(0.65);
+  --home-video-opacity: 0.5;
+}
+.dark {
+  --home-surface: #192228f5;
+  --home-scrim: linear-gradient(180deg, #111a20ad, #111a20b8 55%, #111a20f5);
+  --home-title-gradient: linear-gradient(
+    100deg,
+    #d7b273,
+    #fae8c4 25%,
+    #dcba81 50%,
+    #fae8c4 75%,
+    #d7b273
+  );
+  --home-video-filter: grayscale(1) sepia(0.9) saturate(0.7) brightness(0.7);
+  --home-video-opacity: 0.8;
 }
 body:has(.landscape-hero) {
-  background: #0c0c0f;
+  background: var(--vp-c-bg);
 }
 body:has(.landscape-hero) .VPNavBar {
-  background: #0c0d11b3;
+  background: var(--home-surface);
   backdrop-filter: blur(16px);
   border: 0;
 }
@@ -44,10 +45,10 @@ body:has(.landscape-hero) .VPNavBar .container {
   max-width: 1160px;
 }
 body:has(.landscape-hero) .VPNavBarTitle .title {
-  color: #fff;
+  color: var(--vp-c-text-1);
 }
 body:has(.landscape-hero) .VPFooter {
-  background: #0c0d11de;
+  background: var(--home-surface);
 }
 body:has(.landscape-hero) .VPHome {
   position: relative;
@@ -56,7 +57,7 @@ body:has(.landscape-hero) .VPHome {
   padding-bottom: 100px;
 }
 .landscape-hero {
-  color: #f5f7f9;
+  color: var(--vp-c-text-1);
   position: relative;
   padding: 0 0 40px;
 }
@@ -65,17 +66,19 @@ body:has(.landscape-hero) .VPHome {
   inset: 0;
   z-index: -2;
   pointer-events: none;
-  background: #0c0c0f;
+  background: var(--vp-c-bg);
 }
 .cinema-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: var(--home-video-filter);
+  opacity: var(--home-video-opacity);
 }
 .cinema-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #05060935, #06090e38 50%, #080a0ee0);
+  background: var(--home-scrim);
 }
 .cinema-guides {
   position: absolute;
@@ -84,7 +87,7 @@ body:has(.landscape-hero) .VPHome {
   bottom: 0;
   left: max(24px, calc(50% - 576px));
   right: max(24px, calc(50% - 576px));
-  border-inline: 1px solid #ffffff0c;
+  border-inline: 1px solid var(--vp-c-divider);
   pointer-events: none;
 }
 .landscape-copy {
@@ -98,7 +101,7 @@ body:has(.landscape-hero) .VPHome {
   justify-content: center;
   align-items: center;
   gap: 9px;
-  color: #c8d5df;
+  color: var(--vp-c-text-2);
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.17em;
@@ -107,7 +110,7 @@ body:has(.landscape-hero) .VPHome {
 .cinema-eyebrow > span {
   width: 5px;
   height: 5px;
-  background: #d6eaff;
+  background: var(--vp-c-brand-1);
   border-radius: 50%;
   box-shadow: 0 0 12px #a8d9ff;
 }
@@ -121,15 +124,8 @@ body:has(.landscape-hero) .VPHome {
 .landscape-hero h1 > span {
   display: inline-block;
   padding-bottom: 0.1em;
-  color: #a3d9ff;
-  background: linear-gradient(
-    100deg,
-    #a1b9f4 0%,
-    #d5f6ff 20%,
-    #72b7ff 40%,
-    #c0e7ff 60%,
-    #a1b9f4 100%
-  );
+  color: var(--vp-c-brand-1);
+  background: var(--home-title-gradient);
   background-size: 200% 100%;
   background-clip: text;
   -webkit-background-clip: text;
@@ -139,7 +135,7 @@ body:has(.landscape-hero) .VPHome {
 .landscape-description {
   font-size: 15px;
   line-height: 1.75;
-  color: #d0d9e1;
+  color: var(--vp-c-text-2);
   max-width: 440px;
   margin: 24px auto;
   text-wrap: pretty;
@@ -165,16 +161,16 @@ body:has(.landscape-hero) .VPHome {
     background-color 160ms ease;
 }
 .landscape-primary {
-  background: #f5f8fa;
-  color: #141a20;
+  background: var(--vp-button-brand-bg);
+  color: var(--vp-button-brand-text);
   box-shadow:
     0 6px 30px #b3dcff1c,
-    inset 0 1px #fff;
+    inset 0 1px var(--vp-c-text-1);
 }
 .landscape-secondary {
-  color: #fff;
-  background: #10172290;
-  border: 1px solid #ffffff26;
+  color: var(--vp-c-text-1);
+  background: var(--home-surface);
+  border: 1px solid var(--vp-c-divider);
   backdrop-filter: blur(8px);
 }
 .landscape-actions .doc-icon {
@@ -187,23 +183,23 @@ body:has(.landscape-hero) .VPHome {
 .cinema-platforms {
   font-size: 10px;
   margin: 13px 0 9px;
-  color: #b7c6d3;
+  color: var(--vp-c-text-2);
 }
 .cinema-platforms span {
   margin: 0 9px;
-  color: #93a1b4;
+  color: var(--vp-c-text-2);
 }
 .cinema-start {
   font-size: 11px;
-  color: #d5e6f4;
+  color: var(--vp-c-text-2);
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-height: 28px;
 }
 .cinema-menu {
-  border-block: 1px solid #ffffff1f;
-  background: #090e1690;
+  border-block: 1px solid var(--vp-c-divider);
+  background: var(--home-surface);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
@@ -211,7 +207,7 @@ body:has(.landscape-hero) .VPHome {
   min-height: 42px;
   padding: 0 max(24px, calc((100% - 1100px) / 2));
   font-size: 10px;
-  color: #c2cdda;
+  color: var(--vp-c-text-2);
 }
 .cinema-menu > div {
   display: flex;
@@ -219,7 +215,7 @@ body:has(.landscape-hero) .VPHome {
   align-items: center;
 }
 .cinema-menu strong {
-  color: #f4f7fb;
+  color: var(--vp-c-text-1);
   font-weight: 550;
 }
 .cinema-menu-note {
@@ -231,10 +227,10 @@ body:has(.landscape-hero) .VPHome {
   place-items: center;
   width: 28px;
   height: 28px;
-  border: 1px solid #ffffff30;
+  border: 1px solid var(--vp-c-divider);
   border-radius: 50%;
   flex-shrink: 0;
-  color: #d2e1ed;
+  color: var(--vp-c-text-2);
   cursor: pointer;
 }
 .landscape-motion .doc-icon {
@@ -249,13 +245,13 @@ body:has(.landscape-hero) .VPHome {
 .cinema-window.home-motion {
   width: 100%;
   max-width: none;
-  border: 1px solid #c2d8ec38;
+  border: 1px solid var(--vp-c-divider);
   border-radius: 18px;
-  background: #10151cd9;
+  background: var(--home-surface);
   backdrop-filter: blur(16px);
   box-shadow:
     0 40px 110px -35px #000b,
-    inset 0 1px #ffffff12;
+    inset 0 1px var(--vp-c-divider);
 }
 .cinema-titlebar {
   display: flex;
@@ -263,9 +259,9 @@ body:has(.landscape-hero) .VPHome {
   align-items: center;
   padding: 12px 18px;
   font-size: 10px;
-  color: #b7c5d3;
-  background: #1b232b90;
-  border-bottom: 1px solid #ffffff16;
+  color: var(--vp-c-text-2);
+  background: var(--home-surface);
+  border-bottom: 1px solid var(--vp-c-divider);
 }
 .traffic-lights {
   display: flex;
@@ -284,7 +280,7 @@ body:has(.landscape-hero) .VPHome {
   background: #28c840;
 }
 .cinema-sample {
-  color: #bed6ed;
+  color: var(--vp-c-text-2);
   font-size: 9px;
 }
 .cinema-workspace {
@@ -293,8 +289,8 @@ body:has(.landscape-hero) .VPHome {
 }
 .cinema-sidebar {
   padding: 22px 18px;
-  background: #0b1118a6;
-  border-right: 1px solid #ffffff14;
+  background: var(--home-surface);
+  border-right: 1px solid var(--vp-c-divider);
 }
 .cinema-brand {
   display: flex;
@@ -306,7 +302,7 @@ body:has(.landscape-hero) .VPHome {
 .cinema-sidebar-label {
   font-size: 8px;
   letter-spacing: 0.13em;
-  color: #a6bacb;
+  color: var(--vp-c-text-2);
   margin: 25px 0 12px;
 }
 .cinema-request {
@@ -314,14 +310,14 @@ body:has(.landscape-hero) .VPHome {
   line-height: 1.8;
   padding: 12px;
   border-radius: 9px;
-  border: 1px solid #bddeff20;
-  background: #7dadd90b;
-  color: #d5e3ee;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-soft);
+  color: var(--vp-c-text-2);
 }
 .cinema-request .doc-icon {
   width: 15px;
   height: 15px;
-  color: #99c9ff;
+  color: var(--vp-c-brand-1);
 }
 .cinema-request p {
   margin-top: 5px;
@@ -332,24 +328,24 @@ body:has(.landscape-hero) .VPHome {
   gap: 8px;
   padding: 9px 7px;
   font-size: 10px;
-  color: #bfcdd9;
+  color: var(--vp-c-text-2);
 }
 .cinema-plan-item .doc-icon {
   width: 13px;
   height: 13px;
-  color: #99d5ba;
+  color: var(--canvas-green);
 }
 .cinema-plan-item.current {
-  background: #a3d8ff10;
+  background: var(--vp-c-bg-soft);
   border-radius: 7px;
-  color: #cbe9ff;
+  color: var(--vp-c-text-2);
 }
 .cinema-plan-item.current .doc-icon {
-  color: #bbdfff;
+  color: var(--vp-c-brand-1);
 }
 .cinema-local {
   display: block;
-  color: #acc0d2;
+  color: var(--vp-c-text-2);
   font-size: 8px;
   margin-top: 30px;
   line-height: 1.7;
@@ -360,7 +356,7 @@ body:has(.landscape-hero) .VPHome {
   align-items: center;
   padding: 16px 22px;
   font-size: 11px;
-  border-bottom: 1px solid #ffffff12;
+  border-bottom: 1px solid var(--vp-c-divider);
 }
 .cinema-canvas-toolbar > span:first-child {
   display: flex;
@@ -368,35 +364,35 @@ body:has(.landscape-hero) .VPHome {
   gap: 9px;
 }
 .cinema-canvas-toolbar > span:last-child {
-  color: #bdd0de;
+  color: var(--vp-c-text-2);
   font-size: 9px;
 }
 .cinema-canvas-toolbar .doc-icon {
   width: 16px;
   height: 16px;
-  color: #aedaff;
+  color: var(--vp-c-brand-1);
 }
 .cinema-main .product-canvas {
-  background: #101a24b0;
+  background: var(--home-surface);
 }
 .cinema-evidence {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
   gap: 18px;
   padding: 0 24px 24px;
-  background: #101a24b0;
+  background: var(--home-surface);
 }
 .cinema-review,
 .cinema-log {
-  border: 1px solid #cee5f526;
+  border: 1px solid var(--vp-c-divider);
   border-radius: 12px;
   padding: 20px;
-  background: linear-gradient(125deg, #ffffff08, #ffffff02);
+  background: linear-gradient(125deg, var(--home-surface), var(--vp-c-bg-soft));
   box-shadow: inset 0 1px #ffffff0d;
 }
 .cinema-review-label {
   font-size: 8px;
-  color: #f3d6a0;
+  color: var(--vp-c-brand-1);
   letter-spacing: 0.1em;
   display: flex;
   align-items: center;
@@ -416,16 +412,16 @@ body:has(.landscape-hero) .VPHome {
 .cinema-review p {
   font-size: 10px;
   line-height: 1.8;
-  color: #bccbd8;
+  color: var(--vp-c-text-2);
 }
 .cinema-review a {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 9px 12px;
-  background: #e4eff7;
+  background: var(--vp-button-brand-bg);
   border-radius: 7px;
-  color: #13202c;
+  color: var(--vp-button-brand-text);
   font-size: 10px;
   margin-top: 15px;
   font-weight: 550;
@@ -435,7 +431,7 @@ body:has(.landscape-hero) .VPHome {
   align-items: center;
   gap: 8px;
   font-size: 10px;
-  color: #d7e3ec;
+  color: var(--vp-c-text-1);
   margin-bottom: 14px;
 }
 .cinema-log .doc-icon {
@@ -446,33 +442,33 @@ body:has(.landscape-hero) .VPHome {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #c5d2de;
+  color: var(--vp-c-text-2);
   font-size: 9px;
   margin: 12px 0;
 }
 .cinema-log i {
   font-size: 8px;
   font-style: normal;
-  color: #9db3c6;
+  color: var(--vp-c-text-2);
 }
 .cinema-log p .doc-icon {
   margin-left: auto;
-  color: #93d0b2;
+  color: var(--canvas-green);
 }
 .cinema-io {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 8px;
-  color: #b1c6d9;
+  color: var(--vp-c-text-2);
   padding-top: 12px;
-  border-top: 1px solid #ffffff1a;
+  border-top: 1px solid var(--vp-c-divider);
 }
 .cinema-window .hero-product-footer {
   font-size: 9px;
   padding: 8px 20px;
-  background: #111921;
-  color: #b6c8d7;
+  background: var(--home-surface);
+  color: var(--vp-c-text-2);
 }
 .cinema-window .product-live-dot {
   width: 5px;
@@ -490,7 +486,7 @@ body:has(.landscape-hero) .VPHome {
 .cinema-integrations p {
   font-size: 9px;
   letter-spacing: 0.15em;
-  color: #b8c6d3;
+  color: var(--vp-c-text-2);
   margin-bottom: 22px;
 }
 .cinema-integrations a {
@@ -499,17 +495,17 @@ body:has(.landscape-hero) .VPHome {
   gap: 42px;
   font-size: 21px;
   font-weight: 550;
-  color: #e2eaf1;
+  color: var(--vp-c-text-1);
 }
 .cinema-integrations small {
   display: block;
   font-size: 10px;
-  color: #b7c7d6;
+  color: var(--vp-c-text-2);
   margin-top: 18px;
 }
 .landscape-hero a:focus-visible,
 .landscape-hero button:focus-visible {
-  outline: 2px solid #b7e3ff;
+  outline: 2px solid var(--vp-c-brand-1);
   outline-offset: 4px;
 }
 .VPHome:has(.landscape-hero) .VPHomeContent {
@@ -524,15 +520,15 @@ body:has(.landscape-hero) .VPHome {
   margin-top: 70px;
   padding-top: 20px;
 }
-.VPHome:has(.landscape-hero) .quickstart-card,
+.VPHome:has(.landscape-hero) .quickstart-map a,
 .VPHome:has(.landscape-hero) .download-card,
 .VPHome:has(.landscape-hero) .use-cases {
-  background: linear-gradient(135deg, #17212ce8, #0e151ee8);
-  border-color: #cee4f52e;
+  background: linear-gradient(135deg, var(--home-surface), var(--vp-c-bg-soft));
+  border-color: var(--vp-c-divider);
   box-shadow: inset 0 1px #ffffff0a;
 }
 .VPHome:has(.landscape-hero) .workflow-demo {
-  background: #101923;
+  background: var(--home-surface);
   box-shadow: 0 30px 80px #0004;
 }
 .VPHome:has(.landscape-hero) .VPHomeContent .demo-stage h3 {
@@ -571,10 +567,10 @@ body:has(.landscape-hero) .VPHome {
     transform: translateY(-2px);
   }
   .landscape-primary:hover {
-    background: #fff;
+    background: var(--vp-button-brand-hover-bg);
   }
   .landscape-secondary:hover {
-    background: #243243;
+    background: var(--vp-c-bg-soft);
   }
 }
 @media (max-width: 960px) {
@@ -676,5 +672,125 @@ body:has(.landscape-hero) .VPHome {
   }
   .landscape-motion {
     display: none;
+  }
+}
+
+.cinema-start .doc-icon,
+.cinema-review a .doc-icon,
+.cinema-integrations small .doc-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.cinema-integrations small {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+}
+.harness-marks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px 36px;
+}
+.cinema-integrations .harness-marks a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  color: var(--vp-c-text-1);
+}
+.harness-mark,
+.harness-mark svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+.project-badges {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px auto 0;
+  padding: 0 16px;
+}
+.project-badges a {
+  display: inline-flex;
+  border-radius: 4px;
+}
+.project-badges img {
+  object-fit: contain;
+  display: block;
+  border-radius: 0;
+  margin: 0;
+  max-width: 100%;
+}
+.project-badges a:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 4px;
+}
+.repository-card {
+  padding: 24px;
+  margin: 24px 0 32px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 16px;
+  background: var(--vp-c-bg-soft);
+}
+.repository-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 21px;
+  letter-spacing: -0.025em;
+}
+.repository-heading > .doc-icon {
+  color: var(--vp-c-brand-1);
+}
+.vp-doc .repository-card p {
+  color: var(--vp-c-text-2);
+  margin: 10px 0 20px;
+  font-size: 14px;
+}
+.vp-doc .repository-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 15px;
+  background: var(--vp-button-brand-bg);
+  color: var(--vp-button-brand-text);
+  border-radius: 9px;
+  font-size: 13px;
+  text-decoration: none;
+}
+.repository-open .doc-icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+.repository-card .project-badges {
+  justify-content: flex-start;
+  padding: 0;
+  margin: 20px 0;
+}
+.repository-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 13px;
+}
+@media (max-width: 600px) {
+  .harness-marks {
+    gap: 20px;
+  }
+  .cinema-integrations .harness-marks a {
+    font-size: 14px;
+    gap: 7px;
+  }
+  .repository-card {
+    padding: 18px;
+  }
+  .repository-open {
+    flex-wrap: wrap;
   }
 }

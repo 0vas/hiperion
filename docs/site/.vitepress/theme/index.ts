@@ -1,4 +1,5 @@
 import { h } from 'vue';
+import RepositoryCard from '../components/RepositoryCard.vue';
 import LandscapeHero from '../components/LandscapeHero.vue';
 import UseCases from '../components/UseCases.vue';
 import Quickstart from '../components/Quickstart.vue';
@@ -17,6 +18,7 @@ export default {
       'home-hero-before': () => h(LandscapeHero),
     }),
   enhanceApp({ app }) {
+    app.component('RepositoryCard', RepositoryCard);
     app.component('UseCases', UseCases);
     app.component('Quickstart', Quickstart);
     app.component('WorkflowDemo', WorkflowDemo);

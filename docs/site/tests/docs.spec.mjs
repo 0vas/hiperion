@@ -498,3 +498,61 @@ test('video failure keeps the poster, navigation and download actions usable', a
     page.getByRole('link', { name: 'macOS · Apple Silicon', exact: true }),
   ).toBeInViewport();
 });
+
+test('home theme switch changes the actual page and preserves it across navigation', async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/hiperion/');
+  const title = page.locator('#landscape-title');
+  const lightColor = await title.evaluate((el) => getComputedStyle(el).color);
+  await page.getByRole('switch', { name: 'Cambiar tema' }).click();
+  await expect(page.locator('html')).toHaveClass(/dark/);
+  await expect(title).not.toHaveCSS('color', lightColor);
+  const darkColor = await title.evaluate((el) => getComputedStyle(el).color);
+  await page.getByRole('switch', { name: 'Cambiar tema' }).click();
+  await expect(title).toHaveCSS('color', lightColor);
+  await page.reload();
+  await expect(title).toHaveCSS('color', lightColor);
+  await expect(title).not.toHaveCSS('color', darkColor);
+  await page.getByRole('link', { name: 'Contribuir', exact: true }).click();
+  await expect(page.locator('html')).not.toHaveClass(/dark/);
+});
+
+test('repository is discoverable with Shields badges and SVG actions in both languages', async ({
+  page,
+}) => {
+  for (const en of [false, true]) {
+    await page.goto(`/hiperion/${en ? 'en/' : ''}`);
+    const badges = page.locator('.project-badges img');
+    await expect(badges).toHaveCount(3);
+    for (const badge of await badges.all())
+      await expect(badge).toHaveAttribute('src', /^https:\/\/img.shields.io\//);
+    await expect(page.locator('.landscape-primary svg')).toHaveCount(2);
+    await page.goto(`/hiperion/${en ? 'en/' : ''}contribuir.html`);
+    const repo = page.getByRole('link', {
+      name: en ? 'Open repository on GitHub' : 'Abrir repositorio en GitHub',
+      exact: true,
+    });
+    await expect(repo).toBeVisible();
+    await expect(repo).toHaveAttribute(
+      'href',
+      'https://github.com/0vas/hiperion',
+    );
+    await expect(repo.locator('svg')).toHaveCount(2);
+    for (const theme of ['light', 'dark']) {
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      expect(
+        (
+          await new AxeBuilder({ page })
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+            .analyze()
+        ).violations,
+      ).toEqual([]);
+      await page.screenshot({
+        path: `../../test-results/docs/contribute-${theme}-${en ? 'en' : 'es'}.png`,
+      });
+    }
+  }
+});

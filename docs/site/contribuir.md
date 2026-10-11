@@ -1,5 +1,7 @@
 # Contribuir
 
+<RepositoryCard />
+
 Hyperion es independiente y está disponible bajo [licencia MIT](https://github.com/0vas/hiperion/blob/main/LICENSE). Las mejoras deben funcionar sin depender de un único proveedor de IA.
 
 ## Preparar el proyecto

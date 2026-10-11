@@ -3,6 +3,8 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useData, withBase } from 'vitepress';
 import DocIcon from './DocIcon.vue';
 import HomeMotion from './HomeMotion.vue';
+import ProjectBadges from './ProjectBadges.vue';
+import HarnessMarks from './HarnessMarks.vue';
 const { lang } = useData();
 const en = computed(() => lang.value !== 'es');
 const paused = ref(false);
@@ -94,8 +96,8 @@ const route = (path: string) => withBase(`${en.value ? '/en' : ''}/${path}`);
           :href="en ? '#download-hyperion' : '#descarga-hyperion'"
           ><DocIcon name="download" />{{
             en ? 'Download Hyperion' : 'Descargar Hyperion'
-          }}<span aria-hidden="true">↗</span></a
-        >
+          }}<DocIcon name="external"
+        /></a>
         <a
           class="landscape-secondary"
           :href="en ? '#try-a-workflow' : '#prueba-un-flujo'"
@@ -108,9 +110,8 @@ const route = (path: string) => withBase(`${en.value ? '/en' : ''}/${path}`);
         macOS · Windows <span> / </span> Open source · MIT
       </p>
       <a class="cinema-start" :href="route('guia/primeros-pasos.html')"
-        >{{ en ? 'Get started' : 'Empezar' }}
-        <span aria-hidden="true">→</span></a
-      >
+        >{{ en ? 'Get started' : 'Empezar' }} <DocIcon name="arrow"
+      /></a>
     </div>
     <div class="cinema-menu">
       <div>
@@ -144,6 +145,7 @@ const route = (path: string) => withBase(`${en.value ? '/en' : ''}/${path}`);
       </button>
     </div>
     <div class="landscape-product"><HomeMotion /></div>
+    <ProjectBadges />
     <div class="cinema-integrations">
       <p>
         {{
@@ -152,16 +154,15 @@ const route = (path: string) => withBase(`${en.value ? '/en' : ''}/${path}`);
             : 'EMPIEZA DONDE OCURRE TU CONVERSACIÓN'
         }}
       </p>
-      <a :href="route('guia/integraciones.html')"
-        >Codex <span>Claude</span> Cursor <span>ChatGPT</span> Hermes</a
-      ><small
+      <HarnessMarks />
+      <small
         >{{
           en
             ? 'Explore connection options and available capabilities'
             : 'Consulta las conexiones y capacidades disponibles'
         }}
-        <span aria-hidden="true">↗</span></small
-      >
+        <DocIcon name="external"
+      /></small>
     </div>
   </section>
 </template>
