@@ -147,89 +147,6 @@
   flex-shrink: 0;
   vertical-align: middle;
 }
-.home-motion {
-  position: relative;
-  width: 480px;
-  max-width: 100%;
-  color: var(--vp-c-brand-1);
-}
-.solar-scene {
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-.solar-halo {
-  fill: var(--vp-c-brand-soft);
-}
-.home-orbit {
-  transform-origin: 240px 200px;
-  animation: solar-orbit 32s linear infinite;
-}
-.home-orbit ellipse {
-  fill: none;
-  stroke: currentColor;
-  opacity: 0.2;
-}
-.home-orbit circle,
-.scene-point {
-  fill: currentColor;
-}
-.orbit-second {
-  animation-direction: reverse;
-  animation-duration: 44s;
-  opacity: 0.6;
-}
-.scene-path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-dasharray: 6 18;
-  animation: solar-current 6s linear infinite;
-  opacity: 0.45;
-}
-.scene-point {
-  opacity: 0.55;
-}
-.motion-paused .home-orbit,
-.motion-paused .scene-path {
-  animation-play-state: paused;
-}
-.motion-toggle {
-  display: grid;
-  place-items: center;
-  position: absolute;
-  bottom: 12px;
-  right: 24px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  background: var(--vp-c-bg);
-  color: var(--vp-c-brand-1);
-  cursor: pointer;
-}
-.motion-toggle .doc-icon {
-  width: 16px;
-  height: 16px;
-}
-.scene-caption {
-  display: block;
-  text-align: center;
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  color: var(--vp-c-text-2);
-  margin-top: -12px;
-}
-@keyframes solar-orbit {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@keyframes solar-current {
-  to {
-    stroke-dashoffset: -48;
-  }
-}
 .vp-doc .quickstart-map {
   list-style: none;
   padding: 0;
@@ -320,79 +237,6 @@
 .demo-label .doc-icon {
   width: 16px;
   height: 16px;
-}
-.demo-layout {
-  display: grid;
-  grid-template-columns: minmax(180px, 0.75fr) minmax(0, 1.6fr);
-}
-.vp-doc .demo-flow {
-  list-style: none;
-  margin: 0;
-  padding: 30px 20px;
-  background: var(--vp-c-bg-alt);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 28px;
-}
-.vp-doc .demo-flow li {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin: 0;
-}
-.demo-flow li:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  width: 2px;
-  top: 44px;
-  bottom: -22px;
-  left: 19px;
-  background: var(--vp-c-divider);
-}
-.demo-flow li.done::after {
-  background: var(--demo-green);
-}
-.demo-node-icon {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
-  color: var(--vp-c-text-2);
-  background: var(--vp-c-bg);
-}
-.demo-flow .done .demo-node-icon {
-  color: var(--demo-green);
-  border-color: var(--demo-green);
-}
-.demo-flow .current .demo-node-icon {
-  color: var(--vp-c-brand-1);
-  border-color: var(--vp-c-brand-1);
-  box-shadow: 0 0 0 4px var(--vp-c-brand-soft);
-}
-.demo-flow small,
-.demo-flow strong,
-.demo-state {
-  display: block;
-}
-.demo-flow small {
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  color: var(--vp-c-text-2);
-  line-height: 1.5;
-}
-.demo-flow strong {
-  font-size: 13px;
-  line-height: 1.65;
-}
-.demo-state {
-  color: var(--vp-c-text-2);
-  font-size: 11px;
-  line-height: 1.5;
 }
 .demo-workspace {
   padding: 24px;
@@ -534,58 +378,15 @@
   .demo-layout {
     grid-template-columns: 1fr;
   }
-  .vp-doc .demo-flow {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    padding: 18px 12px;
-  }
-  .vp-doc .demo-flow li {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .demo-flow li:not(:last-child)::after {
-    top: 19px;
-    left: 46px;
-    width: calc(100% - 42px);
-    height: 2px;
-    bottom: auto;
-  }
-  .demo-flow small {
-    font-size: 9px;
-  }
-  .demo-flow strong {
-    font-size: 11px;
-    line-height: 1.45;
-  }
-  .demo-state {
-    display: none;
-  }
   .demo-primary + .demo-secondary {
     margin-inline-start: 0;
   }
   .demo-workspace {
     padding: 20px;
   }
-  .home-motion {
-    width: 320px;
-  }
-  .scene-caption {
-    font-size: 10px;
-  }
-  .motion-toggle {
-    right: 2px;
-    bottom: 4px;
-    width: 32px;
-    height: 32px;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-orbit,
-  .scene-path {
+  .link-current {
     animation: none !important;
-  }
-  .motion-toggle {
-    display: none;
   }
 }

@@ -2,18 +2,14 @@
 import { computed, ref, useId } from 'vue';
 import { useData, withBase } from 'vitepress';
 import DocIcon from './DocIcon.vue';
+import ProductCanvas from './ProductCanvas.vue';
 const { lang } = useData();
 const en = computed(() => lang.value !== 'es');
 const t = (es: string, english: string) => (en.value ? english : es);
 const stage = ref(0);
+const paused = ref(false);
 const audience = ref('');
 const id = useId();
-const nodes = computed(() => [
-  t('Tu petición', 'Your request'),
-  t('Elegir destinatario', 'Choose audience'),
-  t('Revisar borrador', 'Review draft'),
-  t('Resultado', 'Result'),
-]);
 const target = computed(() =>
   audience.value === 'team'
     ? t('el equipo', 'the team')
@@ -59,45 +55,31 @@ function restart() {
           'No installation · no data sent',
         )
       }}</span>
+      <button
+        class="demo-motion-toggle"
+        @click="paused = !paused"
+        :aria-label="
+          paused
+            ? t('Reanudar movimiento del ejemplo', 'Resume example motion')
+            : t('Pausar movimiento del ejemplo', 'Pause example motion')
+        "
+      >
+        <DocIcon :name="paused ? 'play' : 'pause'" />
+      </button>
     </header>
+    <div class="demo-product-bar">
+      <span
+        ><DocIcon name="flow" />{{
+          t('Guía de bienvenida', 'Welcome guide')
+        }}</span
+      ><span class="demo-product-state">{{
+        stage === 3
+          ? t('Completado', 'Completed')
+          : t('En progreso', 'In progress')
+      }}</span>
+    </div>
+    <ProductCanvas :stage="stage" :paused="paused" />
     <div class="demo-layout">
-      <ol class="demo-flow" :aria-label="t('Plan del ejemplo', 'Example plan')">
-        <li
-          v-for="(node, index) in nodes"
-          :key="node"
-          :class="{
-            done: index < stage || stage === 3,
-            current: index === stage && stage < 3,
-          }"
-          :aria-current="index === stage && stage < 3 ? 'step' : undefined"
-        >
-          <span class="demo-node-icon"
-            ><DocIcon
-              :name="
-                index < stage || stage === 3
-                  ? 'check'
-                  : ['chat', 'user', 'eye', 'check'][index]
-              "
-          /></span>
-          <span
-            ><small
-              >{{ String(index + 1).padStart(2, '0') }} ·
-              {{
-                index === 1 || index === 2
-                  ? t('Tú', 'You')
-                  : t('Agente', 'Agent')
-              }}</small
-            ><strong>{{ node }}</strong
-            ><span class="demo-state">{{
-              index < stage || stage === 3
-                ? t('Completado', 'Completed')
-                : index === stage
-                  ? t('Paso actual', 'Current step')
-                  : t('Pendiente', 'Pending')
-            }}</span></span
-          >
-        </li>
-      </ol>
       <div class="demo-workspace">
         <p class="demo-status" role="status" aria-live="polite">{{ status }}</p>
         <div v-if="stage === 0" class="demo-stage">

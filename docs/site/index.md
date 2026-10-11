@@ -2,8 +2,8 @@
 layout: home
 hero:
   name: Hyperion
-  text: Tu petición. Un proceso visible.
-  tagline: Trabaja con tu IA desde el chat y sigue cada tarea, decisión y resultado en un canvas.
+  text: El trabajo de tu IA, a la vista.
+  tagline: De la conversación al resultado. Un canvas compartido para seguir el plan, decidir y revisar lo que hace tu agente.
   image:
     src: /brand/hyperion-solar.svg
     alt: Hyperion — emblema solar
@@ -46,10 +46,8 @@ Elige un destinatario, revisa un borrador de muestra y observa cómo los datos p
 
 <Downloads />
 
-## Un primer ejemplo
+## ¿Qué harás con Hyperion?
 
-> Usa Hyperion para preparar una guía de bienvenida a mi proyecto.
+<UseCases />
 
-Si falta información, el agente la pide en el flujo. Puedes abrirlo junto al chat o en Hyperion Desktop. [Conecta tu herramienta una vez](./guia/primeros-pasos.md) y después usa peticiones normales.
-
-**Preview local:** compatible con integraciones de Codex, Cursor, Claude Desktop y Claude Code. El agente realiza el trabajo; Hyperion conserva el proceso. Si el chat terminó su turno, [necesita un mensaje para retomarlo](./guia/usar-el-flujo.md#retomar-el-trabajo).
+Conecta tu IA una vez y pega una petición en un chat nuevo. [Consulta las capacidades de cada integración](./guia/integraciones.md).

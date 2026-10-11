@@ -52,3 +52,30 @@ Si el agente sigue esperando tu respuesta, puede retomar el trabajo en ese mismo
 Preparar una guía no implica publicarla. La integración debe respetar el alcance de tu petición.
 
 [Aprende a usar el canvas](./usar-el-flujo.md) o consulta [problemas de conexión](./integraciones.md).
+
+## Peticiones listas para probar
+
+<UseCases />
+
+Elige un caso, copia la petición y pégala en tu herramienta de IA conectada. El agente adapta el plan a tu contexto. Son recorridos esperados, no ejecuciones garantizadas.
+
+::: details Probar desde el código fuente
+Para desarrollo, como alternativa a Desktop. Requiere Node.js 22.13 o superior.
+
+```sh
+git clone https://github.com/0vas/hiperion.git
+cd hiperion
+npm ci
+npm run build
+npm start
+```
+
+En otra terminal, conecta tu herramienta una vez:
+
+```sh
+npm run hyperion -- setup cursor
+# Alternativas: setup codex / setup claude
+```
+
+Reinicia esa herramienta, abre un chat nuevo y pega una de las peticiones de arriba. Abre `http://127.0.0.1:4317` para ver el canvas. Este recorrido ejecuta el código de `main`, no el instalador preview anterior.
+:::

@@ -2,8 +2,8 @@
 layout: home
 hero:
   name: Hyperion
-  text: Your intent. A visible path.
-  tagline: Work with your AI from the chat. Follow every task, decision and result on a shared canvas.
+  text: Your AI’s work, in view.
+  tagline: From conversation to result. A shared canvas to follow the plan, make decisions and review your agent’s work.
   image:
     src: /brand/hyperion-solar.svg
     alt: Hyperion — solar emblem
@@ -46,10 +46,8 @@ Choose an audience, review a sample draft and see how data moves between tasks.
 
 <Downloads />
 
-## A first example
+## What will you do with Hyperion?
 
-> Use Hyperion to prepare a welcome guide for my project.
+<UseCases />
 
-The agent asks for missing information in the workflow. Open it beside your chat or in Hyperion Desktop. [Connect your tool once](./guia/primeros-pasos.md), then use everyday requests.
-
-**Local preview:** integrations for Codex, Cursor, Claude Desktop and Claude Code. Your agent performs the work; Hyperion preserves the process. Without a resume connector, a chat that has ended its turn [needs a message to continue](./guia/reanudacion.md).
+Connect your AI once, then paste a request into a new chat. [Check integration capabilities](./guia/integraciones.md).

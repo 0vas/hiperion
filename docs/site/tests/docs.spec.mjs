@@ -246,7 +246,7 @@ test('home motion can be paused and respects reduced motion', async ({
 }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/hiperion/');
-  const motion = page.locator('.home-orbit').first();
+  const motion = page.locator('.home-motion .link-current').first();
   await expect(motion).toHaveCSS('animation-play-state', 'running');
   await page
     .getByRole('button', { name: 'Pausar animación', exact: true })
@@ -311,5 +311,75 @@ test('demo forms, evidence and review stay accessible in narrow layouts', async 
         path: `../../test-results/docs/demo-review-${theme}-${en ? 'en' : 'es'}.png`,
       });
     }
+  }
+});
+
+test('the demo uses the Hyperion canvas and keeps SVG task states in sync', async ({
+  page,
+}) => {
+  await page.goto('/hiperion/guia/primeros-pasos.html');
+  const demo = page.getByRole('region', {
+    name: 'Ejemplo interactivo',
+    exact: true,
+  });
+  await expect(demo.locator('.product-canvas')).toBeVisible();
+  await demo
+    .getByRole('button', { name: 'Crear el plan', exact: true })
+    .click();
+  await expect(demo.locator('[data-task="audience"]').first()).toHaveAttribute(
+    'data-state',
+    'waiting',
+  );
+  await demo.getByRole('combobox').selectOption('team');
+  await demo
+    .getByRole('button', { name: 'Guardar respuesta', exact: true })
+    .click();
+  await expect(demo.locator('[data-task="draft"]').first()).toHaveAttribute(
+    'data-state',
+    'completed',
+  );
+  await expect(demo.locator('[data-task="review"]').first()).toHaveAttribute(
+    'data-state',
+    'waiting',
+  );
+  await demo
+    .getByRole('button', { name: 'Aprobar borrador', exact: true })
+    .click();
+  await expect(demo.locator('[data-task="review"]').first()).toHaveAttribute(
+    'data-state',
+    'completed',
+  );
+});
+
+test('quickstart offers specific use cases, copyable prompts and source commands', async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  for (const en of [false, true]) {
+    await page.goto(`/hiperion/${en ? 'en/' : ''}guia/primeros-pasos.html`);
+    await page
+      .getByRole('button', {
+        name: en ? 'Code review' : 'Revisión de código',
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole('button', {
+        name: en ? 'Copy request' : 'Copiar petición',
+        exact: true,
+      })
+      .click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
+      en ? 'Use Hyperion to review' : 'Usa Hyperion para revisar',
+    );
+    await page
+      .getByText(en ? 'Try it from source' : 'Probar desde el código fuente', {
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.locator('pre').filter({ hasText: 'npm run build' }),
+    ).toBeVisible();
   }
 });

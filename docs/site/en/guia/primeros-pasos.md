@@ -44,3 +44,30 @@ If the agent is still waiting through the integration, it can continue in the sa
 Preparing a guide does not authorize publishing it. The integration must respect the scope of your request.
 
 [Use the canvas](./usar-el-flujo.md) · [Connection troubleshooting](./integraciones.md)
+
+## Requests ready to try
+
+<UseCases />
+
+Choose a case, copy the request and paste it into your connected AI tool. The agent adapts the plan to your context. These examples describe expected workflows, not guaranteed executions.
+
+::: details Try it from source
+For developers who prefer a local checkout instead of Desktop. Requires Node.js 22.13 or newer.
+
+```sh
+git clone https://github.com/0vas/hiperion.git
+cd hiperion
+npm ci
+npm run build
+npm start
+```
+
+In a second terminal, connect your tool once:
+
+```sh
+npm run hyperion -- setup cursor
+# Alternatives: setup codex / setup claude
+```
+
+Restart that AI tool, open a new chat and paste a request from above. Visit `http://127.0.0.1:4317` to view the canvas. This runs the code in `main`, not the older preview installer.
+:::
