@@ -1,4 +1,5 @@
 import { h } from 'vue';
+import GoalExplorer from '../components/GoalExplorer.vue';
 import GuideLens from '../components/GuideLens.vue';
 import RepositoryCard from '../components/RepositoryCard.vue';
 import LandscapeHero from '../components/LandscapeHero.vue';
@@ -10,6 +11,7 @@ import DefaultTheme from 'vitepress/theme';
 import './style.css';
 import './product.css';
 import './landscape.css';
+import './goals.css';
 import Downloads from '../components/Downloads.vue';
 import Architecture from '../components/Architecture.vue';
 export default {
@@ -19,6 +21,7 @@ export default {
       'home-hero-before': () => h(LandscapeHero),
     }),
   enhanceApp({ app }) {
+    app.component('GoalExplorer', GoalExplorer);
     app.component('GuideLens', GuideLens);
     app.component('RepositoryCard', RepositoryCard);
     app.component('UseCases', UseCases);

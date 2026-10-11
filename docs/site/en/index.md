@@ -20,6 +20,8 @@ Choose an audience, review a sample draft and see how data moves between tasks.
 
 ## What will you do with Hyperion?
 
-<UseCases />
+One request, different paths. Explore six goals and see how a decision shapes the plan.
+
+<GoalExplorer />
 
 Connect your AI once, then paste a request into a new chat. [Check integration capabilities](./guia/integraciones.md).

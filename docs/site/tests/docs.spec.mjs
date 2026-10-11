@@ -625,3 +625,73 @@ test('slow external badges do not block the landing page', async ({ page }) => {
     await Promise.allSettled(pending.map((route) => route.abort()));
   }
 });
+
+test('home explores six goals with isolated decisions and copyable requests', async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  for (const en of [false, true]) {
+    await page.goto(`/hiperion/${en ? 'en/' : ''}`);
+    const explorer = page.getByRole('region', {
+      name: en ? 'Explore use cases' : 'Explora los casos de uso',
+      exact: true,
+    });
+    await expect(explorer).toBeVisible();
+    const categories = explorer.locator('.goal-categories button');
+    await expect(categories).toHaveCount(6);
+    const prompts = new Set();
+    for (let i = 0; i < 6; i++) {
+      await categories.nth(i).click();
+      await expect(explorer.locator('.goal-output')).toHaveCount(0);
+      prompts.add(await explorer.locator('.goal-prompt').innerText());
+      const originalStep = await explorer
+        .locator('.goal-path li')
+        .nth(2)
+        .innerText();
+      await explorer.locator('.goal-choices button').last().focus();
+      await page.keyboard.press('Enter');
+      await expect(explorer.locator('.goal-output')).toBeVisible();
+      await expect(explorer.locator('.goal-path li').nth(2)).not.toHaveText(
+        originalStep,
+      );
+      await expect(
+        explorer.locator('.goal-choices button').last(),
+      ).toHaveAttribute('aria-pressed', 'true');
+      await explorer
+        .getByRole('button', {
+          name: en ? 'Copy request' : 'Copiar petición',
+          exact: true,
+        })
+        .click();
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+        await explorer.locator('.goal-prompt').innerText(),
+      );
+    }
+    expect(prompts.size).toBe(6);
+    await explorer
+      .getByRole('button', {
+        name: en ? 'Reset example' : 'Reiniciar ejemplo',
+        exact: true,
+      })
+      .click();
+    await expect(explorer.locator('.goal-output')).toHaveCount(0);
+    for (const colorScheme of ['light', 'dark']) {
+      await page.emulateMedia({ colorScheme });
+      await page.setViewportSize({ width: 390, height: 844 });
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      expect(
+        (
+          await new AxeBuilder({ page })
+            .include('.goal-explorer')
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+            .analyze()
+        ).violations,
+      ).toEqual([]);
+    }
+  }
+});
