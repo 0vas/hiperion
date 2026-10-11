@@ -10,6 +10,8 @@ const repo = 'https://github.com/0vas/hiperion';
   >
     <a :href="repo"
       ><img
+        loading="lazy"
+        decoding="async"
         src="https://img.shields.io/badge/GitHub-0vas%2Fhiperion-755922?style=flat&amp;logo=github&amp;logoColor=white&amp;labelColor=273139"
         alt="GitHub: 0vas/hiperion"
         width="149"
@@ -17,6 +19,8 @@ const repo = 'https://github.com/0vas/hiperion';
     /></a>
     <a :href="`${repo}/blob/main/LICENSE`"
       ><img
+        loading="lazy"
+        decoding="async"
         src="https://img.shields.io/badge/License-MIT-755922?style=flat&amp;labelColor=273139"
         :alt="lang === 'es' ? 'Licencia MIT' : 'MIT license'"
         width="82"
@@ -24,6 +28,8 @@ const repo = 'https://github.com/0vas/hiperion';
     /></a>
     <a :href="`${repo}/actions/workflows/pages.yml`"
       ><img
+        loading="lazy"
+        decoding="async"
         src="https://img.shields.io/github/actions/workflow/status/0vas/hiperion/pages.yml?branch=main&amp;label=Docs&amp;style=flat&amp;labelColor=273139"
         :alt="
           lang === 'es'

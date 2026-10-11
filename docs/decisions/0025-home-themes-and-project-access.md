@@ -17,3 +17,5 @@ Shields.io supplies linked badges for the GitHub repository, MIT license and act
 New tests first reproduced the ineffective theme switch and absent badges. Tests check actual computed color changes, switching back, persistence, SVG actions, badge URLs and visible repository links in both languages. Accessibility checks cover light/dark home and contribution pages. Inspect desktop and mobile captures with both real video and the static fallback. External badges and video remain optional remote assets; navigation never depends on their availability.
 
 The decorative full-width product menu is removed: its repeated brand and inactive labels looked like a second site navigation. The background pause control now sits beside Get started, with a visible label. The product window keeps its own frame and example label.
+
+External Shields images use lazy loading and asynchronous decoding. A stalled badge service must not block the landing page load event. A browser test holds all badge responses to verify the page and primary action remain available.

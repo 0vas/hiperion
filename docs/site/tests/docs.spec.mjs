@@ -611,3 +611,17 @@ test('downloads identify platforms and illustrated guides reveal contextual anno
     }
   }
 });
+
+test('slow external badges do not block the landing page', async ({ page }) => {
+  const pending = [];
+  await page.route('https://img.shields.io/**', (route) => pending.push(route));
+  try {
+    await page.goto('/hiperion/', { waitUntil: 'load', timeout: 5000 });
+    await expect(page.locator('h1')).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: 'Descargar Hyperion', exact: true }),
+    ).toBeVisible();
+  } finally {
+    await Promise.allSettled(pending.map((route) => route.abort()));
+  }
+});
