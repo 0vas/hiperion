@@ -583,11 +583,7 @@ test('downloads identify platforms and illustrated guides reveal contextual anno
     await expect(
       page.locator('.download-card svg[data-platform="windows"]'),
     ).toHaveCount(1);
-    for (const guide of [
-      'guia/usar-el-flujo',
-      'guia/reanudacion',
-      'referencia/arquitectura',
-    ]) {
+    for (const guide of ['guia/usar-el-flujo', 'guia/reanudacion']) {
       await page.goto(`/hiperion/${locale}${guide}.html`);
       const lens = page.locator('.guide-lens');
       await expect(lens).toBeVisible();
@@ -716,7 +712,7 @@ test('floating navigation keeps a generated brand and working actions across lay
     const nav = page.locator('.VPNavBar');
     await expect(nav.locator('.logo')).toHaveAttribute(
       'src',
-      /brand\/hyperion-app\.png$/,
+      /brand\/hyperion-titan\.png$/,
     );
     await expect(nav.locator('.logo')).toHaveJSProperty('complete', true);
     expect(
@@ -843,5 +839,66 @@ test('architecture views explain execution, data and resumption in both language
       .exclude('iframe')
       .analyze();
     expect(accessibility.violations).toEqual([]);
+  }
+});
+
+test('architecture leads with an interactive visual journey and hides reference tables', async ({
+  page,
+}) => {
+  for (const en of [false, true]) {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(`/hiperion/${en ? 'en/' : ''}referencia/arquitectura.html`);
+    const journey = page.getByRole('region', {
+      name: en ? 'From request to result' : 'De la petición al resultado',
+      exact: true,
+    });
+    await expect(journey.locator('svg.architecture-journey')).toBeVisible({
+      timeout: 3000,
+    });
+    expect((await journey.boundingBox()).width).toBeGreaterThan(900);
+    await journey
+      .getByRole('button', {
+        name: en ? 'Human decision' : 'Decisión humana',
+        exact: true,
+      })
+      .click();
+    await expect(journey.getByRole('status')).toContainText(
+      en ? 'audience' : 'audiencia',
+    );
+    const reference = page.locator('details.architecture-reference');
+    await expect(reference).not.toHaveAttribute('open');
+    await expect(page.locator('.architecture-deployment')).toBeVisible();
+    await expect(page.locator('.VPNavBarTitle img')).toHaveAttribute(
+      'src',
+      /hyperion-titan\.png/,
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    await journey
+      .getByRole('button', {
+        name: en ? 'Verified result' : 'Resultado verificado',
+        exact: true,
+      })
+      .focus();
+    await page.keyboard.press('Enter');
+    await expect(journey.getByRole('status')).toContainText(
+      en ? 'evidence' : 'evidencia',
+    );
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      )
+      .toBe(true);
+    await reference.locator(':scope > summary').click();
+    await expect(reference.locator('table').first()).toBeVisible();
+    for (const dark of [false, true]) {
+      await page.evaluate(
+        (dark) => document.documentElement.classList.toggle('dark', dark),
+        dark,
+      );
+      const a11y = await new AxeBuilder({ page })
+        .include('.architecture-atlas')
+        .analyze();
+      expect(a11y.violations).toEqual([]);
+    }
   }
 });

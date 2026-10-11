@@ -1,4 +1,6 @@
 import { h } from 'vue';
+import ArchitectureAtlas from '../components/ArchitectureAtlas.vue';
+import './architecture.css';
 import GoalExplorer from '../components/GoalExplorer.vue';
 import GuideLens from '../components/GuideLens.vue';
 import RepositoryCard from '../components/RepositoryCard.vue';
@@ -31,5 +33,6 @@ export default {
     app.component('DocIcon', DocIcon);
     app.component('Downloads', Downloads);
     app.component('Architecture', Architecture);
+    app.component('ArchitectureAtlas', ArchitectureAtlas);
   },
 };

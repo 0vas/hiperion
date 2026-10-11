@@ -19,7 +19,7 @@ const t = (es: string, en: string) => (lang.value === 'es' ? es : en);
       <aside class="cinema-sidebar">
         <div class="cinema-brand">
           <img
-            :src="withBase('/brand/hyperion-app.png')"
+            :src="withBase('/brand/hyperion-titan.png')"
             :alt="t('Hyperion — símbolo solar', 'Hyperion — solar symbol')"
             width="28"
             height="28"

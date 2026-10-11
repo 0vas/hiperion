@@ -1,18 +1,33 @@
+---
+sidebar: false
+aside: false
+pageClass: architecture-page
+---
+
 # Architecture
 
-Hyperion turns a conversation into a visible, verifiable process. The AI proposes the plan and executes tools; the person supplies information and makes decisions; Hyperion preserves shared state and determines what can advance.
+**From a conversation to visible work.** The agent executes, you decide, and Hyperion retains state and evidence.
 
-<GuideLens kind="architecture" />
+## From request to result
 
-::: tip The separation behind the product
-The **agent executes**, the **engine validates**, the **canvas guides**, and **persistence retains evidence**. No AI provider has a privileged role in the core.
-:::
+<ArchitectureAtlas />
 
-## Explore how it works
+## Inside Hyperion
 
-Choose a view. Zoom, focus components and inspect the code behind each responsibility. Arrows show transfers between components, not a live execution.
+Three views of the same system. Select one and open Archify to explore the components in full screen.
 
 <Architecture />
+
+## Deployment and trust boundaries
+
+<ArchitectureAtlas kind="deployment" />
+
+::: info What is available
+Engine, canvas, persistence and continuation queue are implemented. Resuming a closed chat requires a real installed connector; native connectors remain pending.
+:::
+
+<details class="architecture-reference">
+<summary>Go deeper: contracts, responsibilities, failures and ArchiMate models</summary>
 
 ## What Hyperion does
 
@@ -91,7 +106,7 @@ SSE updates the canvas; fallback polling recovers changes when needed. Logs refl
 Core 0.5 includes suspension, a durable queue and a generic worker. Native resume connectors remain pending. MCP alone cannot wake a conversation after its turn has ended. See [Pause and resume](../guia/reanudacion.md) for available capabilities.
 :::
 
-## Deployment and trust boundaries
+## Deployment details
 
 **Local machine:** harness → CLI/MCP → loopback HTTP → engine + SQLite. Browser or Electron displays that service's canvas. Presentation processes do not maintain independent workflow engines.
 
@@ -124,3 +139,5 @@ Archify provides interactive exploration. ArchiMate retains formal component and
 - **Documentation:** contract, integration or component changes must update ES/EN guides, diagrams and examples in the same change.
 
 [AGENTS.md](https://github.com/0vas/hiperion/blob/main/AGENTS.md) records the repository map, invariants and documentation update matrix. The [process contract](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md) details the executable format.
+
+</details>

@@ -1,4 +1,6 @@
-# Generated Hyperion identity
+# Superseded ribbon identity
+
+Historical proposal. Replaced by [the solar titan](generation-titan.md); this file preserves the earlier prompt.
 
 Generated with the built-in image generation tool on 2026-10-11. The selected PNG is stored as `hyperion-app.png` in this directory, copied unchanged from the generated output. This replaces the solar H monogram in the website, favicon, product illustration and README. Older SVG studies remain as historical design assets; shipped desktop installers are unchanged.
 

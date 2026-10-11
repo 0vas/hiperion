@@ -142,12 +142,12 @@ export default defineConfig({
       {
         rel: 'icon',
         type: 'image/png',
-        href: '/hiperion/brand/hyperion-app.png',
+        href: '/hiperion/brand/hyperion-titan.png',
       },
     ],
   ],
   themeConfig: {
-    logo: '/brand/hyperion-app.png',
+    logo: '/brand/hyperion-titan.png',
     siteTitle: 'Hyperion',
     socialLinks: [{ icon: 'github', link: 'https://github.com/0vas/hiperion' }],
     search: {

@@ -1,18 +1,33 @@
+---
+sidebar: false
+aside: false
+pageClass: architecture-page
+---
+
 # Arquitectura
 
-Hyperion convierte una conversación en un proceso visible y verificable. La IA propone el plan y ejecuta herramientas; la persona aporta información y toma decisiones; Hyperion conserva el estado compartido y determina qué puede avanzar.
+**De una conversación a trabajo visible.** El agente ejecuta, tú decides y Hyperion mantiene el estado y la evidencia.
 
-<GuideLens kind="architecture" />
+## De la petición al resultado
 
-::: tip La separación que sostiene el producto
-El **agente ejecuta**, el **motor valida**, el **canvas guía** y la **persistencia conserva la evidencia**. Ningún proveedor de IA tiene una posición especial en el núcleo.
-:::
+<ArchitectureAtlas />
 
-## Explora cómo funciona
+## Dentro de Hyperion
 
-Elige una vista. Puedes ampliar el diagrama, enfocar componentes y consultar el código que respalda cada responsabilidad. Las flechas muestran transferencias entre componentes; no son una ejecución en vivo.
+Tres vistas del mismo sistema. Selecciona una y abre Archify para explorar los componentes a pantalla completa.
 
 <Architecture />
+
+## Despliegue y límites de confianza
+
+<ArchitectureAtlas kind="deployment" />
+
+::: info Lo que está disponible
+Motor, canvas, persistencia y cola de reanudación implementados. Retomar un chat cerrado requiere un conector real instalado; los conectores nativos siguen pendientes.
+:::
+
+<details class="architecture-reference">
+<summary>Profundizar: contratos, responsabilidades, fallos y modelos ArchiMate</summary>
 
 ## Qué hace Hyperion
 
@@ -91,7 +106,7 @@ SSE actualiza el canvas; el sondeo de respaldo recupera cambios cuando hace falt
 El núcleo 0.5 incluye suspensión, cola persistente y worker genérico. Los conectores nativos de reanudación siguen pendientes. MCP por sí solo no despierta una conversación cuyo turno terminó. Consulta [Pausa y reanudación](../guia/reanudacion.md) para distinguir las capacidades disponibles.
 :::
 
-## Despliegue y límites de confianza
+## Detalles de despliegue
 
 **Equipo local:** harness → CLI/MCP → HTTP en loopback → motor + SQLite. El navegador o Electron muestran el canvas de ese servicio. Los procesos de presentación no mantienen una copia independiente del motor.
 
@@ -124,3 +139,5 @@ Archify permite explorar las vistas. ArchiMate conserva los modelos formales de 
 - **Documentación:** cada cambio de contrato, conexión o componente debe actualizar sus guías ES/EN, diagramas y ejemplos en el mismo cambio.
 
 [AGENTS.md](https://github.com/0vas/hiperion/blob/main/AGENTS.md) recoge el mapa del proyecto, las invariantes y la matriz de actualización documental. [Contrato de procesos](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md) detalla el formato ejecutable.
+
+</details>
