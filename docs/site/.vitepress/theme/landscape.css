@@ -194,41 +194,35 @@ body:has(.landscape-hero) .VPHome {
   gap: 8px;
   min-height: 28px;
 }
-.cinema-menu {
-  border-block: 1px solid var(--vp-c-divider);
-  background: var(--home-surface);
-  backdrop-filter: blur(12px);
+
+.cinema-utilities {
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 18px;
-  min-height: 42px;
-  padding: 0 max(24px, calc((100% - 1100px) / 2));
-  font-size: 10px;
-  color: var(--vp-c-text-2);
-}
-.cinema-menu > div {
-  display: flex;
-  gap: 22px;
-  align-items: center;
-}
-.cinema-menu strong {
-  color: var(--vp-c-text-1);
-  font-weight: 550;
-}
-.cinema-menu-note {
-  margin-left: auto;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  gap: 8px 24px;
 }
 .landscape-motion {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 50%;
-  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border-radius: 8px;
   color: var(--vp-c-text-2);
+  font-size: 11px;
   cursor: pointer;
+}
+.landscape-motion:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 3px;
+}
+@media (hover: hover) {
+  .landscape-motion:hover {
+    color: var(--vp-c-brand-1);
+    background: var(--vp-c-brand-soft);
+  }
 }
 .landscape-motion .doc-icon {
   width: 12px;
@@ -237,7 +231,7 @@ body:has(.landscape-hero) .VPHome {
 .landscape-product {
   width: calc(100% - 64px);
   max-width: 1100px;
-  margin: 44px auto 0;
+  margin: 16px auto 0;
 }
 .cinema-window.home-motion {
   width: 100%;
@@ -583,9 +577,7 @@ body:has(.landscape-hero) .VPHome {
   .cinema-log {
     display: none;
   }
-  .cinema-menu > div {
-    gap: 14px;
-  }
+
   .landscape-copy {
     padding-top: 65px;
   }
@@ -612,19 +604,10 @@ body:has(.landscape-hero) .VPHome {
     font-size: 11px;
     padding-inline: 17px;
   }
-  .cinema-menu {
-    padding-inline: 18px;
-    gap: 10px;
-  }
-  .cinema-menu > div > span {
-    display: none;
-  }
-  .cinema-menu-note {
-    font-size: 8px;
-  }
+
   .landscape-product {
     width: calc(100% - 32px);
-    margin-top: 28px;
+    margin-top: 16px;
   }
   .cinema-workspace {
     display: block;

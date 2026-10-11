@@ -108,40 +108,35 @@ const route = (path: string) => withBase(`${en.value ? '/en' : ''}/${path}`);
       <p class="cinema-platforms">
         macOS · Windows <span> / </span> Open source · MIT
       </p>
-      <a class="cinema-start" :href="route('guia/primeros-pasos.html')"
-        >{{ en ? 'Get started' : 'Empezar' }} <DocIcon name="arrow"
-      /></a>
-    </div>
-    <div class="cinema-menu">
-      <div>
-        <img
-          :src="withBase('/logo.svg')"
-          alt=""
-          width="21"
-          height="21"
-        /><strong>Hyperion</strong
-        ><span>{{ en ? 'Conversation' : 'Conversación' }}</span
-        ><span>Canvas</span><span>{{ en ? 'Activity' : 'Actividad' }}</span>
+      <div class="cinema-utilities">
+        <a class="cinema-start" :href="route('guia/primeros-pasos.html')"
+          >{{ en ? 'Get started' : 'Empezar' }} <DocIcon name="arrow"
+        /></a>
+        <button
+          class="landscape-motion"
+          :aria-label="
+            en
+              ? paused
+                ? 'Resume background'
+                : 'Pause background'
+              : paused
+                ? 'Reanudar fondo'
+                : 'Pausar fondo'
+          "
+          :aria-pressed="paused"
+          @click="paused = !paused"
+        >
+          <DocIcon :name="paused ? 'play' : 'pause'" /><span>{{
+            en
+              ? paused
+                ? 'Resume background'
+                : 'Pause background'
+              : paused
+                ? 'Reanudar fondo'
+                : 'Pausar fondo'
+          }}</span>
+        </button>
       </div>
-      <span class="cinema-menu-note">{{
-        en ? 'Product view · example' : 'Vista del producto · ejemplo'
-      }}</span
-      ><button
-        class="landscape-motion"
-        :aria-label="
-          en
-            ? paused
-              ? 'Resume background'
-              : 'Pause background'
-            : paused
-              ? 'Reanudar fondo'
-              : 'Pausar fondo'
-        "
-        :aria-pressed="paused"
-        @click="paused = !paused"
-      >
-        <DocIcon :name="paused ? 'play' : 'pause'" />
-      </button>
     </div>
     <div class="landscape-product"><HomeMotion /></div>
     <ProjectBadges />

@@ -392,6 +392,10 @@ test('video landing uses a centered headline, wide product view and controllable
   for (const en of [false, true]) {
     await page.goto(`/hiperion/${en ? 'en/' : ''}`);
     const hero = page.locator('.landscape-hero');
+    await expect(hero.locator('.cinema-menu')).toHaveCount(0);
+    await expect(hero.locator('.landscape-copy .landscape-motion')).toHaveCount(
+      1,
+    );
     const title = await hero.locator('h1').boundingBox();
     expect(Math.abs(title.x + title.width / 2 - 720)).toBeLessThan(5);
     expect(
