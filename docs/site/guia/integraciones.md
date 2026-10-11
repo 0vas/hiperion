@@ -32,6 +32,20 @@ Consulta [Pausa y reanudación](./reanudacion.md) para distinguir conexión MCP 
 
 Sin un conector de reanudación instalado, tu respuesta se guarda localmente. El agente puede recibirla mientras espera con la integración; un chat que terminó necesita un nuevo mensaje. Usa **Copiar continuación** en el canvas y envíalo en el chat. [Más sobre la continuidad](./usar-el-flujo.md#retomar-el-trabajo).
 
+## Antigravity
+
+Google Antigravity puede conectar el servidor MCP local de Hyperion. Esta conexión se configura manualmente; el asistente Desktop todavía no tiene un botón para Antigravity.
+
+1. Pide a tu agente preparar la [conexión técnica de Antigravity](https://github.com/0vas/hiperion/blob/main/docs/conexion.md#antigravity) en el equipo donde corre Hyperion.
+2. En Antigravity IDE, abre **MCP Servers → Manage MCP Servers → View raw config**. Añade la entrada `mcpServers.hyperion` generada, conservando los demás servidores.
+3. Recarga los servidores y comprueba que aparecen las herramientas de Hyperion. Abre un chat y pide: **«Usa Hyperion para preparar una guía de bienvenida a mi proyecto»**.
+
+::: info Alcance actual
+La compatibilidad se basa en el transporte MCP documentado; falta validar una sesión real de Antigravity. MCP no reactiva por sí solo un chat terminado. El conector de reanudación sigue pendiente.
+:::
+
+[Documentación MCP de Antigravity](https://antigravity.google/docs/mcp).
+
 ## Otras aplicaciones
 
 Un cliente compatible puede usar el servidor MCP, la CLI o la API local. Debe aportar un agente que planifique y ejecute: Hyperion no incluye un modelo de IA ni interpreta peticiones por sí solo.

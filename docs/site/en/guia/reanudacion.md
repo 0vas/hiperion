@@ -26,6 +26,7 @@ The canvas distinguishes pending resumption, connector dispatch and delivery to 
 | Claude Code    | MCP/skill available. Agent SDK session connector pending.                                                |
 | Cursor         | MCP/skill available. CLI session connector pending.                                                      |
 | Hermes Agent   | Configurable stdio MCP. Persisted-session connector pending.                                             |
+| Antigravity    | Configurable local MCP. Not validated in the real client; resume connector pending.                      |
 
 **Continuar desde el chat** (Continue from the chat) means your response is saved but no resume connector is assigned. Retry does not create an agent or open a chat.
 

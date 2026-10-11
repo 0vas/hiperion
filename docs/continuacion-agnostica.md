@@ -25,7 +25,7 @@ Sin un conector de reanudación, continúa disponible la espera cooperativa de M
 
 ## Cobertura actual por aplicación
 
-Esta versión incorpora la cola persistente, API, herramienta MCP `hyperion_suspend`, cliente y worker genérico. Los conectores nativos de reanudación de la tabla son trabajo de integración pendiente; no se incluyen como ejecutores de proveedor listos para usar. Las pruebas usan un conector sintético y las seis identidades; no certifican seis aplicaciones reales.
+Esta versión incorpora la cola persistente, API, herramienta MCP `hyperion_suspend`, cliente y worker genérico. Los conectores nativos de reanudación de la tabla son trabajo de integración pendiente; no se incluyen como ejecutores de proveedor listos para usar. Las pruebas usan un conector sintético y las identidades de harness documentadas; no certifican aplicaciones reales.
 
 | Herramienta                  | Conexión disponible con Hyperion                                               | Vía documentada para construir su conector                                                                                                |
 | ---------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -35,6 +35,7 @@ Esta versión incorpora la cola persistente, API, herramienta MCP `hyperion_susp
 | Claude Code                  | Skill y MCP local                                                              | Agent SDK con ID explícito de sesión persistida. Una sesión administrada por SDK no es automáticamente la conversación de Claude Desktop. |
 | Cursor                       | MCP local y skill; asistente Desktop                                           | CLI en modo no interactivo, reanudando un ID de chat explícito. Debe conservar sus permisos normales.                                     |
 | Hermes Agent (Nous Research) | MCP stdio mediante configuración de Hermes; identidad `hermes`                 | CLI permite reanudar una sesión por ID. Falta el conector que guarde y reconcilie sus recibos de entrega.                                 |
+| Google Antigravity           | MCP stdio mediante configuración manual; identidad `antigravity`               | Conector de reanudación pendiente. No se ha validado una sesión real ni el despertar del mismo chat.                                      |
 
 Fuentes oficiales consultadas el 10 de octubre de 2026: [Codex App Server](https://developers.openai.com/codex/app-server/), [ChatGPT MCP Events](https://developers.openai.com/plugins/build/mcp-events), [Claude Desktop MCP](https://support.claude.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop), [Claude Agent SDK](https://code.claude.com/docs/en/agent-sdk/sessions), [Cursor CLI](https://cursor.com/docs/cli/reference/parameters), [Hermes CLI](https://hermes-agent.nousresearch.com/docs/user-guide/cli/) y [Hermes MCP](https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp/).
 
@@ -93,3 +94,5 @@ En un checkout preparado, `npx tsx --test tests/continuation-queue.test.ts tests
 Es una prueba funcional del protocolo con un conector de prueba. Para certificar cada harness hay que repetirla con su sesión, permisos, recibos y conector reales, incluyendo pérdida de conexión y reinicio. No se han realizado esas certificaciones en esta entrega.
 
 [Decisión de arquitectura](decisions/0022-durable-continuations.md) · [Modelo ArchiMate](architecture/continuation.xml) · [Diagrama](architecture/continuation.svg)
+
+Antigravity: [MCP oficial](https://antigravity.google/docs/mcp), consultado el 11 de octubre de 2026; [configuración de Hyperion](conexion.md#antigravity).

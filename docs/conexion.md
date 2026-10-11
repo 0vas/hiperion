@@ -139,6 +139,20 @@ Comprueba en Codex que estén disponibles las herramientas `hyperion_create_run`
 
 La configuración stdio y los comandos de registro se basan en la [documentación oficial de Codex](https://developers.openai.com/codex/mcp).
 
+### Antigravity
+
+En un checkout construido y con el servicio local iniciado según la sección de arranque local anterior, genera la identidad:
+
+```sh
+npm run hyperion -- connect antigravity
+```
+
+El comando devuelve `configFile` y `config.mcpServers.hyperion`. No modifica Antigravity ni inicia el servidor: conserva el proceso `npm start` activo. Usa el archivo indicado por la salida, que contiene rutas absolutas y ninguna clave de proveedor.
+
+En Antigravity IDE, abre **MCP Servers → Manage MCP Servers → View raw config**. Copia `command`, `args` y `env` de la entrada generada a `mcpServers.hyperion`; el transporte stdio se deduce de `command`. Conserva los otros servidores y resuelve cualquier entrada Hyperion existente antes de reemplazarla. Recarga MCP y comprueba `hyperion_create_run` y `hyperion_get_run` antes de pedir tu objetivo en el chat.
+
+La [documentación oficial de MCP de Antigravity](https://antigravity.google/docs/mcp), consultada el 11 de octubre de 2026, describe esa configuración. Esta vía reutiliza el adaptador genérico: no incluye instalación automática en Desktop ni un conector de reanudación. Las pruebas verifican el protocolo con la identidad `antigravity`, no una sesión real de Google Antigravity. No se debe prometer que la conexión MCP despierta un chat finalizado.
+
 ### Claude Code
 
 Desde el proyecto en el que usarás Claude Code, registra el adaptador. `HYPERION_REPO` debe seguir apuntando al repositorio de Hyperion, aunque estés trabajando en otro proyecto.

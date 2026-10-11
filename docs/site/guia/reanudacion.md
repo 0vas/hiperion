@@ -26,6 +26,7 @@ El canvas distingue **Reanudación pendiente**, **Conector retomando** y **Solic
 | Claude Code    | MCP/skill disponible. Conector de sesión Agent SDK pendiente.                                       |
 | Cursor         | MCP/skill disponible. Conector de sesión CLI pendiente.                                             |
 | Hermes Agent   | MCP stdio configurable. Conector de sesión persistida pendiente.                                    |
+| Antigravity    | MCP local configurable. Sin validación en cliente real; conector de reanudación pendiente.          |
 
 Si ves **Continuar desde el chat**, la respuesta ya está guardada pero no hay un conector de reanudación asignado. Reintentar no crea un agente ni abre un chat por sí solo.
 

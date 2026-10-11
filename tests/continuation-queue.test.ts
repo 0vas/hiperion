@@ -56,6 +56,7 @@ for (const harness of [
   'claude-code',
   'cursor',
   'hermes',
+  'antigravity',
   'independent-tool',
 ]) {
   test(`durable continuation is independent of ${harness} and survives process restart`, () => {

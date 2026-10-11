@@ -902,3 +902,25 @@ test('architecture leads with an interactive visual journey and hides reference 
     }
   }
 });
+
+test('Antigravity has an SVG identity and an honest MCP setup path in both languages', async ({
+  page,
+}) => {
+  for (const locale of ['', 'en/']) {
+    await page.goto(`/hiperion/${locale}`);
+    const mark = page
+      .locator('.harness-marks a')
+      .filter({ hasText: 'Antigravity' });
+    await expect(mark).toBeVisible();
+    await expect(mark.locator('svg')).toHaveCount(1);
+    await mark.click();
+    await expect(page.locator('#antigravity')).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: /MCP.*Antigravity|Antigravity.*MCP/ }),
+    ).toHaveAttribute('href', 'https://antigravity.google/docs/mcp');
+    await expect(page.locator('.vp-doc')).toContainText('mcpServers.hyperion');
+    await page.goto(`/hiperion/${locale}guia/reanudacion.html`);
+    const row = page.getByRole('row').filter({ hasText: 'Antigravity' });
+    await expect(row).toContainText(locale ? 'pending' : 'pendiente');
+  }
+});

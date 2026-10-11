@@ -36,6 +36,8 @@ The simplest path is **Hyperion Desktop**; it includes its runtime:
 
 No terminal, Node installation, API key or hand-written configuration is needed for this Desktop path. Codex, Cursor and Claude Desktop receive a local MCP connection; Claude Code receives the portable skill. Hyperion preserves other connections and backs up existing configuration before changing it. A conflicting Hyperion entry is reported without overwriting it.
 
+Google Antigravity can use the generic local MCP adapter through [manual setup](docs/conexion.md#antigravity). Desktop one-click setup and a native resume connector are not included; a real Antigravity session remains unverified.
+
 The request is enough: the agent asks for missing context, constructs the workflow and shares its canvas. You can request **split** or **desktop** in the chat; both show the same run. After a human handoff, ask the chat to continue. Hyperion does not wake an idle conversation automatically.
 
 **Direct downloads:** [macOS · Apple Silicon](https://github.com/0vas/hiperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-mac-arm64.dmg) · [macOS · Intel](https://github.com/0vas/hiperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-mac-x64.dmg) · [Windows · x64](https://github.com/0vas/hiperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-win-x64.exe).

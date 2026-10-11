@@ -5,6 +5,7 @@ import claude from './brands/claude.svg?raw';
 import cursor from './brands/cursor.svg?raw';
 import openai from './brands/openai.svg?raw';
 import hermes from './brands/hermesagent.svg?raw';
+import antigravity from './brands/antigravity.svg?raw';
 const { lang } = useData();
 const brands = [
   { name: 'Codex', svg: codex },
@@ -12,6 +13,7 @@ const brands = [
   { name: 'Cursor', svg: cursor },
   { name: 'ChatGPT', svg: openai },
   { name: 'Hermes', svg: hermes },
+  { name: 'Antigravity', svg: antigravity },
 ];
 </script>
 <template>

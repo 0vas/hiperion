@@ -4,7 +4,7 @@ La pausa persistente y el alcance por herramienta se explican en [Reanudación a
 
 Hyperion runs separately from the agent and owns workflow state. The agent proposes a plan, claims ready work, performs it with its own tools, and reports evidence. The human participates through the web interface.
 
-For setup in Codex, Claude Code, Claude Desktop, Cursor and other local clients, follow the [connection guide](conexion.md). The user starts with a natural-language request; the host agent generates the plan and includes its original text in `plan.request`. Do not ask the user to author JSON.
+For setup in Codex, Claude Code, Claude Desktop, Cursor, Google Antigravity and other local clients, follow the [connection guide](conexion.md). The user starts with a natural-language request; the host agent generates the plan and includes its original text in `plan.request`. Do not ask the user to author JSON.
 
 ## Minimal user request
 
