@@ -1,0 +1,168 @@
+/* One native VitePress navigation: preserve search, locale, menus and focus. */
+:root {
+  --nav-glass: #fffefaed;
+  --nav-glass-scrolled: #fffefafc;
+  --nav-shadow: 0 6px 24px -14px #40301a20;
+  --nav-shadow-scrolled: 0 12px 36px -16px #40301a40;
+}
+.dark {
+  --nav-glass: #192228e8;
+  --nav-glass-scrolled: #192228fc;
+  --nav-shadow: 0 6px 24px -14px #0006;
+  --nav-shadow-scrolled: 0 12px 36px -16px #000b;
+}
+.VPNavBarTitle .logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  margin-right: 10px;
+}
+.VPNavBarTitle .title {
+  letter-spacing: -0.035em;
+  font-size: 18px;
+}
+.VPNavBarMenuLink {
+  position: relative;
+  padding: 0 4px;
+  border-radius: 9px;
+}
+.VPNavBarMenuLink > span {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 9px;
+  font-size: 13px;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+.VPNavBarMenuLink.active > span {
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+}
+.VPNavBarMenuLink:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: -5px;
+}
+.VPNavBar .DocSearch-Button {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  background: var(--vp-c-bg-soft);
+  height: 36px;
+}
+/* Native nav item doubles as the CTA, including mobile menu dismissal. */
+.VPNavMenuLink[href$='#prueba-un-flujo'],
+.VPNavMenuLink[href$='#try-a-workflow'] {
+  color: var(--vp-button-brand-text);
+}
+.VPNavMenuLink[href$='#prueba-un-flujo'] > span,
+.VPNavMenuLink[href$='#try-a-workflow'] > span {
+  background: var(--vp-button-brand-bg);
+  color: var(--vp-button-brand-text);
+  padding: 0 14px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.VPNavMenuLink[href$='#prueba-un-flujo'] > span::after,
+.VPNavMenuLink[href$='#try-a-workflow'] > span::after {
+  content: '';
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12h16m-6-6 6 6-6 6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+.VPNavScreenMenuLink[href$='#prueba-un-flujo'] > span,
+.VPNavScreenMenuLink[href$='#try-a-workflow'] > span {
+  width: 100%;
+  justify-content: center;
+  height: 44px;
+}
+body:has(.landscape-hero) .VPNavBar {
+  background: transparent;
+  backdrop-filter: none;
+  height: 88px;
+  padding-top: 12px;
+}
+body:has(.landscape-hero) .VPNavBar::before {
+  display: none;
+}
+body:has(.landscape-hero) .VPNavBar .wrapper {
+  padding: 0 24px;
+}
+body:has(.landscape-hero) .VPNavBar .wrapper > .container {
+  max-width: 1200px;
+  height: 64px;
+  padding: 0 16px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 20px;
+  background: var(--nav-glass);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--nav-shadow);
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+body:has(.landscape-hero) .VPNavBar:not(.top) .wrapper > .container {
+  background: var(--nav-glass-scrolled);
+  box-shadow: var(--nav-shadow-scrolled);
+}
+body:has(.landscape-hero) .VPNavBar .content-body {
+  background: transparent;
+}
+body:has(.landscape-hero) .VPNavBar .VPNavBarTitle .title {
+  height: 62px;
+}
+body:has(.landscape-hero) .VPNavBar .content-body {
+  height: 62px;
+}
+body:has(.landscape-hero) .VPNavBar .divider {
+  display: none;
+}
+body:has(.landscape-hero) .VPNavScreen {
+  padding-top: 88px;
+  background: var(--vp-c-bg);
+}
+@media (hover: hover) and (pointer: fine) {
+  .VPNavBarMenuLink:hover > span {
+    background: var(--vp-c-brand-soft);
+  }
+}
+@media (max-width: 767px) {
+  body:has(.landscape-hero) .VPNavBar {
+    height: 80px;
+    padding-top: 8px;
+  }
+  body:has(.landscape-hero) .VPNavBar .wrapper {
+    padding: 0 12px;
+  }
+  body:has(.landscape-hero) .VPNavBar .wrapper > .container {
+    padding: 0 12px;
+    border-radius: 16px;
+  }
+  .VPNavBarTitle .logo {
+    width: 32px;
+    height: 32px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .VPNavBarMenuLink > span,
+  body:has(.landscape-hero) .VPNavBar .wrapper > .container {
+    transition: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .VPNavMenuLink[href$='#prueba-un-flujo']:hover > span,
+  .VPNavMenuLink[href$='#try-a-workflow']:hover > span {
+    background: var(--vp-button-brand-hover-bg);
+    color: var(--vp-button-brand-text);
+  }
+}

@@ -1,6 +1,6 @@
 # Hyperion
 
-![Hyperion — original solar identity](docs/site/public/brand/hyperion-banner.svg)
+<p align="center"><img src="docs/site/public/brand/hyperion-app.png" alt="Hyperion — solar flow icon" width="104" height="104" /></p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-755922?labelColor=273139)](LICENSE)
 [![Documentation build](https://img.shields.io/github/actions/workflow/status/0vas/hiperion/pages.yml?branch=main&label=Docs&labelColor=273139)](https://github.com/0vas/hiperion/actions/workflows/pages.yml)

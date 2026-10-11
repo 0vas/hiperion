@@ -13,9 +13,22 @@ export default defineConfig({
       themeConfig: {
         langMenuLabel: 'Cambiar idioma',
         nav: [
-          { text: 'Guía', link: '/guia/primeros-pasos' },
-          { text: 'Arquitectura', link: '/referencia/arquitectura' },
-          { text: 'Contribuir', link: '/contribuir' },
+          {
+            text: 'Guía',
+            link: '/guia/primeros-pasos',
+            activeMatch: '^/guia/',
+          },
+          {
+            text: 'Arquitectura',
+            link: '/referencia/arquitectura',
+            activeMatch: '^/referencia/',
+          },
+          {
+            text: 'Contribuir',
+            link: '/contribuir',
+            activeMatch: '^/contribuir',
+          },
+          { text: 'Probar Hyperion', link: '/#prueba-un-flujo' },
         ],
         sidebar: [
           {
@@ -69,9 +82,22 @@ export default defineConfig({
       themeConfig: {
         langMenuLabel: 'Change language',
         nav: [
-          { text: 'Guide', link: '/en/guia/primeros-pasos' },
-          { text: 'Architecture', link: '/en/referencia/arquitectura' },
-          { text: 'Contribute', link: '/en/contribuir' },
+          {
+            text: 'Guide',
+            link: '/en/guia/primeros-pasos',
+            activeMatch: '^/en/guia/',
+          },
+          {
+            text: 'Architecture',
+            link: '/en/referencia/arquitectura',
+            activeMatch: '^/en/referencia/',
+          },
+          {
+            text: 'Contribute',
+            link: '/en/contribuir',
+            activeMatch: '^/en/contribuir',
+          },
+          { text: 'Try Hyperion', link: '/en/#try-a-workflow' },
         ],
         sidebar: [
           {
@@ -113,11 +139,15 @@ export default defineConfig({
   head: [
     [
       'link',
-      { rel: 'icon', type: 'image/svg+xml', href: '/hiperion/logo.svg' },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        href: '/hiperion/brand/hyperion-app.png',
+      },
     ],
   ],
   themeConfig: {
-    logo: '/logo.svg',
+    logo: '/brand/hyperion-app.png',
     siteTitle: 'Hyperion',
     socialLinks: [{ icon: 'github', link: 'https://github.com/0vas/hiperion' }],
     search: {

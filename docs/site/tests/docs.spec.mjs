@@ -695,3 +695,69 @@ test('home explores six goals with isolated decisions and copyable requests', as
     }
   }
 });
+
+test('floating navigation keeps a generated brand and working actions across layouts', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const en of [false, true]) {
+    await page.goto(`/hiperion/${en ? 'en/' : ''}`);
+    const nav = page.locator('.VPNavBar');
+    await expect(nav.locator('.logo')).toHaveAttribute(
+      'src',
+      /brand\/hyperion-app\.png$/,
+    );
+    await expect(nav.locator('.logo')).toHaveJSProperty('complete', true);
+    expect(
+      await nav.locator('.logo').evaluate((img) => img.naturalWidth),
+    ).toBeGreaterThan(0);
+    await expect(nav.locator('.wrapper > .container')).toHaveCSS(
+      'border-radius',
+      '20px',
+    );
+    const initial = await nav
+      .locator('.wrapper > .container')
+      .evaluate((el) => getComputedStyle(el).boxShadow);
+    await page.evaluate(() => scrollTo(0, 600));
+    await expect(nav).not.toHaveClass(/\btop\b/);
+    await expect(nav.locator('.wrapper > .container')).not.toHaveCSS(
+      'box-shadow',
+      initial,
+    );
+    await nav
+      .getByRole('link', {
+        name: en ? 'Try Hyperion' : 'Probar Hyperion',
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.getByRole('region', {
+        name: en ? 'Interactive example' : 'Ejemplo interactivo',
+        exact: true,
+      }),
+    ).toBeInViewport();
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .include('.VPNavBar')
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    await page.goto(`/hiperion/${en ? 'en/' : ''}guia/reanudacion.html`);
+    await expect(
+      nav.getByRole('link', { name: en ? 'Guide' : 'Guía', exact: true }),
+    ).toHaveClass(/active/);
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/hiperion/');
+  await page.getByRole('button', { name: /Navegación móvil/ }).click();
+  await page
+    .locator('.VPNavScreen')
+    .getByRole('link', { name: 'Probar Hyperion', exact: true })
+    .click();
+  await expect(
+    page.getByRole('region', { name: 'Ejemplo interactivo', exact: true }),
+  ).toBeInViewport();
+});

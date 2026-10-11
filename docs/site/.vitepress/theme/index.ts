@@ -12,6 +12,7 @@ import './style.css';
 import './product.css';
 import './landscape.css';
 import './goals.css';
+import './navigation.css';
 import Downloads from '../components/Downloads.vue';
 import Architecture from '../components/Architecture.vue';
 export default {
