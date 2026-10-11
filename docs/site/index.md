@@ -5,12 +5,15 @@ hero:
   text: Tu petición. Un proceso visible.
   tagline: Trabaja con tu IA desde el chat y sigue cada tarea, decisión y resultado en un canvas.
   image:
-    src: /process.svg
-    alt: Ejemplo de un proceso con petición, decisión y siguiente paso
+    src: /brand/hyperion-solar.svg
+    alt: Hyperion — emblema solar
   actions:
     - theme: brand
       text: Empezar
       link: /guia/primeros-pasos
+    - theme: alt
+      text: Descargar
+      link: '#descarga-hyperion'
     - theme: alt
       text: Ver el proyecto
       link: https://github.com/0vas/hiperion
@@ -22,6 +25,10 @@ features:
   - title: Tú decides cuándo participar
     details: Responde preguntas y revisa resultados en el canvas. El agente retoma las tareas habilitadas.
 ---
+
+## Descarga Hyperion
+
+<Downloads />
 
 ## Un primer ejemplo
 

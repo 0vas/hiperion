@@ -2,6 +2,16 @@
 
 Hyperion separa el estado del proceso de la herramienta que ejecuta cada tarea. Su núcleo no depende de Codex, Claude, Cursor ni de Olimpo.
 
+## Explora la arquitectura
+
+[Explorar en Archify](/architecture/hyperion-es.html){target="_self"} · [Fuente del diagrama](https://github.com/0vas/hiperion/blob/main/docs/architecture/archify/hyperion.es.json)
+
+<Architecture />
+
+Abre **Explorar en Archify** para ampliar, enfocar, cambiar de tema y consultar el código fuente de cada componente. La vista representa el runtime del núcleo 0.5; los conectores nativos de reanudación siguen pendientes.
+
+Archify presenta una vista interactiva. ArchiMate conserva el modelo formal y sus relaciones; ambas vistas se mantienen en el repositorio.
+
 ## Responsabilidades
 
 | Componente             | Responsabilidad                                                                     |

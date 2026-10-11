@@ -9,3 +9,6 @@ release
 
 docs/site/package-lock.json
 docs/site/.vitepress/cache/
+
+# Generated Archify artifacts preserve renderer provenance.
+docs/site/public/architecture/*.html

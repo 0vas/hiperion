@@ -44,3 +44,11 @@ npm --prefix docs/site test
 La versión de VitePress está fijada en el lockfile. Se usa la línea 2 en preview, con Vite actualizado; sus cambios se validan de forma independiente a la aplicación.
 
 [Normas de contribución](https://github.com/0vas/hiperion/blob/main/CONTRIBUTING.md) · [Seguridad](https://github.com/0vas/hiperion/blob/main/SECURITY.md)
+
+## Idiomas y arquitectura
+
+El español conserva las rutas actuales. El inglés vive en `en/` con las mismas rutas de página: el selector de idioma mantiene la ubicación. Traduce contenido, navegación y búsqueda; los enlaces técnicos pueden apuntar a fuentes del repositorio en su idioma original.
+
+Para añadir otro idioma, crea sus páginas equivalentes, registra el locale en `.vitepress/config.mts` y amplía las pruebas de navegación, búsqueda y accesibilidad. Mantén las mismas limitaciones y versiones de instaladores en todas las traducciones.
+
+Las fuentes de Archify y sus instrucciones de regeneración están en [docs/architecture/archify](https://github.com/0vas/hiperion/tree/main/docs/architecture/archify). La marca SVG original se encuentra en `docs/site/public/brand/`.

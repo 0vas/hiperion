@@ -3,18 +3,10 @@ on:
   push:
     branches: [main]
     paths:
-      [
-        'docs/site/**',
-        'docs/architecture/implemented.svg',
-        '.github/workflows/pages.yml',
-      ]
+      ['docs/site/**', 'docs/architecture/**', '.github/workflows/pages.yml']
   pull_request:
     paths:
-      [
-        'docs/site/**',
-        'docs/architecture/implemented.svg',
-        '.github/workflows/pages.yml',
-      ]
+      ['docs/site/**', 'docs/architecture/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 permissions:
   contents: read

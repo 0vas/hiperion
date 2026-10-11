@@ -1,5 +1,7 @@
 # Hyperion
 
+![Hyperion — original solar identity](docs/site/public/brand/hyperion-banner.svg)
+
 [Reanudación agnóstica: contrato y alcance por herramienta](docs/continuacion-agnostica.md). El núcleo 0.5 guarda pausas y solicitudes de continuación; los conectores nativos para reactivar chats todavía deben integrarse.
 
 **Human-guided workflows for any AI tool.** Turn a conversation into a visible plan: see what your agent is doing, supply information, review evidence, and decide when it can continue.
@@ -10,7 +12,9 @@ Hyperion is an independent, MIT-licensed module. It can accompany Codex or anoth
 
 ![Hyperion landscape canvas with interactive workflow nodes](docs/images/workflow.png)
 
-**[Documentation · Guía en español](https://0vas.github.io/hiperion/)** — setup, daily use, integrations and architecture.
+**[Español](https://0vas.github.io/hiperion/) · [English](https://0vas.github.io/hiperion/en/)** — setup, daily use, integrations and architecture.
+
+**[Interactive architecture · Archify](https://0vas.github.io/hiperion/en/referencia/arquitectura.html)** · [Formal ArchiMate models](docs/architecture/README.md).
 
 ## Start in your conversation
 
@@ -29,6 +33,10 @@ The simplest path is **Hyperion Desktop**; it includes its runtime:
 No terminal, Node installation, API key or hand-written configuration is needed for this Desktop path. Codex, Cursor and Claude Desktop receive a local MCP connection; Claude Code receives the portable skill. Hyperion preserves other connections and backs up existing configuration before changing it. A conflicting Hyperion entry is reported without overwriting it.
 
 The request is enough: the agent asks for missing context, constructs the workflow and shares its canvas. You can request **split** or **desktop** in the chat; both show the same run. After a human handoff, ask the chat to continue. Hyperion does not wake an idle conversation automatically.
+
+**Direct downloads:** [macOS · Apple Silicon](https://github.com/0vas/hiperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-mac-arm64.dmg) · [macOS · Intel](https://github.com/0vas/hiperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-mac-x64.dmg) · [Windows · x64](https://github.com/0vas/hiperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-win-x64.exe).
+
+These are the **0.4.0 preview** installers, not the newer 0.5 core on `main`.
 
 **[Download Hyperion Desktop — preview](https://github.com/0vas/hiperion/releases/tag/v0.4.0-preview.1)** · macOS Apple Silicon / Intel · Windows x64.
 
