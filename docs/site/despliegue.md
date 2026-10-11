@@ -27,3 +27,5 @@ Puedes abrir el resultado con `npm --prefix docs/site run preview` y visitar `ht
 Con GitHub Actions activado, si falla el despliegue, revisa el workflow **Documentation Pages** en Actions. Para volver a publicar, usa **Run workflow** sobre `main`. Si el contenido es incorrecto, revierte el cambio en el repositorio y deja que el workflow vuelva a publicar.
 
 Referencias: [despliegue de VitePress](https://vitepress.dev/guide/deploy) y [workflows de GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+
+El workflow reconstruye el sitio con la ruta devuelta por GitHub Pages (`HYPERION_DOCS_BASE`). Así, un cambio de nombre del repositorio no deja los recursos apuntando a la ruta anterior. Las pruebas locales conservan `/hiperion/` como ruta de referencia.

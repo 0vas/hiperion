@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  pages: read
 concurrency:
   group: docs-pages-${{ github.ref }}
   cancel-in-progress: false
@@ -36,6 +37,14 @@ jobs:
           name: documentation-checks
           path: test-results/docs
           retention-days: 7
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        id: pages
+      - name: Build with the configured Pages path
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: npm run build
+        env:
+          HYPERION_DOCS_BASE: ${{ steps.pages.outputs.base_path }}/
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:

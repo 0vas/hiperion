@@ -25,3 +25,5 @@ npm --prefix docs/site test
 Use `npm --prefix docs/site run preview` and open `http://127.0.0.1:4175/hiperion/` to inspect the output. If deployment fails, inspect **Documentation Pages** in Actions. Revert incorrect content and let the workflow republish.
 
 References: [VitePress deployment](https://vitepress.dev/guide/deploy), [GitHub Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+
+The workflow rebuilds the site with the path returned by GitHub Pages (`HYPERION_DOCS_BASE`). Renaming the repository therefore does not leave assets pointing to the old path. Local tests retain `/hiperion/` as their reference path.

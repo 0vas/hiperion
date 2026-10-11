@@ -1,10 +1,11 @@
 import { defineConfig } from 'vitepress';
+const base = process.env.HYPERION_DOCS_BASE || '/hiperion/';
 export default defineConfig({
   lang: 'es',
   title: 'Hyperion',
   description:
     'Tu petición, un proceso visible. Guía de Hyperion para trabajar con tu IA paso a paso.',
-  base: '/hiperion/',
+  base,
   cleanUrls: false,
   locales: {
     root: {
@@ -142,7 +143,7 @@ export default defineConfig({
       {
         rel: 'icon',
         type: 'image/png',
-        href: '/hiperion/brand/hyperion-titan.png',
+        href: `${base}brand/hyperion-titan.png`,
       },
     ],
   ],
