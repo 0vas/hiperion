@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitepress';
-const base = process.env.HYPERION_DOCS_BASE || '/hiperion/';
+const base = process.env.HYPERION_DOCS_BASE || '/hyperion/';
 export default defineConfig({
   lang: 'es',
   title: 'Hyperion',
@@ -66,7 +66,7 @@ export default defineConfig({
         skipToContentLabel: 'Saltar al contenido',
         docFooter: { prev: 'Anterior', next: 'Siguiente' },
         editLink: {
-          pattern: 'https://github.com/0vas/hiperion/edit/main/docs/site/:path',
+          pattern: 'https://github.com/0vas/hyperion/edit/main/docs/site/:path',
           text: 'Mejorar esta página',
         },
         footer: {
@@ -127,7 +127,7 @@ export default defineConfig({
         ],
         outline: { label: 'On this page' },
         editLink: {
-          pattern: 'https://github.com/0vas/hiperion/edit/main/docs/site/:path',
+          pattern: 'https://github.com/0vas/hyperion/edit/main/docs/site/:path',
           text: 'Improve this page',
         },
         footer: {

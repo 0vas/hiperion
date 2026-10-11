@@ -3,7 +3,7 @@
 <p align="center"><img src="docs/site/public/brand/hyperion-titan.png" alt="Hyperion — solar titan icon" width="104" height="104" /></p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-755922?labelColor=273139)](LICENSE)
-[![Documentation build](https://img.shields.io/github/actions/workflow/status/0vas/hiperion/pages.yml?branch=main&label=Docs&labelColor=273139)](https://github.com/0vas/hiperion/actions/workflows/pages.yml)
+[![Documentation build](https://img.shields.io/github/actions/workflow/status/0vas/hyperion/pages.yml?branch=main&label=Docs&labelColor=273139)](https://github.com/0vas/hyperion/actions/workflows/pages.yml)
 [![GitHub repository](https://img.shields.io/badge/GitHub-0vas%2Fhiperion-755922?logo=github&logoColor=white&labelColor=273139)](https://github.com/0vas/hiperion)
 
 [Reanudación agnóstica: contrato y alcance por herramienta](docs/continuacion-agnostica.md). El núcleo 0.5 guarda pausas y solicitudes de continuación; los conectores nativos para reactivar chats todavía deben integrarse.
@@ -16,9 +16,9 @@ Hyperion is an independent, MIT-licensed module. It can accompany Codex or anoth
 
 ![Hyperion landscape canvas with interactive workflow nodes](docs/images/workflow.png)
 
-**[Español](https://0vas.github.io/hiperion/) · [English](https://0vas.github.io/hiperion/en/)** — setup, daily use, integrations and architecture.
+**[Español](https://0vas.github.io/hyperion/) · [English](https://0vas.github.io/hyperion/en/)** — setup, daily use, integrations and architecture.
 
-**[Interactive architecture · Archify](https://0vas.github.io/hiperion/en/referencia/arquitectura.html)** · [Formal ArchiMate models](docs/architecture/README.md).
+**[Interactive architecture · Archify](https://0vas.github.io/hyperion/en/referencia/arquitectura.html)** · [Formal ArchiMate models](docs/architecture/README.md).
 
 ## Start in your conversation
 
@@ -40,13 +40,13 @@ Google Antigravity can use the generic local MCP adapter through [manual setup](
 
 The request is enough: the agent asks for missing context, constructs the workflow and shares its canvas. You can request **split** or **desktop** in the chat; both show the same run. After a human handoff, ask the chat to continue. Hyperion does not wake an idle conversation automatically.
 
-**Direct downloads:** [macOS · Apple Silicon](https://github.com/0vas/hiperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-mac-arm64.dmg) · [macOS · Intel](https://github.com/0vas/hiperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-mac-x64.dmg) · [Windows · x64](https://github.com/0vas/hiperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-win-x64.exe).
+**Direct downloads:** [macOS · Apple Silicon](https://github.com/0vas/hyperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-mac-arm64.dmg) · [macOS · Intel](https://github.com/0vas/hyperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-mac-x64.dmg) · [Windows · x64](https://github.com/0vas/hyperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-win-x64.exe).
 
 These are the **0.4.0 preview** installers, not the newer 0.5 core on `main`.
 
-**[Download Hyperion Desktop — preview](https://github.com/0vas/hiperion/releases/tag/v0.4.0-preview.1)** · macOS Apple Silicon / Intel · Windows x64.
+**[Download Hyperion Desktop — preview](https://github.com/0vas/hyperion/releases/tag/v0.4.0-preview.1)** · macOS Apple Silicon / Intel · Windows x64.
 
-These installers are unsigned preview builds; the operating system may show a warning. Signing and a stable release remain pending. The [Desktop installers workflow](https://github.com/0vas/hiperion/actions/workflows/desktop.yml) builds and tests the packaged application on each platform. Protocol tests do not replace native conversation testing in every AI client.
+These installers are unsigned preview builds; the operating system may show a warning. Signing and a stable release remain pending. The [Desktop installers workflow](https://github.com/0vas/hyperion/actions/workflows/desktop.yml) builds and tests the packaged application on each platform. Protocol tests do not replace native conversation testing in every AI client.
 
 [Setup and troubleshooting](docs/conexion.md) · [User manual](docs/manual-uso.md) · [Desktop build details](desktop/README.md)
 

@@ -4,7 +4,7 @@ import DocIcon from './DocIcon.vue';
 import PlatformIcon from './PlatformIcon.vue';
 const { lang } = useData();
 const release =
-  'https://github.com/0vas/hiperion/releases/download/v0.4.0-preview.1/';
+  'https://github.com/0vas/hyperion/releases/download/v0.4.0-preview.1/';
 const installers = [
   {
     name: 'macOS · Apple Silicon',
@@ -59,7 +59,7 @@ const installers = [
           : 'Preview 0.4.0 · Unsigned installers. They do not yet include the 0.5 core changes.'
       }}
       <a
-        href="https://github.com/0vas/hiperion/releases/tag/v0.4.0-preview.1"
+        href="https://github.com/0vas/hyperion/releases/tag/v0.4.0-preview.1"
         >{{ lang === 'es' ? 'Notas de la versión' : 'Release notes' }}</a
       >
     </p>
