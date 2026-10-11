@@ -2,6 +2,8 @@
 
 El chat define el objetivo y realiza el trabajo con sus herramientas. El canvas te permite seguir el proceso y aportar decisiones.
 
+<GuideLens kind="canvas" />
+
 ## Encuentra tu siguiente tarea
 
 Selecciona una tarea en la navegación superior y usa **Enfocar tarea**. **Seguir actividad** mantiene cerca el trabajo activo. En Ajustes puedes elegir orientación vertical u horizontal y el tema; los trabajos agrupan pasos que puedes desplegar.

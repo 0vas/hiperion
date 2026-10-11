@@ -2,6 +2,8 @@
 
 Hyperion separa el estado del proceso de la herramienta que ejecuta cada tarea. Su núcleo no depende de Codex, Claude, Cursor ni de Olimpo.
 
+<GuideLens kind="architecture" />
+
 ## Explora la arquitectura
 
 [Explorar en Archify](/architecture/hyperion-es.html){target="_self"} · [Fuente del diagrama](https://github.com/0vas/hiperion/blob/main/docs/architecture/archify/hyperion.es.json)

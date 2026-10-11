@@ -2,6 +2,8 @@
 
 The chat defines the goal and performs the work with its tools. The canvas lets you follow the process and make decisions.
 
+<GuideLens kind="canvas" />
+
 ## Find your next task
 
 Select a task in the top navigation and use **Enfocar tarea** (Focus task). **Seguir actividad** (Follow activity) keeps active work in view. Settings offer vertical or horizontal layouts and light or dark themes. Expand jobs to see their steps.

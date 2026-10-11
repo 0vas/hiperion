@@ -557,3 +557,53 @@ test('repository is discoverable with Shields badges and SVG actions in both lan
     }
   }
 });
+
+test('downloads identify platforms and illustrated guides reveal contextual annotations', async ({
+  page,
+}) => {
+  for (const locale of ['', 'en/']) {
+    await page.goto(`/hiperion/${locale}`);
+    await expect(
+      page.locator('.download-card svg[data-platform="macos"]'),
+    ).toHaveCount(2);
+    await expect(
+      page.locator('.download-card svg[data-platform="windows"]'),
+    ).toHaveCount(1);
+    for (const guide of [
+      'guia/usar-el-flujo',
+      'guia/reanudacion',
+      'referencia/arquitectura',
+    ]) {
+      await page.goto(`/hiperion/${locale}${guide}.html`);
+      const lens = page.locator('.guide-lens');
+      await expect(lens).toBeVisible();
+      const buttons = lens.getByRole('button');
+      await expect(buttons).toHaveCount(3);
+      const initial = await lens.locator('.guide-annotation').innerText();
+      await buttons.nth(2).focus();
+      await page.keyboard.press('Enter');
+      await expect(buttons.nth(2)).toHaveAttribute('aria-pressed', 'true');
+      await expect(lens.locator('.guide-annotation')).not.toHaveText(initial);
+      for (const theme of ['light', 'dark']) {
+        await page.emulateMedia({
+          colorScheme: theme,
+          reducedMotion: 'reduce',
+        });
+        await page.setViewportSize({ width: 390, height: 844 });
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+        ).toBe(true);
+        expect(
+          (
+            await new AxeBuilder({ page })
+              .include('.guide-lens')
+              .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+              .analyze()
+          ).violations,
+        ).toEqual([]);
+      }
+    }
+  }
+});

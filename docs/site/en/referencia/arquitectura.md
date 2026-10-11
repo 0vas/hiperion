@@ -2,6 +2,8 @@
 
 Hyperion separates workflow state from the tool executing each task. Its core does not depend on Codex, Claude, Cursor, Hermes or Olimpo.
 
+<GuideLens kind="architecture" />
+
 ## Explore the architecture
 
 [Explore in Archify](/architecture/hyperion-en.html){target="_self"} · [Diagram source](https://github.com/0vas/hiperion/blob/main/docs/architecture/archify/hyperion.en.json)

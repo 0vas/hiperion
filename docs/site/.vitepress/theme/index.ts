@@ -1,4 +1,5 @@
 import { h } from 'vue';
+import GuideLens from '../components/GuideLens.vue';
 import RepositoryCard from '../components/RepositoryCard.vue';
 import LandscapeHero from '../components/LandscapeHero.vue';
 import UseCases from '../components/UseCases.vue';
@@ -18,6 +19,7 @@ export default {
       'home-hero-before': () => h(LandscapeHero),
     }),
   enhanceApp({ app }) {
+    app.component('GuideLens', GuideLens);
     app.component('RepositoryCard', RepositoryCard);
     app.component('UseCases', UseCases);
     app.component('Quickstart', Quickstart);

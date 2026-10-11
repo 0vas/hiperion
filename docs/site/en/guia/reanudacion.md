@@ -4,6 +4,8 @@ Hyperion saves the process even when the chat ends its turn. Resuming after a ca
 
 Core 0.5 includes the protocol, durable queue and shared I/O worker. Native connectors for resuming provider sessions are not yet included. The preview installers also do not include these changes from `main`.
 
+<GuideLens kind="resume" />
+
 ## Intended experience
 
 1. Ask “Use Hyperion to prepare a welcome guide for my project.”

@@ -4,6 +4,8 @@ Hyperion guarda el proceso aunque el chat termine su turno. Para retomarlo al re
 
 La versión 0.5 del código incluye el protocolo, la cola persistente y un worker común. Los conectores nativos para reactivar sesiones de cada proveedor todavía no se incluyen. Los instaladores de la release preliminar tampoco contienen estos cambios de `main`.
 
+<GuideLens kind="resume" />
+
 ## Cómo se verá
 
 1. Pides «Usa Hyperion para preparar una guía de bienvenida a mi proyecto».
