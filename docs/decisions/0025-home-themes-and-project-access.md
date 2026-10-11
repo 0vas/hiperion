@@ -6,7 +6,7 @@ Status: accepted. Corrects the forced dark home in 0024.
 
 The home follows VitePress's appearance setting, including persistence after refresh and navigation. Light uses ivory surfaces and deep gold; dark uses charcoal, ivory text and solar gold. Canvas states retain green, amber and red. Shared theme variables style the headline, navigation, product view, cards and buttons. The cinematic composition and video remain.
 
-The video is desaturated and tinted warm to fit Hyperion's identity. In dark mode it receives reduced brightness/opacity and a stronger charcoal overlay; in light mode an ivory overlay keeps dark text readable. The media's visibility remains subordinate to content. Reduced motion and failed-media fallback from 0024 are retained.
+The video is desaturated and tinted warm to fit Hyperion's identity. In dark mode it receives reduced brightness/opacity and a stronger charcoal overlay; in light mode the luminance is inverted into warm ink on ivory, with a localized soft overlay behind the headline and description. The light treatment preserves visible folds and movement instead of washing the entire video out. Decorative side guide lines are removed so the background remains full-bleed. The media's visibility remains subordinate to content. Reduced motion and failed-media fallback from 0024 are retained.
 
 UI arrows use the shared SVG component. Tool marks are local SVG assets from Lobe Icons, with provenance and MIT license retained. These identify tools and do not imply endorsement or equal integration capabilities.
 

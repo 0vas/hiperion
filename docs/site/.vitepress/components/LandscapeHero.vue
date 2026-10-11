@@ -72,7 +72,6 @@ const route = (path: string) => withBase(`${en.value ? '/en' : ''}/${path}`);
       />
       <div class="cinema-scrim"></div>
     </div>
-    <div class="cinema-guides" aria-hidden="true"></div>
     <div class="landscape-copy">
       <p class="cinema-eyebrow">
         <span aria-hidden="true"></span

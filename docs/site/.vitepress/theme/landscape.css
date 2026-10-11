@@ -1,7 +1,14 @@
 /* Solar palette: appearance is inherited from VitePress, never forced by the home. */
 :root {
   --home-surface: #fffdf7f5;
-  --home-scrim: linear-gradient(180deg, #faf7efdf, #faf7efe6 55%, #faf7effa);
+  --home-scrim:
+    radial-gradient(
+      ellipse at 50% 32%,
+      #faf7efd9 0%,
+      #faf7ef99 27%,
+      #faf7ef00 65%
+    ),
+    linear-gradient(180deg, #faf7ef26, #faf7ef33 60%, #faf7efcc);
   --home-title-gradient: linear-gradient(
     100deg,
     #79501d,
@@ -10,8 +17,8 @@
     #95682c 75%,
     #79501d
   );
-  --home-video-filter: grayscale(1) sepia(0.8) saturate(0.65);
-  --home-video-opacity: 0.5;
+  --home-video-filter: grayscale(1) invert(1) sepia(0.55) saturate(1.2);
+  --home-video-opacity: 0.55;
 }
 .dark {
   --home-surface: #192228f5;
@@ -79,16 +86,6 @@ body:has(.landscape-hero) .VPHome {
   position: absolute;
   inset: 0;
   background: var(--home-scrim);
-}
-.cinema-guides {
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  bottom: 0;
-  left: max(24px, calc(50% - 576px));
-  right: max(24px, calc(50% - 576px));
-  border-inline: 1px solid var(--vp-c-divider);
-  pointer-events: none;
 }
 .landscape-copy {
   text-align: center;
@@ -659,9 +656,6 @@ body:has(.landscape-hero) .VPHome {
   }
   .cinema-integrations {
     padding-top: 38px;
-  }
-  .cinema-guides {
-    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {

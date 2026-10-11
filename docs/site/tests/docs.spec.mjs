@@ -505,6 +505,7 @@ test('home theme switch changes the actual page and preserves it across navigati
   await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/hiperion/');
+  await expect(page.locator('.cinema-guides')).toHaveCount(0);
   const title = page.locator('#landscape-title');
   const lightColor = await title.evaluate((el) => getComputedStyle(el).color);
   await page.getByRole('switch', { name: 'Cambiar tema' }).click();
