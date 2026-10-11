@@ -174,3 +174,142 @@ test('branded pages offer direct installers and a working Archify viewer in both
     await expect(page.locator('body')).toContainText('Hyperion');
   }
 });
+
+test('interactive quickstart teaches a human decision and review without a live agent', async ({
+  page,
+}) => {
+  const requests = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/api/')) requests.push(request.url());
+  });
+  for (const en of [false, true]) {
+    await page.goto(`/hiperion/${en ? 'en/' : ''}guia/primeros-pasos.html`);
+    const demo = page.getByRole('region', {
+      name: en ? 'Interactive example' : 'Ejemplo interactivo',
+      exact: true,
+    });
+    await expect(demo).toContainText(en ? 'Simulation' : 'Simulación');
+    await demo
+      .getByRole('button', {
+        name: en ? 'Create the plan' : 'Crear el plan',
+        exact: true,
+      })
+      .click();
+    await expect(
+      demo.getByRole('button', {
+        name: en ? 'Save answer' : 'Guardar respuesta',
+        exact: true,
+      }),
+    ).toBeDisabled();
+    await demo
+      .getByLabel(
+        en ? 'Who is the guide for?' : '¿A quién va dirigida la guía?',
+        { exact: true },
+      )
+      .selectOption('team');
+    await demo
+      .getByRole('button', {
+        name: en ? 'Save answer' : 'Guardar respuesta',
+        exact: true,
+      })
+      .click();
+    await expect(demo).toContainText(
+      en ? 'Welcome to the team' : 'Bienvenido al equipo',
+    );
+    await demo
+      .getByRole('button', {
+        name: en ? 'Approve draft' : 'Aprobar borrador',
+        exact: true,
+      })
+      .click();
+    await expect(demo.getByRole('status')).toContainText(
+      en ? 'Example completed' : 'Ejemplo completado',
+    );
+    await demo
+      .getByRole('button', {
+        name: en ? 'Restart example' : 'Reiniciar ejemplo',
+        exact: true,
+      })
+      .click();
+    await expect(
+      demo.getByRole('button', {
+        name: en ? 'Create the plan' : 'Crear el plan',
+        exact: true,
+      }),
+    ).toBeVisible();
+  }
+  expect(requests).toEqual([]);
+});
+
+test('home motion can be paused and respects reduced motion', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/hiperion/');
+  const motion = page.locator('.home-orbit').first();
+  await expect(motion).toHaveCSS('animation-play-state', 'running');
+  await page
+    .getByRole('button', { name: 'Pausar animación', exact: true })
+    .click();
+  await expect(motion).toHaveCSS('animation-play-state', 'paused');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(motion).toHaveCSS('animation-name', 'none');
+});
+
+test('demo forms, evidence and review stay accessible in narrow layouts', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const theme of ['light', 'dark']) {
+    await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+    for (const en of [false, true]) {
+      await page.goto(`/hiperion/${en ? 'en/' : ''}guia/primeros-pasos.html`);
+      const demo = page.getByRole('region', {
+        name: en ? 'Interactive example' : 'Ejemplo interactivo',
+        exact: true,
+      });
+      await demo
+        .getByRole('button', {
+          name: en ? 'Create the plan' : 'Crear el plan',
+          exact: true,
+        })
+        .click();
+      await demo.getByRole('combobox').selectOption('users');
+      await demo.getByRole('combobox').focus();
+      await page.keyboard.press('Tab');
+      await expect(
+        demo.getByRole('button', {
+          name: en ? 'Save answer' : 'Guardar respuesta',
+          exact: true,
+        }),
+      ).toBeFocused();
+      expect(
+        (
+          await new AxeBuilder({ page })
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+            .analyze()
+        ).violations,
+      ).toEqual([]);
+      await page.keyboard.press('Enter');
+      await demo.locator('summary').first().click();
+      await expect(demo.locator('dd').first()).toHaveText(
+        en ? 'new users' : 'nuevos usuarios',
+      );
+      expect(
+        (
+          await new AxeBuilder({ page })
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+            .analyze()
+        ).violations,
+      ).toEqual([]);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await demo.screenshot({
+        path: `../../test-results/docs/demo-review-${theme}-${en ? 'en' : 'es'}.png`,
+      });
+    }
+  }
+});

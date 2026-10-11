@@ -23,3 +23,7 @@ npm --prefix docs/site test
 The generator checks the pinned Archify revision and removes its local delivery receipts from the public directory. `finalize` validates the specification, renders, checks provenance and runs browser checks. Keep local evidence receipts outside `public/`: they contain local paths. Commit only the JSON specifications, generated HTML and license. Generated viewers are excluded from Prettier to preserve their provenance; do not hand-edit them.
 
 The Spanish viewer uses Archify's Spanish UI catalog embedded in `meta.translations`. Pages are static and do not connect to the local Hyperion service. Narrow screens can open the full viewer from the architecture page. Shared page slugs under `en/` preserve context when switching languages.
+
+## Documentation walkthrough
+
+The site also includes a separate illustrative workflow in `docs/site/.vitepress/components/WorkflowDemo.vue`. It uses predefined local text, sends no API requests and is explicitly marked as a simulation. It teaches a human response, data handoff and review; it does not certify runtime resumption or replace the domain engine. Both languages share the same demo component. The home animation has a pause control and obeys reduced-motion settings.

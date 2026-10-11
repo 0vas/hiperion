@@ -2,6 +2,12 @@
 
 You need a compatible AI tool connected to Hyperion. Set up the connection once; write subsequent requests in your chat.
 
+<Quickstart />
+
+## Try it before installing
+
+<WorkflowDemo />
+
 ## 1. Open Hyperion
 
 <Downloads />

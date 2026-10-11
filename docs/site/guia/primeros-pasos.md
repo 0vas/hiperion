@@ -2,6 +2,12 @@
 
 Necesitas una herramienta de IA compatible y Hyperion conectado a ella. La conexión se hace una vez; tus siguientes peticiones se escriben en el chat.
 
+<Quickstart />
+
+## Pruébalo antes de instalar
+
+<WorkflowDemo />
+
 ## 1. Abre Hyperion
 
 <Downloads />

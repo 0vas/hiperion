@@ -18,13 +18,29 @@ hero:
       text: Ver el proyecto
       link: https://github.com/0vas/hiperion
 features:
-  - title: Nace en tu conversación
+  - icon:
+      src: /icons/chat.svg
+    title: Nace en tu conversación
     details: Describe el objetivo. Tu agente prepara el plan y abre el flujo; tú no escribes comandos ni diagramas.
-  - title: Sabes qué ocurre
+  - icon:
+      src: /icons/flow.svg
+    title: Sabes qué ocurre
     details: Consulta trabajos, pasos, entradas, salidas y los avances reales que registra el agente.
-  - title: Tú decides cuándo participar
+  - icon:
+      src: /icons/user.svg
+    title: Tú decides cuándo participar
     details: Responde preguntas y revisa resultados en el canvas. El agente retoma las tareas habilitadas.
 ---
+
+## Del chat al canvas
+
+<Quickstart />
+
+## Prueba un flujo
+
+Elige un destinatario, revisa un borrador de muestra y observa cómo los datos pasan entre tareas.
+
+<WorkflowDemo />
 
 ## Descarga Hyperion
 
