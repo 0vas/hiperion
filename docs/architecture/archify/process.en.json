@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Hyperion · Data and decisions",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": "docs/site/public/architecture/process-en.html",
+    "repository": {
+      "url": "https://github.com/0vas/hiperion.git",
+      "revision": "8f0e793ef8e9ee572e89d1126a384589b67154e3"
+    }
+  },
+  "components": [
+    {
+      "id": "context",
+      "type": "database",
+      "label": "Context",
+      "sublabel": "Request + prior results",
+      "pos": [40, 80],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/domain/context.ts",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "inputs",
+      "type": "backend",
+      "label": "Typed inputs",
+      "sublabel": "Literal · context · reference",
+      "pos": [370, 80],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/domain/contracts.ts",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "human",
+      "type": "frontend",
+      "label": "Human decision",
+      "sublabel": "Contract-driven form",
+      "pos": [700, 80],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/client/HumanForm.tsx",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "validation",
+      "type": "security",
+      "label": "Validation",
+      "sublabel": "Role · revision · values",
+      "pos": [700, 340],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/domain/workflow.ts",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "routing",
+      "type": "backend",
+      "label": "Process engine",
+      "sublabel": "Routes · joins · dependencies",
+      "pos": [370, 340],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/domain/process.ts",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "next",
+      "type": "frontend",
+      "label": "Next task",
+      "sublabel": "Outputs + available context",
+      "pos": [40, 340],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/domain/context.ts",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "context",
+      "to": "inputs",
+      "label": "Resolve",
+      "variant": "emphasis"
+    },
+    {
+      "from": "inputs",
+      "to": "human",
+      "label": "Present",
+      "variant": "emphasis"
+    },
+    {
+      "from": "human",
+      "to": "validation",
+      "label": "Response",
+      "variant": "emphasis"
+    },
+    {
+      "from": "validation",
+      "to": "routing",
+      "label": "Valid output",
+      "variant": "emphasis"
+    },
+    {
+      "from": "routing",
+      "to": "next",
+      "label": "Enable",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Data that travels",
+      "items": [
+        "Required typed inputs control execution.",
+        "Available context provides background; it does not replace the contract."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Example: welcome guide",
+      "items": [
+        "The selected audience reaches the draft as a referenced output.",
+        "The agent reports the draft; the person reviews it."
+      ]
+    }
+  ]
+}

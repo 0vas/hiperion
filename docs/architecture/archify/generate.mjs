@@ -18,33 +18,35 @@ const revision = execFileSync('git', ['-C', archify, 'rev-parse', 'HEAD'], {
 if (revision !== pinned)
   throw new Error(`Expected Archify revision ${pinned}, got ${revision}`);
 const proof = mkdtempSync(resolve(tmpdir(), 'hyperion-archify-proof-'));
-for (const locale of ['es', 'en']) {
-  const output = `docs/site/public/architecture/hyperion-${locale}.html`;
-  const result = execFileSync(
-    process.execPath,
-    [
-      resolve(archify, 'bin/archify.mjs'),
-      'finalize',
-      'architecture',
-      `docs/architecture/archify/hyperion.${locale}.json`,
-      output,
-      '--repo-root',
-      root,
-      '--quality',
-      'showcase',
-      '--out-dir',
-      resolve(proof, locale),
-      '--json',
-    ],
-    { cwd: root, encoding: 'utf8' },
-  );
-  const receipt = JSON.parse(result);
-  if (!receipt.ok) throw new Error(result);
-  // Archify writes this extra local receipt beside the HTML even with --out-dir.
-  rmSync(resolve(root, output.replace('.html', '.delivery.json')), {
-    force: true,
-  });
-  console.log(
-    `${locale}: ${receipt.status}; browser ${receipt.gates['browser-check']}; evidence ${proof}`,
-  );
+for (const view of ['hyperion', 'process', 'continuation']) {
+  for (const locale of ['es', 'en']) {
+    const output = `docs/site/public/architecture/${view}-${locale}.html`;
+    const result = execFileSync(
+      process.execPath,
+      [
+        resolve(archify, 'bin/archify.mjs'),
+        'finalize',
+        'architecture',
+        `docs/architecture/archify/${view}.${locale}.json`,
+        output,
+        '--repo-root',
+        root,
+        '--quality',
+        'showcase',
+        '--out-dir',
+        resolve(proof, `${view}-${locale}`),
+        '--json',
+      ],
+      { cwd: root, encoding: 'utf8' },
+    );
+    const receipt = JSON.parse(result);
+    if (!receipt.ok) throw new Error(result);
+    // Archify writes this extra local receipt beside the HTML even with --out-dir.
+    rmSync(resolve(root, output.replace('.html', '.delivery.json')), {
+      force: true,
+    });
+    console.log(
+      `${view}/${locale}: ${receipt.status}; browser ${receipt.gates['browser-check']}; evidence ${proof}`,
+    );
+  }
 }

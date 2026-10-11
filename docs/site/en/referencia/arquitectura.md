@@ -1,48 +1,126 @@
 # Architecture
 
-Hyperion separates workflow state from the tool executing each task. Its core does not depend on Codex, Claude, Cursor, Hermes or Olimpo.
+Hyperion turns a conversation into a visible, verifiable process. The AI proposes the plan and executes tools; the person supplies information and makes decisions; Hyperion preserves shared state and determines what can advance.
 
 <GuideLens kind="architecture" />
 
-## Explore the architecture
+::: tip The separation behind the product
+The **agent executes**, the **engine validates**, the **canvas guides**, and **persistence retains evidence**. No AI provider has a privileged role in the core.
+:::
 
-[Explore in Archify](/architecture/hyperion-en.html){target="_self"} · [Diagram source](https://github.com/0vas/hiperion/blob/main/docs/architecture/archify/hyperion.en.json)
+## Explore how it works
+
+Choose a view. Zoom, focus components and inspect the code behind each responsibility. Arrows show transfers between components, not a live execution.
 
 <Architecture />
 
-Open **Explore in Archify** to zoom, focus, change theme and inspect each component’s source code. This is the 0.5 core runtime; native resume connectors remain pending.
+## What Hyperion does
 
-## Responsibilities
+| Capability               | Implementation                                                 | What the person sees                              |
+| ------------------------ | -------------------------------------------------------------- | ------------------------------------------------- |
+| Structure a request      | The agent records the request, plan, jobs and steps            | A shared goal and a navigable path                |
+| Guide work and decisions | The engine validates dependencies, roles and responses         | What is ready, who acts and what is missing       |
+| Coordinate branches      | BPMN-lite resolves parallel, exclusive and inclusive gateways  | Selected, skipped and pending paths               |
+| Carry data forward       | Typed contracts connect context, inputs and outputs            | Where data comes from and what each task produces |
+| Expose evidence          | Events, results and public traces accompany each step          | Activity, I/O, failures and attempts              |
+| Adapt to a conversation  | Revisions propose future work changes while preserving history | Plan changes requiring review                     |
+| Recover continuity       | Persisted responses, retry and a continuation queue            | The actual state of work and agent handoff        |
 
-| Component               | Responsibility                                                      |
-| ----------------------- | ------------------------------------------------------------------- |
-| External agent          | Turn the request into a plan, execute tools and report real results |
-| MCP / CLI adapters      | Connect the agent to the shared local contract                      |
-| Domain engine           | Validate dependencies, decisions, gateways, data and revisions      |
-| HTTP service and SQLite | Persist workflow state and stream updates to the canvas over SSE    |
-| React canvas            | Display the workflow and collect human decisions                    |
-| Electron Desktop        | Run the local service and host the canvas and setup assistant       |
+Autonomous multiagent orchestration remains an extension. Process parallelism already exists; it does not imply that Hyperion selects and starts multiple models itself.
 
-## Formal ArchiMate model
+## A concrete journey
 
-Archify provides an interactive runtime view. The existing ArchiMate exchange models remain the formal architectural reference, with implemented and proposed views identified separately. The execution format is a simplified BPMN profile, separate from architectural notation.
+> “Use Hyperion to prepare a welcome guide for my project.”
 
-[ArchiMate models and SVG views](https://github.com/0vas/hiperion/tree/main/docs/architecture).
+1. **Request → plan.** The harness generates a plan and asks only for missing information. CLI or MCP sends it to the local HTTP service.
+2. **Plan → eligible work.** The engine validates structure and dependencies. The canvas displays the same run the agent reads.
+3. **Person → output.** The person chooses the audience. The form comes from its contract; known choices are selectable rather than something to guess in free text.
+4. **Output → input.** The draft references the selected audience. The agent reads updated data, starts the task and records a real result.
+5. **Result → review.** The person reviews the draft. Approval does not publish or send anything unless that work is in scope.
+6. **Completion → evidence.** The process retains responses, results, events and attempts to explain how it reached the outcome.
 
-## From conversation to result
+::: info Shared state
+The conversation provides intent. The persisted run provides operational state. A “ready” label enables a task; it does not establish that the agent is already executing it.
+:::
 
-1. The agent creates a plan from the request and shares its URL.
-2. The engine computes ready tasks and their inputs.
-3. The agent starts eligible tasks, executes tools and reports evidence.
-4. The user responds or approves on the canvas.
-5. The agent reads the change and records subsequent work.
+## Responsibilities and code
 
-The service does not launch an agent by itself. Core 0.5 adds a durable queue and I/O worker that delegates to an installed connector; native resume connectors remain pending. See [pause and resume](../guia/reanudacion.md). Live canvas updates and conversation resumption are distinct capabilities.
+| Boundary         | Responsibility                                                           | Source                                                                                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| External harness | Interpret the request, propose steps, use tools and report results       | [Integration contract](https://github.com/0vas/hiperion/blob/main/docs/integration.md)                                                                                 |
+| Adapters         | CLI and MCP share an HTTP client; discovery and local bootstrap          | [src/adapters](https://github.com/0vas/hiperion/tree/main/src/adapters)                                                                                                |
+| Local API        | Authenticate identities, distinguish roles and expose commands/reads/SSE | [app.ts](https://github.com/0vas/hiperion/blob/main/src/server/app.ts)                                                                                                 |
+| Domain engine    | Transitions, dependencies, gateways, contracts and revisions             | [src/domain](https://github.com/0vas/hiperion/tree/main/src/domain)                                                                                                    |
+| Store and queue  | SQLite snapshots, idempotent receipts and durable deliveries             | [store.ts](https://github.com/0vas/hiperion/blob/main/src/server/store.ts), [continuations.ts](https://github.com/0vas/hiperion/blob/main/src/server/continuations.ts) |
+| Canvas           | Present state, collect decisions and display step activity               | [src/client](https://github.com/0vas/hiperion/tree/main/src/client)                                                                                                    |
+| Desktop          | Host the canvas, start/reuse the service and assist connection setup     | [desktop](https://github.com/0vas/hiperion/tree/main/desktop)                                                                                                          |
+| Optional worker  | Claim deliveries and delegate resumption to an installed connector       | [continuation-worker.ts](https://github.com/0vas/hiperion/blob/main/src/adapters/continuation-worker.ts)                                                               |
 
-## Data and evolution
+These are responsibility boundaries, not eight independently deployed microservices.
 
-Tasks declare typed inputs and outputs. Inputs can come from context, literals or earlier outputs. The server validates values, including allowed choices.
+## Data, contracts and evidence
 
-Command identifiers prevent duplicate transport retries. Revisions prevent decisions against stale state. Plan changes preserve history and pause for human review.
+**Plan → run → steps → attempts and events.** The plan contains the request, context, jobs, dependencies and contracts. The run adds state, revision and results. Jobs group steps and derive progress; they do not duplicate the execution engine.
 
-[Process contract](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md) · [Architecture decisions](https://github.com/0vas/hiperion/tree/main/docs/decisions)
+An input can use a literal, a context key or an earlier task output. The engine validates types and required values. Available context also exposes completed ancestors' results, but does not replace required inputs.
+
+| Data                       | Purpose                                                |
+| -------------------------- | ------------------------------------------------------ |
+| `plan.request` and context | Retain intent and background                           |
+| Typed inputs / outputs     | Define what each step needs and produces               |
+| Run revision               | Reject responses based on stale state                  |
+| Command ID and receipt     | Prevent duplicate transitions on transport retry       |
+| Events and traces          | Record public summaries, actions and observations      |
+| Delivery ID and lease      | Coordinate connector handoff and reconcile uncertainty |
+
+SSE updates the canvas; fallback polling recovers changes when needed. Logs reflect what the agent reports. They do not expose private model reasoning or independently verify every external effect.
+
+## Pauses, failures and plan changes
+
+| Situation                                  | Architectural response                                                                    |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| Human input is missing                     | The successor stays blocked; the response and revision must be validated                  |
+| The chat keeps a call open                 | Cooperative integration can read the change and continue                                  |
+| Suspension and a connector are installed   | The response stores state, receipt and delivery atomically; the worker claims the request |
+| The connector acknowledges delivery        | Dispatch is acknowledged; the agent still has to start and report work                    |
+| Acknowledgement is lost or a lease expires | Reconcile before resending: a turn may already have started                               |
+| A task fails or an attempt remains active  | Retry/recovery preserve evidence; verify external effects before repeating                |
+| The goal changes during the conversation   | Future-work revisions retain history and pause for human review                           |
+
+::: warning Current integration boundary
+Core 0.5 includes suspension, a durable queue and a generic worker. Native resume connectors remain pending. MCP alone cannot wake a conversation after its turn has ended. See [Pause and resume](../guia/reanudacion.md) for available capabilities.
+:::
+
+## Deployment and trust boundaries
+
+**Local machine:** harness → CLI/MCP → loopback HTTP → engine + SQLite. Browser or Electron displays that service's canvas. Presentation processes do not maintain independent workflow engines.
+
+**GitHub Pages:** static documentation, diagrams and simulations. Pages does not run the workflow service or install an agent. The site and runtime have separate release cycles.
+
+**Resume integration:** a trusted local module connects the worker to a real harness session. It is configured outside generated plans and preserves normal host permissions.
+
+Human sessions and agent identities have different permissions. Tokens, session references and local data must not appear in published examples, diagrams or shared logs. The local edition does not include a remote multiuser service with authentication and isolation; connecting a cloud application requires that additional work.
+
+## ArchiMate and decisions
+
+Archify provides interactive exploration. ArchiMate retains formal component and relationship models. BPMN-lite represents executed processes; it neither replaces ArchiMate nor claims full BPMN 2.0 compliance.
+
+<details>
+<summary>View formal component and continuation models</summary>
+
+![Implemented components: adapters, API, persistence, engine and canvas](../../../architecture/implemented.svg)
+
+![ArchiMate: human decision, persistent queue, worker and external connector](../../../architecture/continuation.svg)
+
+</details>
+
+[XML models and SVG views](https://github.com/0vas/hiperion/tree/main/docs/architecture) · [Architecture decisions](https://github.com/0vas/hiperion/tree/main/docs/decisions). XML references can be checked; no unperformed XSD validation or formal import is claimed.
+
+## Keeping the architecture verifiable
+
+- **Engine and data:** domain, process, context and form tests verify contracts and paths.
+- **Persistence and recovery:** store, HTTP and continuation tests cover restart, duplicates and ambiguous delivery.
+- **Experience:** Playwright checks decisions, navigation and simulations. A test connector does not certify a real harness.
+- **Documentation:** contract, integration or component changes must update ES/EN guides, diagrams and examples in the same change.
+
+[AGENTS.md](https://github.com/0vas/hiperion/blob/main/AGENTS.md) records the repository map, invariants and documentation update matrix. The [process contract](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md) details the executable format.

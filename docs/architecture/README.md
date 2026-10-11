@@ -7,6 +7,12 @@ El núcleo 0.5 incorpora [pausa persistente independiente del harness](../contin
 El usuario autorizó posteriormente iniciar la implementación en el repositorio y probarla con Codex. El [ADR 0001](../decisions/0001-functional-increment.md) concreta ese incremento; el [protocolo](../protocol.md) describe su comportamiento implementado.
 Nombre del producto: Hyperion. Nombre actual del repositorio: `hiperion`.
 
+## Lectura actual del sistema
+
+La [arquitectura publicada](../site/referencia/arquitectura.md) presenta capacidades, responsabilidades, un recorrido de usuario, contratos de datos, recuperación y límites de despliegue. Tiene versión [en inglés](../site/en/referencia/arquitectura.md) y tres vistas interactivas [Archify](archify/README.md): ejecución, datos/decisiones y pausa/reanudación. Cada vista enlaza código de una revisión inmutable.
+
+Los modelos `implemented.xml` y `continuation.xml` conservan la representación formal ArchiMate. Las secciones siguientes registran la propuesta original y su evolución; las decisiones pendientes históricas no sustituyen el comportamiento documentado en la página actual y sus contratos. La matriz de mantenimiento en [AGENTS.md](../../AGENTS.md) exige actualizar guías, fuentes y vistas en el mismo cambio de arquitectura.
+
 ## Requisitos confirmados por el usuario
 
 Hyperion será un módulo independiente, acoplable a distintas herramientas. Olimpo es un consumidor posible, sin una posición especial en el núcleo. El usuario debe poder pedir desde su herramienta de IA que utilice Hyperion y obtener una vista interactiva del trabajo.

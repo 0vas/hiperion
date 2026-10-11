@@ -401,10 +401,11 @@ test('video landing uses a centered headline, wide product view and controllable
     expect(
       (await hero.locator('.landscape-product').boundingBox()).width,
     ).toBeGreaterThan(1000);
-    const video = page.locator('.cinema-video');
+    const video = page.locator('.cinema-video').first();
+    await expect(page.locator('.cinema-video')).toHaveCount(2);
     await expect(video).toHaveAttribute('src', /cloudfront.*mp4/);
     await expect(video).toHaveJSProperty('muted', true);
-    await expect(video).toHaveJSProperty('loop', true);
+    await expect(video).toHaveJSProperty('loop', false);
     await hero
       .getByRole('button', {
         name: en ? 'Pause background' : 'Pausar fondo',
@@ -488,7 +489,8 @@ test('video failure keeps the poster, navigation and download actions usable', a
   );
   await page.goto('/hiperion/');
   await failure;
-  const video = page.locator('.cinema-video');
+  const video = page.locator('.cinema-video').first();
+  await expect(page.locator('.cinema-video')).toHaveCount(2);
   await expect(video).not.toHaveAttribute('src');
   await expect(video).toHaveAttribute(
     'poster',
@@ -760,4 +762,78 @@ test('floating navigation keeps a generated brand and working actions across lay
   await expect(
     page.getByRole('region', { name: 'Ejemplo interactivo', exact: true }),
   ).toBeInViewport();
+});
+
+test('architecture views explain execution, data and resumption in both languages', async ({
+  page,
+}) => {
+  for (const en of [false, true]) {
+    await page.goto(`/hiperion/${en ? 'en/' : ''}referencia/arquitectura.html`);
+    const explorer = page.getByRole('region', {
+      name: en ? 'Architecture explorer' : 'Explorador de arquitectura',
+    });
+    for (const [label, file] of [
+      [en ? 'Execution' : 'Ejecución', 'hyperion'],
+      [en ? 'Data and decisions' : 'Datos y decisiones', 'process'],
+      [en ? 'Pause and resume' : 'Pausa y reanudación', 'continuation'],
+    ]) {
+      const button = explorer.getByRole('button', { name: label, exact: true });
+      await button.click({ timeout: 3000 });
+      await expect(button).toHaveAttribute('aria-pressed', 'true');
+      await expect(explorer.locator('iframe')).toHaveAttribute(
+        'src',
+        new RegExp(`/architecture/${file}-${en ? 'en' : 'es'}\\.html`),
+      );
+      await expect(
+        explorer.getByRole('link', {
+          name: en ? 'Explore in Archify' : 'Explorar en Archify',
+          exact: true,
+        }),
+      ).toHaveAttribute(
+        'href',
+        `/hiperion/architecture/${file}-${en ? 'en' : 'es'}.html`,
+      );
+      await expect(
+        page
+          .frameLocator('iframe')
+          .locator(
+            file === 'hyperion'
+              ? '#node-agent'
+              : file === 'process'
+                ? '#node-context'
+                : '#node-queue',
+          ),
+      ).toBeVisible();
+    }
+    await expect(
+      page.getByRole('heading', {
+        name: en
+          ? 'Deployment and trust boundaries'
+          : 'Despliegue y límites de confianza',
+        exact: false,
+      }),
+    ).toBeVisible();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      )
+      .toBe(true);
+    await explorer
+      .getByRole('button', {
+        name: en ? 'Execution' : 'Ejecución',
+        exact: true,
+      })
+      .click();
+    await expect(explorer.locator('iframe')).toHaveAttribute(
+      'src',
+      /hyperion-/,
+    );
+    const accessibility = await new AxeBuilder({ page })
+      .include('.architecture-explorer')
+      // The pinned third-party viewer has its own generated markup; audit our controls.
+      .exclude('iframe')
+      .analyze();
+    expect(accessibility.violations).toEqual([]);
+  }
 });

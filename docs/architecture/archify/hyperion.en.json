@@ -8,7 +8,7 @@
     "output": "docs/site/public/architecture/hyperion-en.html",
     "repository": {
       "url": "https://github.com/0vas/hiperion.git",
-      "revision": "ae4ccdb9697d842fae039dfbb0232ae91d688fcf"
+      "revision": "8f0e793ef8e9ee572e89d1126a384589b67154e3"
     }
   },
   "components": [

@@ -75,12 +75,21 @@ body:has(.landscape-hero) .VPHome {
   pointer-events: none;
   background: var(--vp-c-bg);
 }
+.cinema-media {
+  position: absolute;
+  inset: 0;
+  filter: var(--home-video-filter);
+  opacity: var(--home-video-opacity);
+}
 .cinema-video {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: var(--home-video-filter);
-  opacity: var(--home-video-opacity);
+}
+.cinema-buffer {
+  opacity: 0;
 }
 .cinema-scrim {
   position: absolute;

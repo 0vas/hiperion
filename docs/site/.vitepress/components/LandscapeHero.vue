@@ -5,6 +5,7 @@ import DocIcon from './DocIcon.vue';
 import HomeMotion from './HomeMotion.vue';
 import ProjectBadges from './ProjectBadges.vue';
 import HarnessMarks from './HarnessMarks.vue';
+import { createVideoLoop } from './video-loop';
 const { lang } = useData();
 const en = computed(() => lang.value !== 'es');
 const paused = ref(false);
@@ -12,6 +13,9 @@ const reduced = ref(true);
 const hidden = ref(false);
 const failed = ref(false);
 const video = ref<HTMLVideoElement>();
+const buffer = ref<HTMLVideoElement>();
+let loop: ReturnType<typeof createVideoLoop> | undefined;
+let frame = 0;
 const videoUrl =
   'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_064122_c4750c0e-7476-4b44-94a2-a85a65c63bf2.mp4';
 let media: MediaQueryList | undefined;
@@ -21,30 +25,34 @@ const syncMotion = () => {
 const syncVisibility = () => {
   hidden.value = document.hidden;
 };
-async function syncPlayback() {
-  const player = video.value;
-  if (!player) return;
-  if (paused.value || reduced.value || hidden.value || failed.value)
-    player.pause();
-  else {
-    try {
-      await player.play();
-    } catch {
-      /* Autoplay can be blocked; the poster and controls remain usable. */
-    }
-    if (paused.value || reduced.value || hidden.value) player.pause();
+function syncPlayback() {
+  if (reduced.value || failed.value) loop?.reset();
+  loop?.setEnabled(
+    !paused.value && !reduced.value && !hidden.value && !failed.value,
+  );
+  cancelAnimationFrame(frame);
+  if (!paused.value && !reduced.value && !hidden.value && !failed.value) {
+    const tick = () => {
+      loop?.tick();
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
   }
 }
 onMounted(() => {
+  if (video.value && buffer.value)
+    loop = createVideoLoop([video.value, buffer.value]);
   media = window.matchMedia('(prefers-reduced-motion: reduce)');
   syncMotion();
   syncVisibility();
   media.addEventListener('change', syncMotion);
   document.addEventListener('visibilitychange', syncVisibility);
+  syncPlayback();
 });
 watch([paused, reduced, hidden], syncPlayback, { flush: 'post' });
 onUnmounted(() => {
-  video.value?.pause();
+  cancelAnimationFrame(frame);
+  loop?.setEnabled(false);
   media?.removeEventListener('change', syncMotion);
   document.removeEventListener('visibilitychange', syncVisibility);
 });
@@ -57,19 +65,31 @@ const route = (path: string) => withBase(`${en.value ? '/en' : ''}/${path}`);
     aria-labelledby="landscape-title"
   >
     <div class="cinema-backdrop" aria-hidden="true">
-      <video
-        ref="video"
-        class="cinema-video"
-        :src="!reduced && !failed ? videoUrl : undefined"
-        :poster="withBase('/brand/cinema-poster.svg')"
-        autoplay
-        loop
-        muted
-        playsinline
-        preload="metadata"
-        @canplay="syncPlayback"
-        @error="failed = true"
-      />
+      <div class="cinema-media">
+        <video
+          ref="video"
+          class="cinema-video"
+          :src="!reduced && !failed ? videoUrl : undefined"
+          :poster="withBase('/brand/cinema-poster.svg')"
+          muted
+          playsinline
+          preload="auto"
+          @canplay="syncPlayback"
+          @error="
+            failed = true;
+            syncPlayback();
+          "
+        />
+        <video
+          ref="buffer"
+          class="cinema-video cinema-buffer"
+          :src="!reduced && !failed ? videoUrl : undefined"
+          muted
+          playsinline
+          preload="auto"
+          @canplay="syncPlayback"
+        />
+      </div>
       <div class="cinema-scrim"></div>
     </div>
     <div class="landscape-copy">
