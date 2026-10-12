@@ -12,6 +12,7 @@ Install Desktop and open **Hyperion → Conectar con mi IA**. The assistant conf
 | Cursor         | Local MCP server                               |
 | Claude Desktop | Local MCP server                               |
 | Claude Code    | Managed skill connected to the Desktop runtime |
+| Antigravity    | Local MCP server · Desktop built from `main`   |
 
 Restart the tool and open a new chat. The assistant reports conflicts and backs up the configuration files it changes. Installing a connection does not guarantee that an existing chat has loaded it. Naming Hyperion in an unconnected application is not enough.
 
@@ -30,14 +31,16 @@ See [pause and resume](./reanudacion.md). Without an installed resume connector,
 
 ## Antigravity
 
-Google Antigravity can connect to Hyperion’s local MCP server. Setup is manual; the Desktop assistant does not yet have an Antigravity button.
+In Desktop built from `main`, open **Hyperion → Conectar con mi IA → Antigravity**. The assistant adds `mcpServers.hyperion` to Antigravity’s documented global configuration, preserves other servers and backs up the original file. The bundled runtime starts Hyperion when the client loads MCP.
 
-1. Ask your agent to prepare the [Antigravity technical connection](https://github.com/0vas/hiperion/blob/main/docs/conexion.md#antigravity) on the computer running Hyperion.
-2. In Antigravity IDE, open **MCP Servers → Manage MCP Servers → View raw config**. Add the generated `mcpServers.hyperion` entry, preserving other servers.
-3. Reload servers and check that Hyperion tools appear. Open a chat and ask: **“Use Hyperion to prepare a welcome guide for my project.”**
+Restart Antigravity or reload its MCP servers. Check that Hyperion tools appear and ask: **“Use Hyperion to prepare a welcome guide for my project.”**
 
-::: info Current scope
-Compatibility is based on the documented MCP transport; a real Antigravity session has not been validated. MCP alone cannot wake a finished chat. The resume connector is still pending.
+::: warning Required version
+Published **0.4.0-preview.1** installers do not include this button yet. Support is implemented in `main`; the [technical connection guide](https://github.com/0vas/hyperion/blob/main/docs/conexion.md#antigravity) also offers `setup antigravity` for source installations. The new assistant does not require editing JSON.
+:::
+
+::: info Verified scope
+Tests cover configuration, backups, conflicts and the MCP protocol with an Antigravity identity. A conversation in Google’s application remains unverified. The connector that automatically wakes a finished chat is still pending.
 :::
 
 [Antigravity MCP documentation](https://antigravity.google/docs/mcp).

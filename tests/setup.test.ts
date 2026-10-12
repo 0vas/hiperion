@@ -59,3 +59,27 @@ test('Cursor setup preserves other servers, is idempotent and refuses conflictin
     rmSync(home, { recursive: true, force: true });
   }
 });
+
+test('Antigravity one-command setup reuses the safe desktop writer without a vendor CLI', async () => {
+  const home = mkdtempSync(join(tmpdir(), 'hyperion-antigravity-cli-'));
+  try {
+    const result = await setupClient('antigravity', {
+      home,
+      directory: join(home, 'data'),
+      run: () => {
+        throw new Error('Must not invoke a vendor CLI');
+      },
+    });
+    assert.equal(
+      result.configFile,
+      join(home, '.gemini/config/mcp_config.json'),
+    );
+    const config = JSON.parse(readFileSync(result.configFile, 'utf8'));
+    assert.equal(
+      config.mcpServers.hyperion.env.HYPERION_AGENT_ID,
+      'antigravity',
+    );
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});

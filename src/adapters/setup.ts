@@ -8,6 +8,7 @@ import {
 } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, resolve } from 'node:path';
+import { setupDesktopClient } from './desktop-setup.js';
 import { generateConnection } from './connections.js';
 
 type SetupOptions = {
@@ -31,9 +32,17 @@ const execute = (command: string, args: string[]) => {
     );
 };
 export async function setupClient(id: string, options: SetupOptions = {}) {
+  if (id === 'antigravity') {
+    const result = await setupDesktopClient(id, options);
+    return {
+      ...result,
+      message:
+        'Connected. Reload MCP tools or open a new session in Antigravity. Hyperion starts locally on demand.',
+    };
+  }
   if (!['codex', 'claude', 'cursor'].includes(id))
     throw new Error(
-      'Use setup codex, claude or cursor. Other clients can use connect CLIENT_ID.',
+      'Use setup codex, claude, cursor or antigravity. Other clients can use connect CLIENT_ID.',
     );
   const generated = generateConnection(id, options.directory, true);
   const server = generated.config.mcpServers.hyperion;

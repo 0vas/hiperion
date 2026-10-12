@@ -1,4 +1,10 @@
-const clients = ['codex', 'cursor', 'claude-desktop', 'claude-code'];
+const clients = [
+  'codex',
+  'cursor',
+  'claude-desktop',
+  'claude-code',
+  'antigravity',
+];
 export async function connectWithDialog({
   window,
   dialog,
@@ -12,9 +18,16 @@ export async function connectWithDialog({
     message: '¿Dónde conversarás con tu IA?',
     detail:
       'Elige una aplicación instalada. Hyperion preparará su conexión local. Después podrás crear flujos desde cualquier conversación.',
-    buttons: ['Codex', 'Cursor', 'Claude Desktop', 'Claude Code', 'Ahora no'],
+    buttons: [
+      'Codex',
+      'Cursor',
+      'Claude Desktop',
+      'Claude Code',
+      'Antigravity',
+      'Ahora no',
+    ],
     defaultId: 0,
-    cancelId: 4,
+    cancelId: clients.length,
     noLink: true,
   });
   const client = clients[choice.response];

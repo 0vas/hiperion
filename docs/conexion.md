@@ -5,7 +5,7 @@ La pausa persistente y el alcance por herramienta se explican en [Reanudación a
 ## Conectar sin comandos (recomendado)
 
 1. Instala **Hyperion Desktop**: `.dmg` en macOS o `.exe` en Windows. En macOS, arrastra Hyperion a Aplicaciones antes de abrirlo.
-2. Al abrirlo, elige **Codex**, **Cursor**, **Claude Desktop** o **Claude Code**. Si ya lo usabas, entra en **Hyperion → Conectar con mi IA**.
+2. Al abrirlo, elige **Codex**, **Cursor**, **Claude Desktop**, **Claude Code** o **Antigravity** (compilación de `main`). Si ya lo usabas, entra en **Hyperion → Conectar con mi IA**.
 3. Reinicia la aplicación elegida y abre un chat nuevo. Si solicita habilitar Hyperion, acepta para usar sus herramientas.
 4. Escribe tu objetivo: **«Usa Hyperion para preparar una guía breve de bienvenida a mi proyecto»**.
 
@@ -13,12 +13,13 @@ No necesitas instalar Node, escribir comandos ni editar archivos. Hyperion Deskt
 
 **[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v0.4.0-preview.1)**: elige el `.dmg` de Apple Silicon o Intel, o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. Los instaladores no tienen firma de distribución/notarización y pueden mostrar avisos del sistema. La release estable firmada sigue pendiente.
 
-| Aplicación     | Qué prepara el asistente                                                    |
-| -------------- | --------------------------------------------------------------------------- |
-| Codex          | Conexión MCP de usuario; también respeta `CODEX_HOME` cuando está definido. |
-| Cursor         | Conexión MCP de usuario para los proyectos locales.                         |
-| Claude Desktop | Conexión MCP en la configuración de escritorio de macOS o Windows.          |
-| Claude Code    | Skill Hyperion en su carpeta de skills de usuario.                          |
+| Aplicación     | Qué prepara el asistente                                                                                |
+| -------------- | ------------------------------------------------------------------------------------------------------- |
+| Codex          | Conexión MCP de usuario; también respeta `CODEX_HOME` cuando está definido.                             |
+| Cursor         | Conexión MCP de usuario para los proyectos locales.                                                     |
+| Claude Desktop | Conexión MCP en la configuración de escritorio de macOS o Windows.                                      |
+| Claude Code    | Skill Hyperion en su carpeta de skills de usuario.                                                      |
+| Antigravity    | Conexión MCP global con respaldo; disponible en Desktop compilado desde `main`, no en la preview 0.4.0. |
 
 La conexión usa rutas absolutas al runtime incluido y al almacenamiento local; no escribe tokens en la configuración del cliente. Guarda copia del archivo anterior, conserva otros servidores y rechaza una entrada Hyperion diferente. «Conexión configurada» confirma la instalación; el cliente debe reiniciarse y cargar las herramientas para usarla. Puedes repetir el asistente para conectar otra aplicación.
 
@@ -141,17 +142,19 @@ La configuración stdio y los comandos de registro se basan en la [documentació
 
 ### Antigravity
 
-En un checkout construido y con el servicio local iniciado según la sección de arranque local anterior, genera la identidad:
+En Desktop compilado desde `main`, selecciona **Hyperion → Conectar con mi IA → Antigravity**. No requiere Node ni CLI de Google. Los instaladores publicados `0.4.0-preview.1` todavía no contienen esta opción.
+
+Desde un checkout preparado, la alternativa es:
 
 ```sh
-npm run hyperion -- connect antigravity
+npm run hyperion -- setup antigravity
 ```
 
-El comando devuelve `configFile` y `config.mcpServers.hyperion`. No modifica Antigravity ni inicia el servidor: conserva el proceso `npm start` activo. Usa el archivo indicado por la salida, que contiene rutas absolutas y ninguna clave de proveedor.
+Ambas vías configuran `mcpServers.hyperion` en `~/.gemini/config/mcp_config.json`, con rutas absolutas y sin claves de proveedor. Conservan otros servidores, respaldan el archivo antes de modificarlo y rechazan una entrada Hyperion distinta o deshabilitada. Repetir la conexión ya configurada no cambia el archivo. El adaptador inicia o reutiliza el servicio local al cargar MCP.
 
-En Antigravity IDE, abre **MCP Servers → Manage MCP Servers → View raw config**. Copia `command`, `args` y `env` de la entrada generada a `mcpServers.hyperion`; el transporte stdio se deduce de `command`. Conserva los otros servidores y resuelve cualquier entrada Hyperion existente antes de reemplazarla. Recarga MCP y comprueba `hyperion_create_run` y `hyperion_get_run` antes de pedir tu objetivo en el chat.
+Reinicia Antigravity o recarga MCP y comprueba `hyperion_create_run` y `hyperion_get_run`. Luego pide tu objetivo en el chat. Si tu instalación usa una ubicación distinta, consulta **MCP Servers → Manage MCP Servers → View raw config** y usa la alternativa manual `npm run hyperion -- connect antigravity`, trasladando `command`, `args` y `env` del archivo generado. Esta alternativa manual requiere tener el servicio local iniciado.
 
-La [documentación oficial de MCP de Antigravity](https://antigravity.google/docs/mcp), consultada el 11 de octubre de 2026, describe esa configuración. Esta vía reutiliza el adaptador genérico: no incluye instalación automática en Desktop ni un conector de reanudación. Las pruebas verifican el protocolo con la identidad `antigravity`, no una sesión real de Google Antigravity. No se debe prometer que la conexión MCP despierta un chat finalizado.
+La [documentación oficial de MCP de Antigravity](https://antigravity.google/docs/mcp), consultada el 11 de octubre de 2026, describe el formato global. Las pruebas verifican configuración y protocolo MCP con identidad `antigravity`; no equivalen a una conversación real en la aplicación. La reanudación automática de un chat finalizado requiere un conector adicional, aún pendiente.
 
 ### Claude Code
 

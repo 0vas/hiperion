@@ -28,8 +28,18 @@ function object(value: unknown): Record<string, unknown> {
 }
 /** Configure local clients without depending on their CLIs or a system Node. */
 export async function setupDesktopClient(id: string, options: Options = {}) {
-  if (!['codex', 'cursor', 'claude-desktop', 'claude-code'].includes(id))
-    throw new Error('Cliente desconocido. Elige Codex, Cursor o Claude.');
+  if (
+    ![
+      'codex',
+      'cursor',
+      'claude-desktop',
+      'claude-code',
+      'antigravity',
+    ].includes(id)
+  )
+    throw new Error(
+      'Cliente desconocido. Elige Codex, Cursor, Claude o Antigravity.',
+    );
   const home = options.home || process.env.HYPERION_HOME || homedir();
   const directory = options.directory || defaultDirectory(home);
   if (id === 'claude-code') {
@@ -54,6 +64,8 @@ export async function setupDesktopClient(id: string, options: Options = {}) {
         resolve(home, '.codex'),
       'config.toml',
     );
+  else if (id === 'antigravity')
+    file = resolve(home, '.gemini/config/mcp_config.json');
   else if (id === 'cursor') file = resolve(home, '.cursor/mcp.json');
   else if (platform === 'darwin')
     file = resolve(

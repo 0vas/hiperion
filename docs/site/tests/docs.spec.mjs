@@ -916,6 +916,10 @@ test('Antigravity has an SVG identity and an honest MCP setup path in both langu
     await mark.click();
     await expect(page.locator('#antigravity')).toBeVisible();
     await expect(
+      page.getByRole('row').filter({ hasText: 'Antigravity' }),
+    ).toContainText('MCP');
+    await expect(page.locator('.vp-doc')).toContainText('0.4.0-preview.1');
+    await expect(
       page.getByRole('link', { name: /MCP.*Antigravity|Antigravity.*MCP/ }),
     ).toHaveAttribute('href', 'https://antigravity.google/docs/mcp');
     await expect(page.locator('.vp-doc')).toContainText('mcpServers.hyperion');

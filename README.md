@@ -31,12 +31,12 @@ For daily use, follow the [Spanish user manual](docs/manual-uso.md). The install
 The simplest path is **Hyperion Desktop**; it includes its runtime:
 
 1. Install the macOS `.dmg` or Windows `.exe` and open Hyperion. On macOS, move it to Applications before connecting.
-2. In the first-launch assistant, choose **Codex**, **Cursor**, **Claude Desktop**, or **Claude Code**. You can connect another application later from **Hyperion → Conectar con mi IA**.
+2. In the first-launch assistant, choose **Codex**, **Cursor**, **Claude Desktop**, **Claude Code**, or **Antigravity** (Desktop built from `main`). You can connect another application later from **Hyperion → Conectar con mi IA**.
 3. Restart your AI application, open a new chat, and say **“Usa Hyperion para preparar una guía breve de bienvenida a mi proyecto.”**
 
 No terminal, Node installation, API key or hand-written configuration is needed for this Desktop path. Codex, Cursor and Claude Desktop receive a local MCP connection; Claude Code receives the portable skill. Hyperion preserves other connections and backs up existing configuration before changing it. A conflicting Hyperion entry is reported without overwriting it.
 
-Google Antigravity can use the generic local MCP adapter through [manual setup](docs/conexion.md#antigravity). Desktop one-click setup and a native resume connector are not included; a real Antigravity session remains unverified.
+Google Antigravity is supported by the Desktop connection assistant and `setup antigravity` in `main`. [Setup and version availability](docs/conexion.md#antigravity): published 0.4.0-preview.1 installers do not yet include this option. Configuration and MCP contract tests pass; a real Antigravity conversation and native resume connector remain unverified.
 
 The request is enough: the agent asks for missing context, constructs the workflow and shares its canvas. You can request **split** or **desktop** in the chat; both show the same run. After a human handoff, ask the chat to continue. Hyperion does not wake an idle conversation automatically.
 

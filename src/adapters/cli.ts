@@ -33,7 +33,7 @@ const help = `Hyperion — cooperative workflow adapter
   install [skills-directory]  # portable skill, no vendor CLI or MCP required
   open <run-id> <split|desktop> # user chooses presentation in chat
   up                         # start/reuse local Hyperion, return URL
-  setup <codex|claude|cursor>  # configure the client; local server starts on demand
+  setup <codex|claude|cursor|antigravity>  # configure the client; local server starts on demand
   connect <client-id>  # codex, claude, cursor, or your own ID
   guide <plan.json> [idempotency-key] # stream URL and keep waiting for canvas input
   suspend <run-id> <connector.json> # persist checkpoint for a real resumable connector

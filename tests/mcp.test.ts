@@ -15,6 +15,7 @@ for (const coordinator of [
   'claude-code',
   'cursor',
   'hermes',
+  'antigravity',
 ])
   test(`MCP stdio respects human gates with ${coordinator} identity`, async () => {
     const dir = mkdtempSync(join(tmpdir(), 'hyperion-mcp-'));
