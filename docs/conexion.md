@@ -11,7 +11,7 @@ La pausa persistente y el alcance por herramienta se explican en [Reanudación a
 
 No necesitas instalar Node, escribir comandos ni editar archivos. Hyperion Desktop incluye el runtime. La conexión sirve para otros proyectos y chats sin contexto previo. La IA pide solo los datos que falten y genera el proceso; no debes explicarle cómo dibujar el canvas ni cómo registrar los pasos.
 
-**[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v0.5.1-preview.1)**: elige el `.dmg` de Apple Silicon o Intel, o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. Los instaladores no tienen firma de distribución/notarización y pueden mostrar avisos del sistema. La release estable firmada sigue pendiente.
+**[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.0638)**: elige el `.dmg` de Apple Silicon o Intel, o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. Los instaladores no tienen firma de distribución/notarización y pueden mostrar avisos del sistema. La release estable firmada sigue pendiente.
 
 | Aplicación     | Qué prepara el asistente                                                             |
 | -------------- | ------------------------------------------------------------------------------------ |
@@ -53,10 +53,10 @@ La frase por sí sola no instala capacidades en una herramienta que nunca ha car
 
 ### Instalar el paquete sin clonar el repositorio
 
-Con el archivo de distribución `hyperion-workflows-0.5.1-preview.1.tgz`:
+Con el archivo de distribución `hyperion-workflows-2026.10.12-build.398.tgz`:
 
 ```sh
-npm install --global ./hyperion-workflows-0.5.1-preview.1.tgz
+npm install --global ./hyperion-workflows-2026.10.12-build.398.tgz
 hyperion install
 ```
 

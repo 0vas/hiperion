@@ -40,11 +40,11 @@ Google Antigravity is supported by the Desktop connection assistant and `setup a
 
 The request is enough: the agent asks for missing context, constructs the workflow and shares its canvas. You can request **split** or **desktop** in the chat; both show the same run. After a human handoff, ask the chat to continue. Hyperion does not wake an idle conversation automatically.
 
-**Direct downloads:** [macOS · Apple Silicon](https://github.com/0vas/hyperion/releases/download/v0.5.1-preview.1/Hyperion-0.5.1-preview.1-mac-arm64.dmg) · [macOS · Intel](https://github.com/0vas/hyperion/releases/download/v0.5.1-preview.1/Hyperion-0.5.1-preview.1-mac-x64.dmg) · [Windows · x64](https://github.com/0vas/hyperion/releases/download/v0.5.1-preview.1/Hyperion-0.5.1-preview.1-win-x64.exe).
+**Direct downloads:** [macOS · Apple Silicon](https://github.com/0vas/hyperion/releases/download/v2026.10.12.0638/Hyperion-2026.10.12.0638-mac-arm64.dmg) · [macOS · Intel](https://github.com/0vas/hyperion/releases/download/v2026.10.12.0638/Hyperion-2026.10.12.0638-mac-x64.dmg) · [Windows · x64](https://github.com/0vas/hyperion/releases/download/v2026.10.12.0638/Hyperion-2026.10.12.0638-win-x64.exe).
 
-These are **0.5.1-preview.1** installers with Antigravity setup, the current logo and in-app update downloads. macOS bundles are sealed with ad-hoc signing but are not Apple-notarized; Windows installers have no publisher signature.
+These are **2026.10.12.0638 UTC · Preview** installers (CalVer: year, month, day, hour and minute) with Antigravity setup, the current logo and in-app update downloads. macOS bundles are sealed with ad-hoc signing but are not Apple-notarized; Windows installers have no publisher signature. **Apple can block this preview from opening.** If you choose to trust it, follow [the individual app exception steps](https://0vas.github.io/hyperion/en/guia/primeros-pasos.html#macos-blocks-the-app). Developer ID signing and Apple notarization remain pending. The first migration from 0.4/0.5.1 to CalVer is manual; the old updater cannot read CalVer tags.
 
-**[Download Hyperion Desktop — preview](https://github.com/0vas/hyperion/releases/tag/v0.5.1-preview.1)** · macOS Apple Silicon / Intel · Windows x64.
+**[Download Hyperion Desktop — preview](https://github.com/0vas/hyperion/releases/tag/v2026.10.12.0638)** · macOS Apple Silicon / Intel · Windows x64.
 
 Developer signing/notarization and a stable release remain pending. The operating system may block this preview. The [Desktop installers workflow](https://github.com/0vas/hyperion/actions/workflows/desktop.yml) builds and tests the packaged application on each platform. Protocol tests do not replace native conversation testing in every AI client.
 
@@ -52,7 +52,7 @@ Developer signing/notarization and a stable release remain pending. The operatin
 
 ### Alternative for an agent with local shell access
 
-From a prepared checkout, `npm run hyperion -- install` installs the portable skill. Reload skills or open a new agent session. A compiled archive can also be installed with `npm install --global ./hyperion-workflows-0.5.1-preview.1.tgz`, followed by `hyperion install`; this alternative needs Node.js 22.13+. The archive is built with `npm pack` and is not published to npm.
+From a prepared checkout, `npm run hyperion -- install` installs the portable skill. Reload skills or open a new agent session. A compiled archive can also be installed with `npm install --global ./hyperion-workflows-2026.10.12-build.398.tgz`, followed by `hyperion install`; this alternative needs Node.js 22.13+. The archive is built with `npm pack` and is not published to npm.
 
 ## Run from source
 

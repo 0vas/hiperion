@@ -61,7 +61,7 @@ test('a new reader can find setup and search for retry', async ({ page }) => {
   await expect(page.locator('h1')).toHaveText('Tu primer flujo');
   await expect(
     page.getByRole('link', { name: 'Descargar Hyperion Desktop', exact: true }),
-  ).toHaveAttribute('href', /releases\/tag\/v0.5.1-preview.1/);
+  ).toHaveAttribute('href', /releases\/tag\/v2026.10.12.0638/);
   await page.getByRole('button', { name: /Buscar/ }).click();
   await page.locator('#localsearch-input').fill('Reintentar');
   await expect(page.locator('.VPLocalSearchBox a').first()).toBeVisible();
@@ -153,7 +153,7 @@ test('branded pages offer direct installers and a working Archify viewer in both
         page.getByRole('link', { name, exact: true }),
       ).toHaveAttribute(
         'href',
-        `https://github.com/0vas/hyperion/releases/download/v0.5.1-preview.1/Hyperion-0.5.1-preview.1-${asset}`,
+        `https://github.com/0vas/hyperion/releases/download/v2026.10.12.0638/Hyperion-2026.10.12.0638-${asset}`,
       );
     }
     await page.goto(`/hyperion/${locale}referencia/arquitectura.html`);
@@ -926,5 +926,59 @@ test('Antigravity has an SVG identity and an honest MCP setup path in both langu
     await page.goto(`/hyperion/${locale}guia/reanudacion.html`);
     const row = page.getByRole('row').filter({ hasText: 'Antigravity' });
     await expect(row).toContainText(locale ? 'pending' : 'pendiente');
+  }
+});
+
+test('CalVer minute and macOS opening instructions remain visible in both themes, languages and narrow layouts', async ({
+  page,
+}) => {
+  for (const locale of ['', 'en/']) {
+    for (const dark of [false, true]) {
+      for (const width of [390, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({
+          colorScheme: dark ? 'dark' : 'light',
+          reducedMotion: 'reduce',
+        });
+        await page.goto(`/hyperion/${locale}guia/primeros-pasos.html`);
+        const downloads = page.locator('.downloads');
+        await downloads.scrollIntoViewIfNeeded();
+        await expect(downloads.locator('time')).toHaveText('2026.10.12.0638');
+        await expect(downloads.locator('time')).toHaveAttribute(
+          'datetime',
+          '2026-10-12T06:38:00Z',
+        );
+        await expect(downloads.locator('.download-status')).toContainText(
+          locale ? 'not yet notarized' : 'no está notarizada',
+        );
+        await downloads
+          .getByRole('link', {
+            name: locale
+              ? 'View installation steps'
+              : 'Ver pasos de instalación',
+          })
+          .click();
+        await expect(page).toHaveURL(
+          locale ? /#macos-blocks-the-app$/ : /#macos-bloquea-la-app$/,
+        );
+        await expect(
+          page.locator(
+            locale ? '#macos-blocks-the-app' : '#macos-bloquea-la-app',
+          ),
+        ).toBeVisible();
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth + 1,
+          ),
+        ).toBe(true);
+        const a11y = await new AxeBuilder({ page })
+          .include('.downloads')
+          .analyze();
+        expect(a11y.violations).toEqual([]);
+        await downloads.screenshot({
+          path: `../../test-results/docs/downloads-${locale ? 'en' : 'es'}-${dark ? 'dark' : 'light'}-${width}.png`,
+        });
+      }
+    }
   }
 });

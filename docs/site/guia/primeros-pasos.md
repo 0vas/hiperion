@@ -12,13 +12,28 @@ Necesitas una herramienta de IA compatible y Hyperion conectado a ella. La conex
 
 <Downloads />
 
-[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v0.5.1-preview.1).
+[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.0638).
 
-Elige el instalador para tu equipo: `.dmg` para Mac (Apple Silicon o Intel) y `.exe` para Windows x64. Ábrelo e instala la aplicación. En Mac, mueve Hyperion a **Aplicaciones** antes de conectar tu IA. Esta preview aún no está firmada ni notarizada: el sistema puede mostrar un aviso de editor no verificado.
+Elige el instalador para tu equipo: `.dmg` para Mac (Apple Silicon o Intel) y `.exe` para Windows x64. Ábrelo e instala la aplicación. En Mac, mueve Hyperion a **Aplicaciones** antes de conectar tu IA. Esta preview macOS tiene firma ad-hoc, pero no notarización: Apple puede bloquear su apertura. Windows no tiene firma de editor.
+
+### macOS bloquea la app
+
+El aviso «Apple could not verify Hyperion.app is free of malware» aparece porque esta preview no está notarizada. No demuestra por sí mismo que la descarga esté dañada; tampoco equivale a una comprobación de seguridad aprobada por Apple.
+
+Si decides confiar en la copia descargada del repositorio oficial:
+
+1. Mueve **Hyperion.app** a **Aplicaciones** e intenta abrirla una vez.
+2. En el aviso, pulsa **Listo / Done**.
+3. Abre **Ajustes del Sistema → Privacidad y seguridad**. En Seguridad, busca Hyperion y pulsa **Abrir igualmente**.
+4. Confirma la apertura y autentícate si macOS lo solicita.
+
+Esta excepción corresponde a Hyperion. No desactives Gatekeeper para todo el equipo. Si no aparece el botón, el Mac está administrado o el aviso dice que la app está dañada o contiene malware, no fuerces la apertura: consulta la [guía oficial de Apple](https://support.apple.com/en-us/102445) y reporta el texto exacto.
+
+Eliminar este bloqueo en la distribución requiere certificado Developer ID y notarización Apple; todavía están pendientes.
 
 ## 2. Conecta tu IA
 
-Al abrir Hyperion, elige **Codex**, **Cursor**, **Claude Desktop** o **Claude Code** en el asistente. También puedes acceder desde **Hyperion → Conectar con mi IA**.
+Al abrir Hyperion, elige **Codex**, **Cursor**, **Claude Desktop**, **Claude Code** o **Antigravity** en el asistente. También puedes acceder desde **Hyperion → Conectar con mi IA**.
 
 El asistente prepara la conexión local. Reinicia tu herramienta de IA y abre un chat nuevo para que cargue la integración. No necesitas Node.js ni editar archivos de configuración para este recorrido con Desktop.
 
@@ -86,7 +101,9 @@ Reinicia esa herramienta, abre un chat nuevo y pega una de las peticiones de arr
 
 ## Actualizar Desktop
 
-Desde **0.5.1-preview.1**, abre **Hyperion → Buscar actualizaciones…**. La app consulta GitHub y ofrece el instalador de tu equipo; tú eliges descargarlo. Verifica tamaño y SHA-256 antes de mostrar el archivo para instalar. Puedes cancelar desde **Hyperion → Cancelar descarga**. Tus flujos permanecen en el almacenamiento local.
+Desde la versión CalVer **2026.10.12.0638 UTC**, abre **Hyperion → Buscar actualizaciones…**. La app consulta GitHub y ofrece el instalador de tu equipo; tú eliges descargarlo. Verifica tamaño y SHA-256 antes de mostrar el archivo para instalar. Puedes cancelar desde **Hyperion → Cancelar descarga**. Tus flujos permanecen en el almacenamiento local.
+
+**La primera migración desde 0.4 o 0.5.1 a CalVer es manual desde esta página**: el actualizador antiguo no reconoce las nuevas etiquetas. La versión pública usa **AAAA.MM.DD.HHMM UTC**, con hora y minuto; el canal Preview se muestra por separado. Las siguientes actualizaciones se comparan cronológicamente.
 
 La versión 0.4.0 necesita una actualización manual. Su bundle macOS tiene una firma incompleta; volver a descargar el mismo instalador no corrige esa firma. La nueva preview sella correctamente el bundle, pero **no está notarizada por Apple**. Una firma ad-hoc no garantiza aceptación por Gatekeeper. Si macOS bloquea la instalación, consulta la [guía de Apple](https://support.apple.com/102445); no desactives la protección global del equipo.
 

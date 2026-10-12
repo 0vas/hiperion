@@ -12,11 +12,26 @@ You need a compatible AI tool connected to Hyperion. Set up the connection once;
 
 <Downloads />
 
-Choose the installer for your computer. On macOS, open the DMG and move Hyperion to **Applications** before connecting your AI. On Windows, open the EXE. These preview builds are not signed or notarized; your system may show an unverified publisher notice.
+Choose the installer for your computer. On macOS, open the DMG and move Hyperion to **Applications** before connecting your AI. On Windows, open the EXE. The macOS preview is ad-hoc signed but not notarized: Apple may block opening it. Windows has no publisher signature.
+
+### macOS blocks the app
+
+“Apple could not verify Hyperion.app is free of malware” appears because this preview is not notarized. The message alone does not establish download corruption; it is not an Apple security approval either.
+
+If you choose to trust the copy downloaded from the official repository:
+
+1. Move **Hyperion.app** to **Applications** and attempt to open it once.
+2. Choose **Done** in the alert.
+3. Open **System Settings → Privacy & Security**. Find Hyperion under Security and choose **Open Anyway**.
+4. Confirm opening and authenticate if macOS requests it.
+
+This exception applies to Hyperion. Do not disable Gatekeeper system-wide. If the button is absent, the Mac is managed, or the alert says the app is damaged or contains malware, do not force it open: consult [Apple’s official guide](https://support.apple.com/en-us/102445) and report the exact message.
+
+Removing this distribution block requires a Developer ID certificate and Apple notarization, which remain pending.
 
 ## 2. Connect your AI
 
-Choose **Codex**, **Cursor**, **Claude Desktop** or **Claude Code** in the first-launch assistant. You can reopen it from **Hyperion → Conectar con mi IA** (Connect my AI).
+Choose **Codex**, **Cursor**, **Claude Desktop**, **Claude Code** or **Antigravity** in the first-launch assistant. You can reopen it from **Hyperion → Conectar con mi IA** (Connect my AI).
 
 Restart your AI tool and open a new chat to load the integration. This Desktop setup requires no Node.js installation or manual configuration edits.
 
@@ -78,7 +93,9 @@ Restart that AI tool, open a new chat and paste a request from above. Visit `htt
 
 ## Update Desktop
 
-From **0.5.1-preview.1**, open **Hyperion → Buscar actualizaciones…**. The app checks GitHub and offers an installer for your computer; you choose whether to download it. Size and SHA-256 are checked before revealing the installer. Cancel with **Hyperion → Cancelar descarga**. Workflows remain in local storage.
+From CalVer **2026.10.12.0638 UTC**, open **Hyperion → Buscar actualizaciones…**. The app checks GitHub and offers an installer for your computer; you choose whether to download it. Size and SHA-256 are checked before revealing the installer. Cancel with **Hyperion → Cancelar descarga**. Workflows remain in local storage.
+
+**The first migration from 0.4 or 0.5.1 to CalVer is manual from this page**: the old updater does not recognize the new tags. Public versions use **YYYY.MM.DD.HHmm UTC**, including hours and minutes; Preview is a separate channel. Subsequent updates are compared chronologically.
 
 Version 0.4.0 requires a manual upgrade. Its macOS bundle has an incomplete signature; downloading the same installer again does not fix it. The new preview seals the bundle correctly but **is not notarized by Apple**. Ad-hoc signing does not guarantee Gatekeeper acceptance. If macOS blocks installation, consult [Apple’s guide](https://support.apple.com/102445); do not disable system-wide protection.
 

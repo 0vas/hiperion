@@ -2,7 +2,7 @@
 
 Electron aloja el mismo canvas del navegador y usa el mismo servicio HTTP local autenticado. El proceso del chat conserva la ejecución: Desktop presenta decisiones y resultados. El usuario elige split/escritorio en la conversación; el adaptador `open RUN_ID desktop` lanza la instalación registrada en su primer arranque.
 
-La [preview descargable](https://github.com/0vas/hiperion/releases/tag/v0.5.1-preview.1) incluye instaladores para macOS Apple Silicon/Intel y Windows x64.
+La [preview descargable](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.0638) incluye instaladores para macOS Apple Silicon/Intel y Windows x64.
 
 ## Desarrollo y distribución
 
@@ -53,3 +53,5 @@ El aviso «Apple could not verify Hyperion.app is free of malware» bloquea esta
 Para generar una distribución macOS notarizada, ejecutar **Desktop installers** con `notarized=true`. El build falla si faltan credenciales Developer ID/notarización; nunca degrada silenciosamente esa solicitud a ad-hoc. Las compilaciones preview siguen disponibles, pero CI las identifica como **NOT Apple-notarized**. Sin certificado Developer ID y cuenta Apple Developer, la distribución sin este bloqueo continúa pendiente.
 
 Para publicar archivos ya probados sin volver a compilarlos, crear primero una release **draft** con notas revisadas y `target_commitish` igual al commit del build. Ejecutar **Publish verified Desktop artifacts** con el ID de un run exitoso de **Desktop installers** en `main`. El workflow verifica procedencia, selecciona cada instalador desde su plataforma nativa, sube a la release draft y compara tamaño y SHA-256 remotos antes de publicarla. Rechaza releases ya públicas; no sobrescribe sus binarios. No añade notarización a los artefactos.
+
+La web usa `docs/site/.vitepress/release.json` como registro de la última release **publicada**. Actualizarlo solo después de subir y verificar los instaladores; no anunciar un enlace antes de que exista su asset. El campo `macNotarized` solo puede ser verdadero con evidencia de notarización y validación de Gatekeeper.
