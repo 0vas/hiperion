@@ -12,7 +12,7 @@ Necesitas una herramienta de IA compatible y Hyperion conectado a ella. La conex
 
 <Downloads />
 
-[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v0.4.0-preview.1).
+[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v0.5.1-preview.1).
 
 Elige el instalador para tu equipo: `.dmg` para Mac (Apple Silicon o Intel) y `.exe` para Windows x64. Ábrelo e instala la aplicación. En Mac, mueve Hyperion a **Aplicaciones** antes de conectar tu IA. Esta preview aún no está firmada ni notarizada: el sistema puede mostrar un aviso de editor no verificado.
 
@@ -83,3 +83,11 @@ npm run hyperion -- setup cursor
 
 Reinicia esa herramienta, abre un chat nuevo y pega una de las peticiones de arriba. Abre `http://127.0.0.1:4317` para ver el canvas. Este recorrido ejecuta el código de `main`, no el instalador preview anterior.
 :::
+
+## Actualizar Desktop
+
+Desde **0.5.1-preview.1**, abre **Hyperion → Buscar actualizaciones…**. La app consulta GitHub y ofrece el instalador de tu equipo; tú eliges descargarlo. Verifica tamaño y SHA-256 antes de mostrar el archivo para instalar. Puedes cancelar desde **Hyperion → Cancelar descarga**. Tus flujos permanecen en el almacenamiento local.
+
+La versión 0.4.0 necesita una actualización manual. Su bundle macOS tiene una firma incompleta; volver a descargar el mismo instalador no corrige esa firma. La nueva preview sella correctamente el bundle, pero **no está notarizada por Apple**. Una firma ad-hoc no garantiza aceptación por Gatekeeper. Si macOS bloquea la instalación, consulta la [guía de Apple](https://support.apple.com/102445); no desactives la protección global del equipo.
+
+Si falla el servicio local, la nueva app muestra opciones para reintentar, abrir el diagnóstico o buscar actualizaciones. Si el puerto ya lo usa otra versión, debes cerrar esa instancia antes de reintentar; tus ejecuciones no se borran.

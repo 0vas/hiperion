@@ -61,7 +61,7 @@ test('a new reader can find setup and search for retry', async ({ page }) => {
   await expect(page.locator('h1')).toHaveText('Tu primer flujo');
   await expect(
     page.getByRole('link', { name: 'Descargar Hyperion Desktop', exact: true }),
-  ).toHaveAttribute('href', /releases\/tag\/v0.4.0-preview.1/);
+  ).toHaveAttribute('href', /releases\/tag\/v0.5.1-preview.1/);
   await page.getByRole('button', { name: /Buscar/ }).click();
   await page.locator('#localsearch-input').fill('Reintentar');
   await expect(page.locator('.VPLocalSearchBox a').first()).toBeVisible();
@@ -153,7 +153,7 @@ test('branded pages offer direct installers and a working Archify viewer in both
         page.getByRole('link', { name, exact: true }),
       ).toHaveAttribute(
         'href',
-        `https://github.com/0vas/hyperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-${asset}`,
+        `https://github.com/0vas/hyperion/releases/download/v0.5.1-preview.1/Hyperion-0.5.1-preview.1-${asset}`,
       );
     }
     await page.goto(`/hyperion/${locale}referencia/arquitectura.html`);

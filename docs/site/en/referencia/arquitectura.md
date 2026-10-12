@@ -22,6 +22,8 @@ Three views of the same system. Select one and open Archify to explore the compo
 
 <ArchitectureAtlas kind="deployment" />
 
+Desktop also checks GitHub releases and downloads installers after confirmation, validating size and SHA-256. macOS ad-hoc integrity is not notarization. [Distribution and update decision](https://github.com/0vas/hyperion/blob/main/docs/decisions/0031-desktop-integrity-and-updates.md).
+
 ::: info What is available
 Engine, canvas, persistence and continuation queue are implemented. Resuming a closed chat requires a real installed connector; native connectors remain pending.
 :::

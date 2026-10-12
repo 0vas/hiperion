@@ -6,13 +6,13 @@ Hyperion keeps the same workflow regardless of the tool doing the work. The loca
 
 Install Desktop and open **Hyperion → Conectar con mi IA**. The assistant configures:
 
-| Tool           | Connection                                     |
-| -------------- | ---------------------------------------------- |
-| Codex          | Local MCP server                               |
-| Cursor         | Local MCP server                               |
-| Claude Desktop | Local MCP server                               |
-| Claude Code    | Managed skill connected to the Desktop runtime |
-| Antigravity    | Local MCP server · Desktop built from `main`   |
+| Tool           | Connection                                          |
+| -------------- | --------------------------------------------------- |
+| Codex          | Local MCP server                                    |
+| Cursor         | Local MCP server                                    |
+| Claude Desktop | Local MCP server                                    |
+| Claude Code    | Managed skill connected to the Desktop runtime      |
+| Antigravity    | Local MCP server · Desktop 0.5.1-preview.1 or later |
 
 Restart the tool and open a new chat. The assistant reports conflicts and backs up the configuration files it changes. Installing a connection does not guarantee that an existing chat has loaded it. Naming Hyperion in an unconnected application is not enough.
 
@@ -31,12 +31,12 @@ See [pause and resume](./reanudacion.md). Without an installed resume connector,
 
 ## Antigravity
 
-In Desktop built from `main`, open **Hyperion → Conectar con mi IA → Antigravity**. The assistant adds `mcpServers.hyperion` to Antigravity’s documented global configuration, preserves other servers and backs up the original file. The bundled runtime starts Hyperion when the client loads MCP.
+In Desktop 0.5.1-preview.1 or later, open **Hyperion → Conectar con mi IA → Antigravity**. The assistant adds `mcpServers.hyperion` to Antigravity’s documented global configuration, preserves other servers and backs up the original file. The bundled runtime starts Hyperion when the client loads MCP.
 
 Restart Antigravity or reload its MCP servers. Check that Hyperion tools appear and ask: **“Use Hyperion to prepare a welcome guide for my project.”**
 
 ::: warning Required version
-Published **0.4.0-preview.1** installers do not include this button yet. Support is implemented in `main`; the [technical connection guide](https://github.com/0vas/hyperion/blob/main/docs/conexion.md#antigravity) also offers `setup antigravity` for source installations. The new assistant does not require editing JSON.
+The button is included from **0.5.1-preview.1**. If you still have **0.4.0-preview.1**, install the new version; the [technical connection guide](https://github.com/0vas/hyperion/blob/main/docs/conexion.md#antigravity) also offers `setup antigravity` for source installations. The new assistant does not require editing JSON.
 :::
 
 ::: info Verified scope

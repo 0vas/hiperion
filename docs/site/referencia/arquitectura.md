@@ -22,6 +22,8 @@ Tres vistas del mismo sistema. Selecciona una y abre Archify para explorar los c
 
 <ArchitectureAtlas kind="deployment" />
 
+Desktop también comprueba releases de GitHub y descarga instaladores tras confirmación, validando tamaño y SHA-256. La integridad ad-hoc de macOS no equivale a notarización. [Decisión de distribución y actualizaciones](https://github.com/0vas/hyperion/blob/main/docs/decisions/0031-desktop-integrity-and-updates.md).
+
 ::: info Lo que está disponible
 Motor, canvas, persistencia y cola de reanudación implementados. Retomar un chat cerrado requiere un conector real instalado; los conectores nativos siguen pendientes.
 :::

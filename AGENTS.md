@@ -55,7 +55,7 @@ Execute real work through the available harness. Start only eligible tasks, repo
 3. Run `npm run check` (types, unit tests, build, production smoke and formatting). Run the relevant Playwright scenarios for user-facing changes.
 4. For public docs, run `npm --prefix docs/site test`. Inspect desktop and narrow layouts, ES/EN, light/dark and reduced motion. Verify internal links, forms, keyboard use and contrast.
 5. For architecture changes, regenerate Archify with the pinned renderer using `docs/architecture/archify/README.md`; inspect each view. Keep source links on a verified immutable revision. Never edit generated HTML manually.
-6. Record what passed and any remaining limitation. A mocked connector test does not certify a real provider integration. A built installer is not automatically signed or published.
+6. Record what passed and any remaining limitation. A mocked connector test does not certify a real provider integration. A built installer is not automatically signed or published. macOS previews must pass `codesign --verify --deep --strict`; ad-hoc integrity is not Developer ID/notarization. Desktop updates run in the main process and require consent, an official release asset and digest verification; never silently execute installers.
 
 Use the repository's actual package scripts; Node must satisfy `package.json` engines. Keep changes scoped and preserve unrelated work. Do not install new infrastructure solely to test a small documentation edit.
 

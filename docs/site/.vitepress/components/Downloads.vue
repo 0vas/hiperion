@@ -4,7 +4,7 @@ import DocIcon from './DocIcon.vue';
 import PlatformIcon from './PlatformIcon.vue';
 const { lang } = useData();
 const release =
-  'https://github.com/0vas/hyperion/releases/download/v0.4.0-preview.1/';
+  'https://github.com/0vas/hyperion/releases/download/v0.5.1-preview.1/';
 const installers = [
   {
     name: 'macOS · Apple Silicon',
@@ -40,7 +40,7 @@ const installers = [
       <a
         v-for="item in installers"
         :key="item.asset"
-        :href="`${release}Hyperion-0.4.0-${item.asset}`"
+        :href="`${release}Hyperion-0.5.1-preview.1-${item.asset}`"
         :aria-label="item.name"
         class="download-card"
       >
@@ -55,11 +55,11 @@ const installers = [
     <p class="download-note">
       {{
         lang === 'es'
-          ? 'Preview 0.4.0 · Instaladores sin firma. No incluyen todavía los cambios del núcleo 0.5.'
-          : 'Preview 0.4.0 · Unsigned installers. They do not yet include the 0.5 core changes.'
+          ? 'Preview 0.5.1 · macOS con firma ad-hoc, sin notarización Apple. Windows sin firma de editor.'
+          : 'Preview 0.5.1 · macOS uses ad-hoc signing, without Apple notarization. Windows has no publisher signature.'
       }}
       <a
-        href="https://github.com/0vas/hyperion/releases/tag/v0.4.0-preview.1"
+        href="https://github.com/0vas/hyperion/releases/tag/v0.5.1-preview.1"
         >{{ lang === 'es' ? 'Notas de la versión' : 'Release notes' }}</a
       >
     </p>

@@ -2,7 +2,7 @@
 
 Electron aloja el mismo canvas del navegador y usa el mismo servicio HTTP local autenticado. El proceso del chat conserva la ejecución: Desktop presenta decisiones y resultados. El usuario elige split/escritorio en la conversación; el adaptador `open RUN_ID desktop` lanza la instalación registrada en su primer arranque.
 
-La [preview descargable](https://github.com/0vas/hiperion/releases/tag/v0.4.0-preview.1) incluye instaladores para macOS Apple Silicon/Intel y Windows x64.
+La [preview descargable](https://github.com/0vas/hiperion/releases/tag/v0.5.1-preview.1) incluye instaladores para macOS Apple Silicon/Intel y Windows x64.
 
 ## Desarrollo y distribución
 
@@ -24,7 +24,7 @@ Referencias de implementación: [aislamiento en Electron](https://www.electronjs
 
 El servicio predeterminado publica su ubicación local (sin tokens) en `~/.hyperion/workspace.json`, de modo que abrir Desktop desde su icono reutiliza la instancia iniciada por el chat. Los puertos personalizados se seleccionan mediante el adaptador, pasando URL y directorio explícitos. **Hyperion → Conectar con mi IA** abre el mismo asistente del primer arranque: Codex, Cursor y Claude Desktop reciben configuración MCP; Claude Code recibe su skill. Se usa el runtime empaquetado con `ELECTRON_RUN_AS_NODE`, sin instalar Node ni depender de CLI de proveedor. Los archivos existentes tienen respaldo y las conexiones ajenas se conservan. La configuración no equivale a una sesión MCP ya conectada: el usuario reinicia su aplicación.
 
-Antigravity también está disponible en el asistente de `main`: configura `~/.gemini/config/mcp_config.json` con el runtime incluido, respaldo y rechazo de conflictos. Esta opción no está en los instaladores publicados 0.4.0-preview.1. La prueba del runtime empaquetado incluye su identidad MCP; eso no certifica una conversación en el cliente Google.
+Antigravity está disponible desde 0.5.1-preview.1: configura `~/.gemini/config/mcp_config.json` con el runtime incluido, respaldo y rechazo de conflictos. Esta opción no está en los instaladores publicados 0.4.0-preview.1. La prueba del runtime empaquetado incluye su identidad MCP; eso no certifica una conversación en el cliente Google.
 
 ## Firma y arranque (0.5.1-preview.1)
 

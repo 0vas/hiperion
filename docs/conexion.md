@@ -5,21 +5,21 @@ La pausa persistente y el alcance por herramienta se explican en [Reanudación a
 ## Conectar sin comandos (recomendado)
 
 1. Instala **Hyperion Desktop**: `.dmg` en macOS o `.exe` en Windows. En macOS, arrastra Hyperion a Aplicaciones antes de abrirlo.
-2. Al abrirlo, elige **Codex**, **Cursor**, **Claude Desktop**, **Claude Code** o **Antigravity** (compilación de `main`). Si ya lo usabas, entra en **Hyperion → Conectar con mi IA**.
+2. Al abrirlo, elige **Codex**, **Cursor**, **Claude Desktop**, **Claude Code** o **Antigravity** (desde 0.5.1-preview.1). Si ya lo usabas, entra en **Hyperion → Conectar con mi IA**.
 3. Reinicia la aplicación elegida y abre un chat nuevo. Si solicita habilitar Hyperion, acepta para usar sus herramientas.
 4. Escribe tu objetivo: **«Usa Hyperion para preparar una guía breve de bienvenida a mi proyecto»**.
 
 No necesitas instalar Node, escribir comandos ni editar archivos. Hyperion Desktop incluye el runtime. La conexión sirve para otros proyectos y chats sin contexto previo. La IA pide solo los datos que falten y genera el proceso; no debes explicarle cómo dibujar el canvas ni cómo registrar los pasos.
 
-**[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v0.4.0-preview.1)**: elige el `.dmg` de Apple Silicon o Intel, o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. Los instaladores no tienen firma de distribución/notarización y pueden mostrar avisos del sistema. La release estable firmada sigue pendiente.
+**[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v0.5.1-preview.1)**: elige el `.dmg` de Apple Silicon o Intel, o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. Los instaladores no tienen firma de distribución/notarización y pueden mostrar avisos del sistema. La release estable firmada sigue pendiente.
 
-| Aplicación     | Qué prepara el asistente                                                                                |
-| -------------- | ------------------------------------------------------------------------------------------------------- |
-| Codex          | Conexión MCP de usuario; también respeta `CODEX_HOME` cuando está definido.                             |
-| Cursor         | Conexión MCP de usuario para los proyectos locales.                                                     |
-| Claude Desktop | Conexión MCP en la configuración de escritorio de macOS o Windows.                                      |
-| Claude Code    | Skill Hyperion en su carpeta de skills de usuario.                                                      |
-| Antigravity    | Conexión MCP global con respaldo; disponible en Desktop compilado desde `main`, no en la preview 0.4.0. |
+| Aplicación     | Qué prepara el asistente                                                             |
+| -------------- | ------------------------------------------------------------------------------------ |
+| Codex          | Conexión MCP de usuario; también respeta `CODEX_HOME` cuando está definido.          |
+| Cursor         | Conexión MCP de usuario para los proyectos locales.                                  |
+| Claude Desktop | Conexión MCP en la configuración de escritorio de macOS o Windows.                   |
+| Claude Code    | Skill Hyperion en su carpeta de skills de usuario.                                   |
+| Antigravity    | Conexión MCP global con respaldo; disponible en Desktop 0.5.1-preview.1 o posterior. |
 
 La conexión usa rutas absolutas al runtime incluido y al almacenamiento local; no escribe tokens en la configuración del cliente. Guarda copia del archivo anterior, conserva otros servidores y rechaza una entrada Hyperion diferente. «Conexión configurada» confirma la instalación; el cliente debe reiniciarse y cargar las herramientas para usarla. Puedes repetir el asistente para conectar otra aplicación.
 
@@ -53,10 +53,10 @@ La frase por sí sola no instala capacidades en una herramienta que nunca ha car
 
 ### Instalar el paquete sin clonar el repositorio
 
-Con el archivo de distribución `hyperion-workflows-0.4.0.tgz`:
+Con el archivo de distribución `hyperion-workflows-0.5.1-preview.1.tgz`:
 
 ```sh
-npm install --global ./hyperion-workflows-0.4.0.tgz
+npm install --global ./hyperion-workflows-0.5.1-preview.1.tgz
 hyperion install
 ```
 
@@ -142,7 +142,7 @@ La configuración stdio y los comandos de registro se basan en la [documentació
 
 ### Antigravity
 
-En Desktop compilado desde `main`, selecciona **Hyperion → Conectar con mi IA → Antigravity**. No requiere Node ni CLI de Google. Los instaladores publicados `0.4.0-preview.1` todavía no contienen esta opción.
+En Desktop 0.5.1-preview.1 o posterior, selecciona **Hyperion → Conectar con mi IA → Antigravity**. No requiere Node ni CLI de Google. Los instaladores publicados `0.4.0-preview.1` todavía no contienen esta opción.
 
 Desde un checkout preparado, la alternativa es:
 
