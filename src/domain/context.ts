@@ -1,5 +1,6 @@
 import type { Run, Step } from './workflow.js';
 export type AvailableContext = {
+  origin?: Run['origin'];
   request?: string;
   general: Record<string, unknown>;
   previous: {
@@ -7,6 +8,7 @@ export type AvailableContext = {
     title: string;
     result?: string;
     outputs: Record<string, unknown>;
+    artifacts?: Step['artifacts'];
   }[];
 };
 /** Read projection only. Contracts still control required data and readiness. */
@@ -19,6 +21,7 @@ export function contextForStep(run: Run, step: Step): AvailableContext {
   };
   step.dependencies.forEach(visit);
   return {
+    ...(run.origin ? { origin: run.origin } : {}),
     ...(run.request ? { request: run.request } : {}),
     general: run.context || {},
     previous: run.steps
@@ -33,6 +36,7 @@ export function contextForStep(run: Run, step: Step): AvailableContext {
         title: s.title,
         ...(s.result ? { result: s.result } : {}),
         outputs: s.outputValues || {},
+        ...(s.artifacts?.length ? { artifacts: s.artifacts } : {}),
       })),
   };
 }

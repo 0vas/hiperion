@@ -19,3 +19,11 @@ A paused or cancelled workflow does not kill external processes or undo their ef
 ## Reporting
 
 Do not disclose vulnerabilities or credentials in public issues. Use the repository's private vulnerability reporting feature if enabled; otherwise arrange a private channel with the repository owner through their GitHub profile before sending sensitive details. Include the affected revision, reproduction steps, impact, and a minimal sanitized example.
+
+## Artifact storage and preview boundary
+
+Only the run coordinator registers step artifacts. Files are capped at 10 MiB (14 MiB encoded request), with 100 metadata entries per step. Authentication, origin checks, attempt matching and idempotent receipts apply. SQLite stores immutable bytes separately; the HTTP endpoint never resolves a submitted filesystem path. CLI/MCP read only the specific local file explicitly supplied to the tool. Remote HTTP(S) links are stored without fetching them; credentials in URLs and other URL schemes are rejected.
+
+Downloads are scoped to run/artifact IDs and require the local session or agent credential. HTML/SVG are attachments with a sandbox CSP and `nosniff`; text previews use escaped React content, not HTML injection. Supported raster previews remain sandboxed. External links open in the system browser from Desktop. Artifact content is not malware-scanned; registering a file is evidence of its existence, not an endorsement of its safety.
+
+Linked cycles create independent runs in the same trusted OS-user boundary. They do not transfer coordinator rights, copy all parent context or reopen a completed run. Neither a new cycle nor its graph link resumes an external harness automatically.

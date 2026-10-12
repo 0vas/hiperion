@@ -89,3 +89,9 @@ The app currently supports Spanish and English. Use `src/client/i18n.ts` for can
 ## Release identity
 
 Use public UTC CalVer `YYYY.MM.DD.HHmm` from `src/release.json`, with a separate preview/stable channel. Run `npm run release:sync` when changing it; package/native versions are compatibility encodings, not product SemVer. Keep artifact names, runtime, web and release notes aligned. Never overwrite an already published minute. The old 0.5.1 updater needs one manual migration to CalVer. A request for notarized distribution must fail if credentials are absent; do not quietly ship ad-hoc as an equivalent.
+
+## Artifacts and linked conversation cycles
+
+Register generated deliverables with `hyperion_add_artifact`, CLI `artifact`, or the authenticated artifact endpoint. Include the actual producing attempt; preserve immutable files and earlier attempts. Keep metadata in snapshots, binary content in SQLite, previews inert, and downloads authenticated. Artifacts do not replace typed I/O or fabricate successful work.
+
+For a new user request after completion, create a fresh plan with `parentRunId` and explicit relevant context. Preserve the completed parent's snapshot. `origin` and projected `links` are conversation lineage outside the executable DAG. Never infer the next request or treat this navigation as automatic harness resumption. Update protocol, portable integration, ES/EN guides, architecture and tests together when either contract changes.

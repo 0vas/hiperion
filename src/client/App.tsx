@@ -1,3 +1,5 @@
+import { Artifacts } from './Artifacts';
+import { RunLinkNode } from './RunLinkNode';
 import { t, useLocale, localizedLabels, getLocale } from './i18n';
 import hyperionLogo from './brands/hyperion.png';
 import { continuationLabel } from './continuation-label';
@@ -30,6 +32,7 @@ import {
   type Edge,
 } from '@xyflow/react';
 import {
+  Package,
   Ellipsis,
   RotateCcw,
   ExternalLink,
@@ -109,6 +112,7 @@ const kindLabels = localizedLabels({
 const eventLabels: Record<string, string> = localizedLabels({
   created: 'Plan registrado',
   revise: 'Plan actualizado',
+  artifact: 'Registró un artefacto',
   route: 'Motor de proceso',
   start: 'Comenzó un paso',
   complete: 'Completó un paso',
@@ -150,7 +154,7 @@ function StatusIcon({
   if (status === 'blocked') return <LockKeyhole size={size} />;
   return <Play size={size} />;
 }
-type StepView = 'step' | 'io' | 'trace';
+type StepView = 'step' | 'io' | 'trace' | 'artifacts';
 const isControl = (step: Step) =>
   ['start', 'end', 'gateway'].includes(step.kind);
 const gatewayLabels = localizedLabels({
@@ -175,6 +179,8 @@ type StepNodeData = {
   selected: boolean;
   horizontal: boolean;
   canRetry: boolean;
+  lineageIn: boolean;
+  lineageOut: boolean;
   onRetry: (id: string) => void;
   flowState: FlowState;
   onSelect: (id: string, view?: StepView) => void;
@@ -184,6 +190,16 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
   const { step } = data;
   const tools = (
     <div className="node-tools">
+      {!!step.artifacts?.length && (
+        <button
+          aria-label={t('Ver artefactos: {0}', { 0: step.title })}
+          title={t('Artefactos')}
+          onClick={() => data.onSelect(step.id, 'artifacts')}
+        >
+          <Package size={14} />
+          <span>{step.artifacts.length}</span>
+        </button>
+      )}
       {step.kind === 'agent' &&
         ['failed', 'ready', 'running'].includes(step.status) && (
           <button
@@ -228,12 +244,11 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
   );
   return (
     <>
-      {step.kind !== 'start' && (
-        <Handle
-          type="target"
-          position={data.horizontal ? Position.Left : Position.Top}
-        />
-      )}
+      <Handle
+        type="target"
+        position={data.horizontal ? Position.Left : Position.Top}
+        style={{ opacity: step.kind === 'start' && !data.lineageIn ? 0 : 1 }}
+      />
       {isControl(step) ? (
         <div
           className={`control-node flow-node ${step.status}`}
@@ -319,12 +334,11 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
           {tools}
         </div>
       )}
-      {step.kind !== 'end' && (
-        <Handle
-          type="source"
-          position={data.horizontal ? Position.Right : Position.Bottom}
-        />
-      )}
+      <Handle
+        type="source"
+        position={data.horizontal ? Position.Right : Position.Bottom}
+        style={{ opacity: step.kind === 'end' && !data.lineageOut ? 0 : 1 }}
+      />
     </>
   );
 }
@@ -349,10 +363,23 @@ function ContractView({ step, run }: { step: Step; run: Run }) {
             <pre>{JSON.stringify(context.general, null, 2)}</pre>
           </details>
         )}
+        {context.origin && (
+          <p>
+            <a href={`/?run=${context.origin.runId}`}>
+              {t('Recorrido anterior')}: {context.origin.title}
+            </a>
+          </p>
+        )}
         {context.previous.map((previous) => (
           <details key={previous.stepId}>
             <summary>{previous.title}</summary>
             {previous.result && <p>{previous.result}</p>}
+            {!!previous.artifacts?.length && (
+              <p>
+                {t('Artefactos')}:{' '}
+                {previous.artifacts.map((artifact) => artifact.name).join(', ')}
+              </p>
+            )}
             {!!Object.keys(previous.outputs).length && (
               <pre>{JSON.stringify(previous.outputs, null, 2)}</pre>
             )}
@@ -486,7 +513,7 @@ function TraceView({ step, run }: { step: Step; run: Run }) {
   );
 }
 const edgeTypes = { current: CurrentEdge };
-const nodeTypes = { step: StepNode, job: JobNode };
+const nodeTypes = { step: StepNode, job: JobNode, lineage: RunLinkNode };
 function FitCanvas({ view }: { view: string }) {
   useLocale();
   const { getNodes, getInternalNode, setViewport } = useReactFlow();
@@ -640,6 +667,8 @@ export function App() {
     | 'request'
     | 'runs'
     | 'guide'
+    | 'artifacts'
+    | 'next-cycle'
     | 'settings'
     | 'legend'
     | 'options'
@@ -655,6 +684,7 @@ export function App() {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
   const [answer, setAnswer] = useState('');
+  const [nextRequest, setNextRequest] = useState('');
   const [outputDraft, setOutputDraft] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [help, setHelp] = useState(false);
@@ -873,6 +903,8 @@ export function App() {
             );
           })(),
           horizontal: preferences.orientation === 'horizontal',
+          lineageIn: !!run.origin,
+          lineageOut: run.status === 'completed' || !!run.links?.next.length,
           canRetry: online && run.status === 'active' && !busy,
           onRetry: requestRetry,
           flowState: nodeState(item, run.status),
@@ -881,7 +913,7 @@ export function App() {
           jobTitle: run.jobs?.find((j) => j.id === item.jobId)?.title,
           selected:
             focusedStepId === item.id ||
-            (['step', 'io', 'trace'].includes(popup || '') &&
+            (['step', 'io', 'trace', 'artifacts'].includes(popup || '') &&
               step?.id === item.id),
           onSelect: selectStep,
         },
@@ -949,6 +981,83 @@ export function App() {
         };
       }),
     );
+    const horizontal = preferences.orientation === 'horizontal';
+    const addLink = (
+      id: string,
+      title: string,
+      direction: 'previous' | 'next' | 'new',
+      index: number,
+      total: number,
+      onOpen: () => void,
+    ) => {
+      const upstream = direction === 'previous';
+      const anchors = displayed.filter((item) =>
+        upstream
+          ? !item.dependencies.length
+          : !displayed.some((other) => other.dependencies.includes(item.id)),
+      );
+      const axis = horizontal ? 'x' : 'y';
+      const cross = horizontal ? 'y' : 'x';
+      const depth = upstream
+        ? Math.min(...anchors.map((item) => positions[item.id]![axis])) - 300
+        : Math.max(
+            ...anchors.map(
+              (item) =>
+                positions[item.id]![axis] +
+                (measurements.nodes[item.id]?.[
+                  horizontal ? 'width' : 'height'
+                ] || 220),
+            ),
+          ) + 150;
+      const center =
+        anchors.reduce((sum, item) => sum + positions[item.id]![cross], 0) /
+        anchors.length;
+      const position = horizontal
+        ? { x: depth, y: center + (index - (total - 1) / 2) * 210 }
+        : { x: center + (index - (total - 1) / 2) * 330, y: depth };
+      nodes.push({
+        id,
+        type: 'lineage',
+        position,
+        measured:
+          measurements.key === measurementKey
+            ? measurements.nodes[id]
+            : undefined,
+        data: { title, direction, horizontal, onOpen },
+        draggable: false,
+        focusable: false,
+      });
+      anchors.forEach((item) =>
+        edges.push({
+          id: `${id}:${item.id}`,
+          source: upstream ? id : item.id,
+          target: upstream ? item.id : id,
+          type: 'smoothstep',
+          animated: false,
+          style: { stroke: 'var(--muted)', strokeDasharray: '5 5' },
+        }),
+      );
+    };
+    if (run.links?.previous) {
+      const previous = run.links.previous;
+      addLink(`lineage:${previous.id}`, previous.title, 'previous', 0, 1, () =>
+        selectRun(previous.id),
+      );
+    }
+    for (const [index, next] of (run.links?.next || []).entries())
+      addLink(
+        `lineage:${next.id}`,
+        next.title,
+        'next',
+        index,
+        run.links!.next.length,
+        () => selectRun(next.id),
+      );
+    if (run.status === 'completed' && !run.links?.next.length)
+      addLink('lineage:new', t('Continuar desde aquí'), 'new', 0, 1, () => {
+        setNextRequest('');
+        setPopup('next-cycle');
+      });
     return { nodes, edges };
   }, [
     locale,
@@ -1315,7 +1424,7 @@ export function App() {
                   }}
                 >
                   <FitCanvas
-                    view={`${preferences.view}:${preferences.orientation}`}
+                    view={`${preferences.view}:${preferences.orientation}:${run.status}:${run.links?.next.map((link) => link.id).join()}`}
                   />
                   <Background color="#c6c0b2" gap={28} size={0.8} />
                   <TaskNavigation
@@ -1330,7 +1439,7 @@ export function App() {
                       }))
                     }
                     run={run}
-                    view={`${preferences.view}:${preferences.orientation}`}
+                    view={`${preferences.view}:${preferences.orientation}:${run.status}:${run.links?.next.map((link) => link.id).join()}`}
                     following={following}
                     onFollowing={setFollowing}
                     suspended={dialogOpen}
@@ -1444,7 +1553,7 @@ export function App() {
           onClose={() => setPopup(null)}
         >
           <section
-            className={`modal canvas-popup ${['step', 'activity', 'io', 'trace'].includes(popup || '') ? 'step-popup' : ''}`}
+            className={`modal canvas-popup ${['step', 'activity', 'io', 'trace', 'artifacts'].includes(popup || '') ? 'step-popup' : ''}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="popup-title"
@@ -1461,7 +1570,9 @@ export function App() {
                 {error}
               </p>
             )}
-            {['step', 'activity', 'io', 'trace'].includes(popup || '') &&
+            {['step', 'activity', 'io', 'trace', 'artifacts'].includes(
+              popup || '',
+            ) &&
               run && (
                 <>
                   <div className="inspector-tabs">
@@ -1493,8 +1604,22 @@ export function App() {
                       <ListTree size={15} />
                       Logs
                     </button>
+                    {step?.kind === 'agent' && (
+                      <button
+                        className={popup === 'artifacts' ? 'active' : ''}
+                        onClick={() => setPopup('artifacts')}
+                      >
+                        <Package size={15} />
+                        {t('Artefactos')}
+                      </button>
+                    )}
                   </div>
-                  {popup === 'io' && step ? (
+                  {popup === 'artifacts' && step ? (
+                    <div className="step-detail">
+                      <h2 id="popup-title">{step.title}</h2>
+                      <Artifacts runId={run.id} step={step} />
+                    </div>
+                  ) : popup === 'io' && step ? (
                     <ContractView step={step} run={run} />
                   ) : popup === 'trace' && step ? (
                     <TraceView step={step} run={run} />
@@ -1583,6 +1708,9 @@ export function App() {
                           }
                           onReject={() => setConfirmation('reject')}
                         />
+                      )}
+                      {step.kind === 'agent' && (
+                        <Artifacts runId={run.id} step={step} />
                       )}
                       <details
                         className="step-secondary"
@@ -1765,6 +1893,50 @@ export function App() {
                   )}
                 </>
               )}
+            {popup === 'next-cycle' && run && (
+              <div className="next-cycle-form">
+                <h2 id="popup-title">{t('Un nuevo inicio')}</h2>
+                <p>
+                  {t(
+                    'El recorrido completado se conserva. Describe lo siguiente y comparte la petición en tu chat para crear un recorrido enlazado.',
+                  )}
+                </p>
+                <label htmlFor="next-request">
+                  {t('¿Qué quieres hacer ahora?')}
+                </label>
+                <textarea
+                  id="next-request"
+                  value={nextRequest}
+                  onChange={(event) => setNextRequest(event.target.value)}
+                  maxLength={8000}
+                  rows={4}
+                />
+                <button
+                  className="primary full"
+                  disabled={!nextRequest.trim()}
+                  onClick={() => {
+                    void navigator.clipboard
+                      .writeText(
+                        t(
+                          'Usa Hyperion para continuar desde el flujo completado {0}. Crea un nuevo recorrido enlazado a ese flujo y conserva su historial. Mi nueva petición: {1}',
+                          { 0: run.id, 1: nextRequest.trim() },
+                        ),
+                      )
+                      .then(() =>
+                        setNotice(
+                          t(
+                            'Petición copiada. Envíala en tu chat para continuar.',
+                          ),
+                        ),
+                      )
+                      .catch(() => setError(t('No se pudo copiar.')));
+                  }}
+                >
+                  <Copy size={16} />
+                  {t('Copiar petición para el chat')}
+                </button>
+              </div>
+            )}
             {popup === 'options' && (
               <div className="options-panel">
                 <span className="eyebrow">{t('ESPACIO DE TRABAJO')}</span>

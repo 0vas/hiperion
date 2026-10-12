@@ -1,0 +1,16 @@
+{
+  "title": "Translate the completed guide",
+  "request": "Now translate the guide into English",
+  "context": {
+    "sourceText": "Replace with the actual guide read from the completed parent."
+  },
+  "steps": [
+    { "id": "translate", "title": "Translate the guide", "kind": "agent" },
+    {
+      "id": "review",
+      "title": "Review the translation",
+      "kind": "approval",
+      "dependencies": ["translate"]
+    }
+  ]
+}

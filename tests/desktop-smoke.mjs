@@ -208,6 +208,48 @@ test('desktop and split share one real service, decisions and agent progress', a
       .locator('[data-testid="run-status"]')
       .filter({ hasText: 'Completado' })
       .waitFor();
+    await api(`/api/runs/${run.id}/artifacts`, {
+      commandId: 'desktop-artifact',
+      stepId: 'work',
+      attempt: 1,
+      name: 'guia.md',
+      mediaType: 'text/markdown',
+      contentBase64: Buffer.from('# Guía preparada').toString('base64'),
+    });
+    await page
+      .getByRole('button', {
+        name: 'Ver artefactos: Preparar guía',
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole('button', { name: 'Ver artefacto', exact: true })
+      .click();
+    await page
+      .locator('.artifact-text')
+      .filter({ hasText: '# Guía preparada' })
+      .waitFor();
+    // Native download uses the same authenticated session, with no navigation away.
+    await app.evaluate(
+      ({ BrowserWindow }, savePath) => {
+        BrowserWindow.getAllWindows()[0].webContents.session.once(
+          'will-download',
+          (_event, item) => item.setSavePath(savePath),
+        );
+      },
+      join(home, 'guia.md'),
+    );
+    const download = page.waitForEvent('download');
+    await page.getByRole('link', { name: 'Descargar', exact: true }).click();
+    assert.equal((await download).suggestedFilename(), 'guia.md');
+    await (await download).path();
+    assert.equal(
+      readFileSync(join(home, 'guia.md'), 'utf8'),
+      '# Guía preparada',
+    );
+    await page
+      .getByRole('button', { name: 'Cerrar popup', exact: true })
+      .click();
     // Keep the relaunch inside this test's isolated Electron profile.
     const installationFile = join(home, '.hyperion/desktop.json');
     const installation = JSON.parse(readFileSync(installationFile, 'utf8'));

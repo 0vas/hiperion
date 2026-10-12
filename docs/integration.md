@@ -104,3 +104,40 @@ The executable registration is local to the current user (`~/.hyperion/desktop.j
 ## When the conversation changes the remaining plan
 
 Use revision only for an explicit change in the user's activity. Read current state, finish any in-flight task, preserve executed/presented definitions and send `hyperion_revise_plan` (MCP) or a `revise` command (CLI/HTTP). Include the complete plan, latest revision and reason. The run pauses for the person to review the diff and resume. Continue in that same run after their next message. Never replan to bypass a human decision, rewrite evidence or silently recover from an execution failure; use retry for failures. See [protocol](protocol.md#exceptional-plan-revision).
+
+## Register the generated deliverables
+
+When an agent step produces a file, register it so the person can access it from that step. Keep the attempt returned by `start`:
+
+```sh
+hyperion artifact RUN_ID inspect /absolute/path/report.md --attempt 1 attach-report-1
+```
+
+MCP clients use the same provider-independent contract:
+
+```json
+{
+  "tool": "hyperion_add_artifact",
+  "arguments": {
+    "runId": "RUN_ID",
+    "stepId": "inspect",
+    "attempt": 1,
+    "commandId": "attach-report-1",
+    "filePath": "/absolute/path/report.md"
+  }
+}
+```
+
+Use exactly one `filePath`, `text` or `url`; inline text and remote links also require `name`. For example `text: "# Report\nVerified results", name: "report.md", mediaType: "text/markdown"`. File paths must be absolute and belong to files accessible to the connected local runtime. A cloud integration can send inline text or an HTTP(S) link to an existing artifact; do not invent a local file path or publicly expose the local server. The upload limit is 10 MiB. Publish typed outputs and real logs separately. Register only deliverables relevant to the request, never credentials or unrelated files.
+
+## Continue after a completed process
+
+When the user continues the conversation with a new objective, read the completed run, carry its relevant results into a new plan, and link it:
+
+```sh
+hyperion create /absolute/path/next-plan.json new-user-request-id --from COMPLETED_RUN_ID
+```
+
+The portable skill's `guide` command accepts the same `--from` flag. MCP uses `hyperion_create_run` with `parentRunId`, `commandId` and the new `plan`. See [the sample plan](../examples/continue-guide.json). The new request must be real, not inferred from completion or elapsed time. The previous run remains completed; each canvas links to the other. This is separate from retrying an attempt or reconnecting a suspended chat. No provider gets automatic wakeup merely by supporting MCP.
+
+These artifact and cycle APIs are available in source. Public installer availability must be checked against its release notes.

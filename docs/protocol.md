@@ -134,3 +134,32 @@ Use `follow RUN_ID` when a later human decision becomes available when explicitl
 Direct CLI `create` remains nonblocking for programmatic clients. CLI and MCP run responses include `agentNext` with the next action and, for human waits, the exact wait arguments. MCP hosts show the URL and call `hyperion_wait`, renewing short timeouts within a bounded waiting period (at most ten minutes), without repeated unchanged reminders. This guidance is not a guarantee that an arbitrary host will follow it.
 
 New plan creation and revised forms reject `CHOICES_REQUIRE_OPTIONS` when a human string field lists options using an imperative comma-separated Spanish/English sentence (for example “Escribe A, B o C”) without `form.options`. Write/enter instructions additionally require a selection title. This is a bounded authoring guard, not general language understanding or a product catalog. It does not infer option values from prose, mutate existing plans or rewrite previous responses. Use structured options; “Otro” / “Necesito ayuda” may lead to an optional text field or a subsequent question.
+
+## Step artifacts
+
+`POST /api/runs/:id/artifacts` registers one real result, using the coordinator's agent credential:
+
+```json
+{
+  "commandId": "attach-report-1",
+  "stepId": "inspect",
+  "attempt": 1,
+  "name": "report.md",
+  "mediaType": "text/markdown",
+  "contentBase64": "IyBSZXBvcnQK"
+}
+```
+
+Supply exactly one `contentBase64` or `url` (HTTP/HTTPS without credentials). `expectedRevision` is optional; `attempt` is required and must match the attempt that produced the file. The agent step must be running or completed and the run active, paused or completed. Registering late evidence on a completed run appends metadata and an event; it does not reopen execution or change its result. Cancelled/rejected runs reject additions. Each step supports 100 artifacts, each uploaded file up to 10 MiB. Only this endpoint accepts a request body up to 14 MiB to accommodate base64; normal endpoints retain 128 KiB.
+
+The response is the updated run. `steps[].artifacts[]` contains immutable `id`, `name`, `mediaType`, `createdAt`, `attempt`, and either `url` or `size`/`sha256`. Bytes are stored separately in SQLite; snapshots, receipts and SSE contain metadata only. Replaying an identical command returns its original receipt; changing the content with the same ID fails. Retry retains prior artifacts and rejects late uploads from a stale attempt.
+
+`GET /api/runs/:id/artifacts/:artifactId` requires the existing human session or agent credential. It returns that run's stored file with its download filename. The endpoint accepts no filesystem path. Raster images support `?preview=1`; HTML, SVG and other active formats are served as attachments with sandbox CSP. The canvas previews small text as escaped text and supported raster images, never executes uploaded HTML. Remote links open separately and are not fetched by the server. An artifact is evidence, not a substitute for a required typed output.
+
+## A completed run can precede a new cycle
+
+An agent creates a linked run with `POST /api/runs` using `{commandId, plan, parentRunId}`. The parent must be completed and `plan.request` must contain the user's new request. Supply a new plan and only the relevant context after reading the parent; context is not silently copied. This operation never resumes or revises the completed run, never infers a new request from a timeout, and does not wake an external chat by itself.
+
+The child records immutable `origin: {runId, revision, title}`. The parent's snapshot, revision and events remain unchanged. SQLite records the relationship atomically with the child and receipt. Each parent supports up to 32 direct continuations. Read responses project `links.previous` and `links.next[]`, each with `id`, `title`, `status` and `request`. SSE refreshes these links without inventing a parent revision. These navigation links sit outside the executable DAG: the canvas connects the prior end to the new start, and both runs retain independent states and coordinators.
+
+Implemented in source; a previously published installer does not gain these endpoints automatically.

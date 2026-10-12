@@ -159,3 +159,7 @@ Use `127.0.0.1` in browser URLs, not `localhost`; Host and Origin are checked ag
 The canvas and Desktop support Spanish and English, automatically selected from the system/browser language. Change it in **Settings → Language** (or **Ajustes → Idioma**); Desktop also exposes **Hyperion → Language**. The preference persists, and switching preserves current workflow data and unsubmitted answers. User/agent content and original diagnostics are not translated. See the [language guide](https://0vas.github.io/hyperion/en/guia/primeros-pasos.html#app-language).
 
 Available in `main`; the published **2026.10.12.0638 UTC** installers predate this feature.
+
+### Deliverables and continued conversations
+
+Each agent step can expose generated files and links in **Artifacts**, with safe previews and downloads. A new user request after completion can start a linked workflow: the graph shows the previous end and the new beginning while retaining both histories. Available in source; check installer release notes before assuming these features are included. See [the usage guide](docs/manual-uso.md) and [integration examples](docs/integration.md).

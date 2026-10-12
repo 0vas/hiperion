@@ -143,3 +143,11 @@ Archify provides interactive exploration. ArchiMate retains formal component and
 [AGENTS.md](https://github.com/0vas/hiperion/blob/main/AGENTS.md) records the repository map, invariants and documentation update matrix. The [process contract](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md) details the executable format.
 
 </details>
+
+## From deliverable to the next run
+
+In the Archify explorer, open **Data and decisions** to follow a step result into a new cycle.
+
+Artifact registration, its event and receipt commit in one transaction. The coordinator registers the result; the canvas reads it with its session. Bytes remain separate from the snapshot and active formats never execute in previews. The API and domain enforce limits and ownership.
+
+The conversation relationship is stored in `run_links` and projected into both runs. The parent retains its snapshot; the child receives an origin reference and relevant context supplied explicitly by the agent. The visual connection sits outside the executable DAG and neither activates a connector nor reopens finished work. [ADR 0033](https://github.com/0vas/hyperion/blob/main/docs/decisions/0033-artifacts-and-linked-cycles.md).

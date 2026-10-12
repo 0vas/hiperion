@@ -183,3 +183,17 @@ Esta capacidad corresponde al runtime 0.4.1 del repositorio; el instalador previ
 Desde un chat nuevo, pide **«Usa Hyperion para [tu actividad]»**. Si falta una decisión, el agente comparte el canvas y mantiene su herramienta esperando. Abre el enlace sin detener la ejecución del chat. Para una elección conocida debe aparecer un desplegable vacío, con opciones concretas y «Otro» o ayuda cuando corresponda. Al guardar, la respuesta se devuelve al agente y continúa la tarea; no necesitas avisarle otra vez.
 
 Esta espera adjunta corresponde al runtime **0.4.2** y a su skill actualizada. La distribución anterior y las integraciones que solo crean un plan por HTTP no incorporan ese ciclo. Una conversación ya cerrada no se reactiva retroactivamente. Los flujos anteriores conservan sus formularios y respuestas, incluso si fueron creados como texto libre.
+
+## Artefactos dentro del paso
+
+Abre el paso y su sección **Artefactos**, o pulsa el icono de paquete del nodo cuando tenga resultados. Allí puedes ver el nombre, fecha y tipo de cada archivo, abrir enlaces y descargar archivos. Los textos pequeños e imágenes compatibles tienen vista previa. HTML y SVG se muestran como texto, y los demás formatos se descargan. La lista se actualiza cuando el agente registra el resultado; no explora automáticamente tu disco.
+
+Si se reintenta una tarea, los artefactos anteriores permanecen identificados por intento. I/O sigue mostrando los datos del contrato y Logs la actividad: un artefacto es el entregable que puedes abrir.
+
+## Un final puede ser otro inicio
+
+Después de completar el flujo puedes continuar la conversación, por ejemplo: «Ahora traduce esta guía al inglés». El agente crea un nuevo recorrido enlazado al anterior, con tu nueva petición y el contexto relevante. El canvas dibuja **Fin anterior → nuevo inicio** y permite navegar entre ambos. El trabajo completado conserva su historial.
+
+También puedes usar **Continuar desde aquí** al final del gráfico para preparar la nueva petición y copiarla al chat conectado. Ese botón no inicia un agente por sí mismo. Una continuación nueva no sirve para saltar una aprobación pendiente ni para recuperar una tarea atascada; esas situaciones usan los controles existentes.
+
+Estas funciones están implementadas en el código fuente. Los instaladores publicados con anterioridad no se actualizan por cambiar la documentación.

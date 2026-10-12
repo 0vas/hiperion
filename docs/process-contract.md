@@ -223,3 +223,9 @@ En una salida de tipo `string`, `form.options` define un desplegable sin respues
 ```
 
 Usa opciones cuando el conjunto es conocido, booleanos para Sí/No y texto para respuestas abiertas. Si hace falta «Otro», decláralo y añade un campo de detalle opcional. Los planes existentes conservan sus campos originales; no se infieren opciones interpretando descripciones.
+
+## Artifacts and conversation cycles
+
+Artifacts are immutable evidence attached to the producing agent step and attempt. Register actual files or HTTP(S) links through the artifact endpoint; do not report a local path as if it were a downloadable file. The next step's available context includes artifact metadata from completed ancestors. Required inputs/outputs still govern readiness. Retry preserves earlier artifacts, identified by attempt. Binary content stays in a separate SQLite table and does not inflate the plan or context.
+
+A completed process remains terminal. When the user makes a new request continuing it, create a new plan with `parentRunId` outside `plan` and preserve the new text in `plan.request`. `origin` identifies the previous run and its revision; carry relevant inputs explicitly. The canvas shows a navigable end → new beginning connection. It is a conversation relationship, not a BPMN sequence edge or a loop inside the DAG. Work still in progress uses the existing guarded plan revision mechanism. See [protocol](protocol.md) for payloads, limits and authentication.

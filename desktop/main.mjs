@@ -132,6 +132,7 @@ async function openRun(args) {
     });
     window.webContents.setWindowOpenHandler(({ url }) => {
       if (isLocal(url)) void window.loadURL(url);
+      else if (/^https?:\/\//i.test(url)) void shell.openExternal(url);
       return { action: 'deny' };
     });
     window.once('ready-to-show', () => window.show());

@@ -54,3 +54,23 @@ Multiple ready tasks do not guarantee concurrent execution; that depends on the 
 ## Runtime versions
 
 The 0.4.1 runtime added active-agent presence and event delivery. The 0.4.2 skill added bounded guided waiting and validation of detected free-text choice lists. Core 0.5 adds durable continuation infrastructure; native resume connectors remain pending. These changes are not in the 0.4.0 preview installer. [Read about pause and resume](./reanudacion.md).
+
+## Open step artifacts
+
+**Artifacts** lists files and links registered by the agent. The node's package icon opens the list directly. Preview small text files and supported images, download files, or open a document link. Results from earlier attempts remain labeled.
+
+::: tip Deliverables within reach
+For example, “Prepare guide” can contain `welcome.md`, an illustration and a shared document link. **I/O** retains its data, **Logs** explains the actions, and **Artifacts** provides access to the result.
+:::
+
+The agent must register the file; Hyperion does not scan your disk or publish documents automatically. HTML and SVG previews display escaped text. Uploaded files are limited to 10 MiB.
+
+## Continue after the end
+
+Say in the same chat: “Now translate this guide into English.” The agent creates another linked run, and the graph shows **Previous end → new beginning**. Select a run card to navigate between them. The completed run keeps its decisions, files and history.
+
+**Continue from here**, at the end of the graph, helps you draft that request and copy it to the connected chat. It does not execute an agent by itself. Use plan revision for changes to unfinished work, or retry for a failed task.
+
+::: info Availability
+Artifacts and linked runs are implemented in source. Older installers do not acquire these features automatically; check their release notes.
+:::

@@ -143,3 +143,11 @@ Archify permite explorar las vistas. ArchiMate conserva los modelos formales de 
 [AGENTS.md](https://github.com/0vas/hiperion/blob/main/AGENTS.md) recoge el mapa del proyecto, las invariantes y la matriz de actualización documental. [Contrato de procesos](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md) detalla el formato ejecutable.
 
 </details>
+
+## Del resultado al siguiente recorrido
+
+En el explorador Archify, abre **Datos y decisiones** para seguir el resultado del paso hasta el nuevo ciclo.
+
+El registro del artefacto, su evento y el recibo se guardan en una transacción. El agente coordinador registra el resultado; el canvas lo consulta con su sesión. Los bytes permanecen separados del snapshot y los formatos activos no se ejecutan al previsualizar. Los límites y permisos se aplican en la API y el dominio.
+
+El vínculo de conversación se guarda en `run_links` y se proyecta en ambos recorridos. El padre mantiene su snapshot; el hijo recibe una referencia de origen y contexto relevante declarado por el agente. La conexión visual queda fuera del DAG ejecutable y no activa un conector ni reabre trabajo terminado. [ADR 0033](https://github.com/0vas/hyperion/blob/main/docs/decisions/0033-artifacts-and-linked-cycles.md).
