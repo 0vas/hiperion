@@ -99,6 +99,18 @@ npm run hyperion -- setup cursor
 Reinicia esa herramienta, abre un chat nuevo y pega una de las peticiones de arriba. Abre `http://127.0.0.1:4317` para ver el canvas. Este recorrido ejecuta el código de `main`, no el instalador preview anterior.
 :::
 
+## Idioma de la aplicación
+
+Hyperion incluye **español e inglés** en el canvas y en los menús y diálogos de Desktop. Abre **Ajustes → Idioma** para elegir **Automático (sistema)**, **Español** o **English**. En Desktop también puedes cambiarlo desde **Hyperion → Idioma**.
+
+El modo automático toma el idioma del sistema o del navegador; si no está soportado, usa inglés. La selección manual se conserva al volver a abrir la app. En Desktop, el menú y el canvas comparten la preferencia; en el navegador se guarda por separado.
+
+::: tip Tu contenido conserva su idioma
+Cambiar la interfaz no traduce nombres de tareas, preguntas del agente, respuestas, resultados ni logs. Tampoco reinicia el flujo ni descarta un formulario sin enviar. Los diagnósticos originales de herramientas y del servicio mantienen su texto para poder investigarlos.
+:::
+
+Este soporte está disponible en el código de `main`. El instalador **2026.10.12.0638 UTC** todavía no lo incluye; se incorporará al siguiente lanzamiento.
+
 ## Actualizar Desktop
 
 Desde la versión CalVer **2026.10.12.0638 UTC**, abre **Hyperion → Buscar actualizaciones…**. La app consulta GitHub y ofrece el instalador de tu equipo; tú eliges descargarlo. Verifica tamaño y SHA-256 antes de mostrar el archivo para instalar. Puedes cancelar desde **Hyperion → Cancelar descarga**. Tus flujos permanecen en el almacenamiento local.

@@ -6,6 +6,10 @@ const clients = [
   'antigravity',
 ];
 export async function connectWithDialog({
+  t = (message, values = {}) =>
+    message.replace(/\{(\d+)\}/g, (match, key) =>
+      values[key] === undefined ? match : String(values[key]),
+    ),
   window,
   dialog,
   clipboard,
@@ -14,17 +18,18 @@ export async function connectWithDialog({
 }) {
   const choice = await dialog.showMessageBox(window, {
     type: 'question',
-    title: 'Conectar Hyperion',
-    message: '¿Dónde conversarás con tu IA?',
-    detail:
+    title: t('Conectar Hyperion'),
+    message: t('¿Dónde conversarás con tu IA?'),
+    detail: t(
       'Elige una aplicación instalada. Hyperion preparará su conexión local. Después podrás crear flujos desde cualquier conversación.',
+    ),
     buttons: [
       'Codex',
       'Cursor',
       'Claude Desktop',
       'Claude Code',
       'Antigravity',
-      'Ahora no',
+      t('Ahora no'),
     ],
     defaultId: 0,
     cancelId: clients.length,
@@ -35,18 +40,21 @@ export async function connectWithDialog({
   await setup(client, options);
   const result = await dialog.showMessageBox(window, {
     type: 'info',
-    title: 'Hyperion listo',
-    message: 'Conexión configurada',
-    detail:
+    title: t('Hyperion listo'),
+    message: t('Conexión configurada'),
+    detail: t(
       'Reinicia tu aplicación de IA y abre una nueva conversación. Escribe «Usa Hyperion para…» y describe lo que quieres conseguir. Si la aplicación solicita habilitar Hyperion, acepta para usar sus herramientas.\n\nPuedes elegir vista dividida o escritorio desde el chat.',
-    buttons: ['Copiar petición de prueba', 'Listo'],
+    ),
+    buttons: [t('Copiar petición de prueba'), t('Listo')],
     defaultId: 0,
     cancelId: 1,
     noLink: true,
   });
   if (result.response === 0)
     clipboard.writeText(
-      'Usa Hyperion para preparar una guía breve de bienvenida a mi proyecto.',
+      t(
+        'Usa Hyperion para preparar una guía breve de bienvenida a mi proyecto.',
+      ),
     );
   return true;
 }

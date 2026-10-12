@@ -153,3 +153,9 @@ Use `127.0.0.1` in browser URLs, not `localhost`; Host and Origin are checked ag
 ## License
 
 [MIT](LICENSE) — Copyright © 2026 Oscar Lobaton Salas.
+
+## Interface languages
+
+The canvas and Desktop support Spanish and English, automatically selected from the system/browser language. Change it in **Settings → Language** (or **Ajustes → Idioma**); Desktop also exposes **Hyperion → Language**. The preference persists, and switching preserves current workflow data and unsubmitted answers. User/agent content and original diagnostics are not translated. See the [language guide](https://0vas.github.io/hyperion/en/guia/primeros-pasos.html#app-language).
+
+Available in `main`; the published **2026.10.12.0638 UTC** installers predate this feature.

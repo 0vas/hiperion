@@ -1,3 +1,4 @@
+import { t, useLocale } from './i18n';
 import type { PlanChange } from '../domain/workflow';
 export function PlanChanges({
   changes,
@@ -6,11 +7,14 @@ export function PlanChanges({
   changes: PlanChange[];
   revision: number;
 }) {
+  useLocale();
   return (
-    <section className="plan-changes" aria-label="Cambios del plan">
+    <section className="plan-changes" aria-label={t('Cambios del plan')}>
       {[...changes].reverse().map((change) => (
         <details key={change.revision} open={change.revision === revision}>
-          <summary>Plan actualizado · revisión {change.revision}</summary>
+          <summary>
+            {t('Plan actualizado · revisión')} {change.revision}
+          </summary>
           <p>{change.reason}</p>
           {(['added', 'changed', 'removed'] as const).map(
             (kind) =>
@@ -19,9 +23,9 @@ export function PlanChanges({
                   <strong>
                     {
                       {
-                        added: 'Añadido',
-                        changed: 'Modificado',
-                        removed: 'Retirado',
+                        added: t('Añadido'),
+                        changed: t('Modificado'),
+                        removed: t('Retirado'),
                       }[kind]
                     }
                   </strong>
@@ -39,21 +43,23 @@ export function PlanChanges({
                           {item?.title || id}
                           {kind === 'changed' && before && after && (
                             <details className="plan-step-change">
-                              <summary>Ver qué cambió</summary>
+                              <summary>{t('Ver qué cambió')}</summary>
                               {before.title !== after.title && (
-                                <p>Antes: {before.title}</p>
+                                <p>
+                                  {t('Antes:')} {before.title}
+                                </p>
                               )}
                               {before.description !== after.description && (
                                 <p>
-                                  Instrucción:{' '}
+                                  {t('Instrucción:')}{' '}
                                   {after.description ||
-                                    'Sin instrucción adicional'}
+                                    t('Sin instrucción adicional')}
                                 </p>
                               )}
                               {JSON.stringify(before.dependencies) !==
                                 JSON.stringify(after.dependencies) && (
                                 <p>
-                                  Después de:{' '}
+                                  {t('Después de:')}{' '}
                                   {after.dependencies
                                     .map(
                                       (dep) =>
@@ -61,11 +67,15 @@ export function PlanChanges({
                                           (s) => s.id === dep,
                                         )?.title || dep,
                                     )
-                                    .join(', ') || 'Inicio'}
+                                    .join(', ') || t('Inicio')}
                                 </p>
                               )}
                               {before.kind !== after.kind && (
-                                <p>Responsable o tipo de tarea actualizado.</p>
+                                <p>
+                                  {t(
+                                    'Responsable o tipo de tarea actualizado.',
+                                  )}
+                                </p>
                               )}
                               {(['inputs', 'outputs'] as const).map(
                                 (direction) =>
@@ -73,8 +83,8 @@ export function PlanChanges({
                                     JSON.stringify(after[direction]) && (
                                     <p key={direction}>
                                       {direction === 'inputs'
-                                        ? 'Entradas actualizadas'
-                                        : 'Salidas actualizadas'}
+                                        ? t('Entradas actualizadas')
+                                        : t('Salidas actualizadas')}
                                       :{' '}
                                       {after[direction]
                                         ?.map(
@@ -83,15 +93,17 @@ export function PlanChanges({
                                             p.description ||
                                             p.name,
                                         )
-                                        .join(', ') || 'Sin campos'}
+                                        .join(', ') || t('Sin campos')}
                                     </p>
                                   ),
                               )}
                               <details>
-                                <summary>Contrato anterior y nuevo</summary>
-                                <h4>Antes</h4>
+                                <summary>
+                                  {t('Contrato anterior y nuevo')}
+                                </summary>
+                                <h4>{t('Antes')}</h4>
                                 <pre>{JSON.stringify(before, null, 2)}</pre>
-                                <h4>Ahora</h4>
+                                <h4>{t('Ahora')}</h4>
                                 <pre>{JSON.stringify(after, null, 2)}</pre>
                               </details>
                             </details>
@@ -105,10 +117,11 @@ export function PlanChanges({
           )}
           {change.previousPlan.title !== change.nextPlan.title && (
             <p>
-              Título: {change.previousPlan.title} → {change.nextPlan.title}
+              {t('Título:')} {change.previousPlan.title} →{' '}
+              {change.nextPlan.title}
             </p>
           )}
-          <p className="muted">El trabajo ejecutado se conserva.</p>
+          <p className="muted">{t('El trabajo ejecutado se conserva.')}</p>
         </details>
       ))}
     </section>

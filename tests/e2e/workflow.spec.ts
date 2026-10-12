@@ -70,7 +70,9 @@ test('an agent creates a workflow; the human supplies input and approves; the ag
     .click();
   await page.getByRole('button', { name: 'Aprobar paso' }).click();
   await expect(
-    page.locator('.canvas-next strong').filter({ hasText: 'Espera al agente' }),
+    page
+      .locator('.canvas-next strong')
+      .filter({ hasText: 'Continuar desde el chat' }),
   ).toBeVisible();
   await page.reload();
   await page

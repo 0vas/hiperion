@@ -82,6 +82,10 @@ Keep the canvas primary, tasks compact, forms explicit and details progressively
 
 Do not publish, deploy, push or send messages externally without user authorization. Existing explicit authorization in the current conversation applies; do not ask again for an already authorized action. Follow the user's chosen branch/PR workflow and verify deployment before claiming the public site is updated.
 
+## Interface localization
+
+The app currently supports Spanish and English. Use `src/client/i18n.ts` for canvas copy and the shared `src/i18n/en.json` catalog for Desktop dialogs. Keep interpolation placeholders aligned. New labels must work in both locales and remain reactive when the user changes language. Never translate user/agent workflow content, answers or recorded evidence. Verify that changing language preserves drafts and does not mutate the process. Document installer availability accurately; code in `main` is not evidence that an older binary includes it.
+
 ## Release identity
 
 Use public UTC CalVer `YYYY.MM.DD.HHmm` from `src/release.json`, with a separate preview/stable channel. Run `npm run release:sync` when changing it; package/native versions are compatibility encodings, not product SemVer. Keep artifact names, runtime, web and release notes aligned. Never overwrite an already published minute. The old 0.5.1 updater needs one manual migration to CalVer. A request for notarized distribution must fail if credentials are absent; do not quietly ship ad-hoc as an equivalent.

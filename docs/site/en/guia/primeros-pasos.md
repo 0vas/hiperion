@@ -91,6 +91,18 @@ npm run hyperion -- setup cursor
 Restart that AI tool, open a new chat and paste a request from above. Visit `http://127.0.0.1:4317` to view the canvas. This runs the code in `main`, not the older preview installer.
 :::
 
+## App language
+
+Hyperion includes **Spanish and English** in the canvas and Desktop menus and dialogs. Open **Settings → Language** and choose **Automatic (system)**, **Español** or **English**. Desktop also provides **Hyperion → Language**.
+
+Automatic mode follows the system or browser language and falls back to English when unsupported. A manual selection persists when reopening the app. Desktop menus and the canvas share one preference; the browser stores its own choice separately.
+
+::: tip Your content keeps its language
+Switching the interface does not translate task names, agent questions, answers, results or logs. It does not restart the workflow or discard an unsubmitted form. Original tool and service diagnostics retain their text for troubleshooting.
+:::
+
+This support is available in the `main` source code. The **2026.10.12.0638 UTC** installer does not include it yet; it will be included in the next release.
+
 ## Update Desktop
 
 From CalVer **2026.10.12.0638 UTC**, open **Hyperion → Buscar actualizaciones…**. The app checks GitHub and offers an installer for your computer; you choose whether to download it. Size and SHA-256 are checked before revealing the installer. Cancel with **Hyperion → Cancelar descarga**. Workflows remain in local storage.

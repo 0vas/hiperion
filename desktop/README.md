@@ -55,3 +55,11 @@ Para generar una distribución macOS notarizada, ejecutar **Desktop installers**
 Para publicar archivos ya probados sin volver a compilarlos, crear primero una release **draft** con notas revisadas y `target_commitish` igual al commit del build. Ejecutar **Publish verified Desktop artifacts** con el ID de un run exitoso de **Desktop installers** en `main`. El workflow verifica procedencia, selecciona cada instalador desde su plataforma nativa, sube a la release draft y compara tamaño y SHA-256 remotos antes de publicarla. Rechaza releases ya públicas; no sobrescribe sus binarios. No añade notarización a los artefactos.
 
 La web usa `docs/site/.vitepress/release.json` como registro de la última release **publicada**. Actualizarlo solo después de subir y verificar los instaladores; no anunciar un enlace antes de que exista su asset. El campo `macNotarized` solo puede ser verdadero con evidencia de notarización y validación de Gatekeeper.
+
+## Interface language
+
+`desktop/language.mjs` persists `system`, `es` or `en` in `language.json` under Electron's `userData` directory. `system` follows `app.getPreferredSystemLanguages()` with English fallback. Native menus, onboarding, recovery and update dialogs use the same catalog as the canvas (`src/i18n/en.json`; Spanish source strings).
+
+The sandboxed preload exposes only language get/set and change notifications. Main-process handlers validate the owning window, local origin, main frame and allowed preference before writing. Browser-only use persists a separate `hyperion.language.v1` localStorage preference. No translation service receives workflow content. Raw service/tool diagnostics retain their original language.
+
+When adding interface copy, use the translation helpers and update the English catalog. Avoid translating plan titles, field labels supplied by agents, answers, receipts or other evidence. Run the language unit/native-dialog tests and `tests/e2e/i18n.spec.ts`; the Desktop smoke test also switches languages while a human decision is unsaved.

@@ -49,6 +49,7 @@ export function routeLabel(
   run: Run,
   source: Step | undefined,
   target: string,
+  labels = { yes: 'Sí', no: 'No', other: 'Otra opción', next: 'Continuar' },
 ): string | undefined {
   const gate = source?.gateway;
   const route = gate?.routes?.find((r) => r.target === target);
@@ -71,10 +72,10 @@ export function routeLabel(
     const yes = invert ? !when.equals : when.equals;
     return (
       (yes ? port?.form?.trueLabel : port?.form?.falseLabel) ||
-      (yes ? 'Sí' : 'No')
+      (yes ? labels.yes : labels.no)
     );
   }
-  if (gate?.defaultTarget === target) return 'Otra opción';
-  if (when) return run.steps.find((s) => s.id === target)?.title || 'Continuar';
+  if (gate?.defaultTarget === target) return labels.other;
+  if (when) return run.steps.find((s) => s.id === target)?.title || labels.next;
   return undefined;
 }

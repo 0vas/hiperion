@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import type { Step } from '../domain/workflow';
 import { matchesPort } from '../domain/value-types';
 export type FormPort = NonNullable<Step['outputs']>[number];
@@ -19,20 +20,20 @@ export function fieldError(port: FormPort, value: string): string | undefined {
   if (!value.trim())
     return port.required
       ? port.type === 'boolean' || port.form?.options
-        ? 'Elige una opción.'
-        : 'Completa este campo.'
+        ? t('Elige una opción.')
+        : t('Completa este campo.')
       : undefined;
   try {
     if (matchesPort(port, parseField(port, value))) return;
   } catch {
     /* Present a field-specific message below. */
   }
-  if (port.form?.options) return 'Elige una de las opciones disponibles.';
+  if (port.form?.options) return t('Elige una de las opciones disponibles.');
   return port.type === 'number'
-    ? 'Escribe un número válido.'
+    ? t('Escribe un número válido.')
     : port.type === 'boolean'
-      ? 'Elige Sí o No.'
+      ? t('Elige Sí o No.')
       : port.type === 'array'
-        ? 'Usa una lista válida entre corchetes [ ].'
-        : 'Usa un objeto válido entre llaves { }.';
+        ? t('Usa una lista válida entre corchetes [ ].')
+        : t('Usa un objeto válido entre llaves { }.');
 }

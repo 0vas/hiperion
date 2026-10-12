@@ -8,6 +8,17 @@ La pausa persistente y el alcance por herramienta se explican en [Reanudación a
 
 Instala Hyperion Desktop y elige **Codex**, **Cursor**, **Claude Desktop** o **Claude Code** en el asistente inicial. Reinicia esa aplicación y abre una conversación nueva. No necesitas terminal ni instalar Node. Para conectar otra aplicación: **Hyperion → Conectar con mi IA**. [Descarga, instalación y ayuda](conexion.md).
 
+## Idioma de la aplicación
+
+Hyperion incluye **español e inglés** en el canvas y en los menús y diálogos de Desktop. Abre **Ajustes → Idioma** para elegir **Automático (sistema)**, **Español** o **English**. En Desktop también puedes cambiarlo desde **Hyperion → Idioma**.
+
+El modo automático toma el idioma del sistema o del navegador; si no está soportado, usa inglés. La selección manual se conserva al volver a abrir la app. En Desktop, el menú y el canvas comparten la preferencia; en el navegador se guarda por separado.
+
+**Tu contenido conserva su idioma.**
+Cambiar la interfaz no traduce nombres de tareas, preguntas del agente, respuestas, resultados ni logs. Tampoco reinicia el flujo ni descarta un formulario sin enviar. Los diagnósticos originales de herramientas y del servicio mantienen su texto para poder investigarlos.
+
+Este soporte está disponible en el código de `main`. El instalador **2026.10.12.0638 UTC** todavía no lo incluye; se incorporará al siguiente lanzamiento.
+
 ## Invocarlo desde una conversación
 
 Escribe, por ejemplo:

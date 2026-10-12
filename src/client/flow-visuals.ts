@@ -1,3 +1,4 @@
+import { localizedLabels } from './i18n';
 import type { Run, Step } from '../domain/workflow';
 export type FlowState =
   | 'pending'
@@ -9,7 +10,7 @@ export type FlowState =
   | 'skipped'
   | 'paused'
   | 'stopped';
-export const flowLabels: Record<FlowState, string> = {
+export const flowLabels: Record<FlowState, string> = localizedLabels({
   pending: 'Pendiente',
   ready: 'Espera al agente',
   active: 'En curso',
@@ -19,7 +20,7 @@ export const flowLabels: Record<FlowState, string> = {
   skipped: 'Omitido',
   paused: 'En pausa',
   stopped: 'Detenido',
-};
+});
 export function nodeState(
   step: Pick<Step, 'status'>,
   status: Run['status'],

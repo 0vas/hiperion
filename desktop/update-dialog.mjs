@@ -1,6 +1,10 @@
 import { checkForUpdate, downloadUpdate } from './updates.mjs';
 import { join } from 'node:path';
 export function createUpdateController({
+  t = (message, values = {}) =>
+    message.replace(/\{(\d+)\}/g, (match, key) =>
+      values[key] === undefined ? match : String(values[key]),
+    ),
   app,
   dialog,
   shell,
@@ -32,22 +36,25 @@ export function createUpdateController({
           if (manual)
             await dialog.showMessageBox(window, {
               type: 'info',
-              message: 'No hay una versión más reciente compatible',
-              detail: `Versión instalada: ${currentVersion}`,
-              buttons: ['Listo'],
+              message: t('No hay una versión más reciente compatible'),
+              detail: t('Versión instalada: {0}', { 0: currentVersion }),
+              buttons: [t('Listo')],
             });
           return;
         }
         const answer = await dialog.showMessageBox(window, {
           type: 'info',
-          message: `Hyperion ${update.version} está disponible`,
-          detail: `Tienes ${currentVersion}. Se descargará el instalador desde GitHub y se verificará su integridad. La instalación se realiza después, con las comprobaciones de tu sistema.`,
-          buttons: ['Descargar actualización', 'Ahora no'],
+          message: t('Hyperion {0} está disponible', { 0: update.version }),
+          detail: t(
+            'Tienes {0}. Se descargará el instalador desde GitHub y se verificará su integridad. La instalación se realiza después, con las comprobaciones de tu sistema.',
+            { 0: currentVersion },
+          ),
+          buttons: [t('Descargar actualización'), t('Ahora no')],
           cancelId: 1,
         });
         if (answer.response !== 0) return;
         const choice = await dialog.showSaveDialog(window, {
-          title: 'Guardar actualización de Hyperion',
+          title: t('Guardar actualización de Hyperion'),
           defaultPath: join(app.getPath('downloads'), update.asset.name),
         });
         if (choice.canceled || !choice.filePath) return;
@@ -60,10 +67,11 @@ export function createUpdateController({
         });
         const done = await dialog.showMessageBox(window, {
           type: 'info',
-          message: 'Actualización descargada y verificada',
-          detail:
+          message: t('Actualización descargada y verificada'),
+          detail: t(
             'Abre el instalador para actualizar Hyperion. Tus flujos se conservan en su almacenamiento local.',
-          buttons: ['Mostrar instalador', 'Listo'],
+          ),
+          buttons: [t('Mostrar instalador'), t('Listo')],
           cancelId: 1,
         });
         if (done.response === 0) shell.showItemInFolder(choice.filePath);
@@ -71,9 +79,9 @@ export function createUpdateController({
         if (!controller?.signal.aborted && (manual || controller))
           await dialog.showMessageBox(window, {
             type: 'error',
-            message: 'No se pudo completar la actualización',
+            message: t('No se pudo completar la actualización'),
             detail: String(error.message || error),
-            buttons: ['Listo'],
+            buttons: [t('Listo')],
           });
       } finally {
         if (window && !window.isDestroyed()) window.setProgressBar(-1);

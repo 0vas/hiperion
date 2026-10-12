@@ -1,3 +1,4 @@
+import { t, useLocale, localizedLabels, getLocale } from './i18n';
 import hyperionLogo from './brands/hyperion.png';
 import { continuationLabel } from './continuation-label';
 import { PlanChanges } from './PlanChanges';
@@ -80,7 +81,7 @@ import { usePreferences } from './preferences';
 import { layoutSteps } from './layout';
 import type { Run, Step, StepStatus } from '../domain/workflow';
 
-const labels: Record<StepStatus, string> = {
+const labels: Record<StepStatus, string> = localizedLabels({
   blocked: 'En espera',
   ready: 'Espera al agente',
   running: 'En curso',
@@ -89,23 +90,23 @@ const labels: Record<StepStatus, string> = {
   failed: 'Falló',
   rejected: 'Rechazado',
   skipped: 'Omitido',
-};
-const runLabels: Record<Run['status'], string> = {
+});
+const runLabels: Record<Run['status'], string> = localizedLabels({
   active: 'En progreso',
   paused: 'En pausa',
   completed: 'Completado',
   cancelled: 'Cancelado',
   rejected: 'Rechazado',
-};
-const kindLabels = {
+});
+const kindLabels = localizedLabels({
   agent: 'Agente',
   manual: 'Intervención manual',
   approval: 'Aprobación',
   start: 'Inicio',
   end: 'Fin',
   gateway: 'Compuerta',
-};
-const eventLabels: Record<string, string> = {
+});
+const eventLabels: Record<string, string> = localizedLabels({
   created: 'Plan registrado',
   revise: 'Plan actualizado',
   route: 'Motor de proceso',
@@ -120,9 +121,9 @@ const eventLabels: Record<string, string> = {
   pause: 'Pausó el flujo',
   resume: 'Reanudó el flujo',
   cancel: 'Canceló el flujo',
-};
+});
 const time = (value: string) =>
-  new Date(value).toLocaleTimeString('es', {
+  new Date(value).toLocaleTimeString(getLocale(), {
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -139,6 +140,7 @@ function StatusIcon({
   status: StepStatus;
   size?: number;
 }) {
+  useLocale();
   if (status === 'completed') return <Check size={size} />;
   if (status === 'running')
     return <LoaderCircle size={size} className="spin" />;
@@ -151,16 +153,16 @@ function StatusIcon({
 type StepView = 'step' | 'io' | 'trace';
 const isControl = (step: Step) =>
   ['start', 'end', 'gateway'].includes(step.kind);
-const gatewayLabels = {
+const gatewayLabels = localizedLabels({
   parallel: 'Paralela',
   exclusive: 'Exclusiva',
   inclusive: 'Inclusiva',
-};
-const traceLabels = {
+});
+const traceLabels = localizedLabels({
   summary: 'Resumen de decisión',
   action: 'Acción',
   observation: 'Observación',
-};
+});
 type StepNodeData = {
   step: Step;
   index: number;
@@ -178,29 +180,30 @@ type StepNodeData = {
   onSelect: (id: string, view?: StepView) => void;
 };
 function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
+  useLocale();
   const { step } = data;
   const tools = (
     <div className="node-tools">
       {step.kind === 'agent' &&
         ['failed', 'ready', 'running'].includes(step.status) && (
           <button
-            aria-label={`${step.status === 'running' ? 'Recuperar' : 'Reintentar'}: ${step.title}`}
+            aria-label={`${step.status === 'running' ? t('Recuperar') : t('Reintentar')}: ${step.title}`}
             title={
               step.status === 'running'
-                ? 'Recuperar tarea atascada'
-                : 'Reintentar paso'
+                ? t('Recuperar tarea atascada')
+                : t('Reintentar paso')
             }
             disabled={!data.canRetry}
             onClick={() => data.onRetry(step.id)}
           >
             <RotateCcw size={14} />
-            {step.status === 'failed' && <span>Reintentar</span>}
+            {step.status === 'failed' && <span>{t('Reintentar')}</span>}
           </button>
         )}
 
       <button
-        aria-label={`Ver datos: ${step.title}`}
-        title="Entradas, contexto y salidas"
+        aria-label={t('Ver datos: {0}', { 0: step.title })}
+        title={t('Entradas, contexto y salidas')}
         data-receiving={!!data.ioActivity}
         onClick={() => data.onSelect(step.id, 'io')}
         aria-haspopup="dialog"
@@ -212,8 +215,8 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
         </span>
       </button>
       <button
-        aria-label={`Ver trazas: ${step.title}`}
-        title="Logs y trazas públicas"
+        aria-label={t('Ver trazas: {0}', { 0: step.title })}
+        title={t('Logs y trazas públicas')}
         data-receiving={!!data.logActivity}
         onClick={() => data.onSelect(step.id, 'trace')}
         aria-haspopup="dialog"
@@ -238,13 +241,13 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
         >
           <button
             className="control-main"
-            aria-label={`Ver paso: ${step.title}`}
+            aria-label={t('Ver paso: {0}', { 0: step.title })}
             aria-haspopup="dialog"
             onClick={() => data.onSelect(step.id)}
           >
             {step.kind !== 'gateway' && (
               <span className="event-label">
-                {step.kind === 'start' ? 'INICIO' : 'FIN'}
+                {step.kind === 'start' ? t('INICIO') : t('FIN')}
               </span>
             )}
             <BpmnSymbol
@@ -255,7 +258,7 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
             <strong>{step.title}</strong>
             <small>
               {step.gateway
-                ? `${gatewayLabels[step.gateway.type]} · ${step.gateway.direction === 'split' ? 'dividir' : 'unir'}`
+                ? `${gatewayLabels[step.gateway.type]} · ${step.gateway.direction === 'split' ? t('dividir') : t('unir')}`
                 : flowLabels[data.flowState]}
             </small>
           </button>
@@ -268,7 +271,7 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
         >
           <button
             className="node-main"
-            aria-label={`Ver paso: ${step.title}`}
+            aria-label={t('Ver paso: {0}', { 0: step.title })}
             aria-haspopup="dialog"
             onClick={() => data.onSelect(step.id)}
           >
@@ -306,9 +309,9 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
             <strong>{step.title}</strong>
             <div className="node-owner">
               {step.kind === 'agent' ? (
-                <span className="muted">Agente</span>
+                <span className="muted">{t('Agente')}</span>
               ) : (
-                'Tú'
+                t('Tú')
               )}
               <ArrowUpRight size={13} />
             </div>
@@ -326,22 +329,23 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
   );
 }
 function ContractView({ step, run }: { step: Step; run: Run }) {
+  useLocale();
   const context = contextForStep(run, step);
   return (
     <div className="step-detail contract-view">
-      <h2 id="popup-title">Entradas y salidas</h2>
+      <h2 id="popup-title">{t('Entradas y salidas')}</h2>
       <p className="muted">{step.title}</p>
       <section className="context-sources">
-        <h3>Contexto disponible</h3>
+        <h3>{t('Contexto disponible')}</h3>
         {context.request && (
           <details>
-            <summary>Petición original</summary>
+            <summary>{t('Petición original')}</summary>
             <p>{context.request}</p>
           </details>
         )}
         {!!Object.keys(context.general).length && (
           <details>
-            <summary>Contexto del proceso</summary>
+            <summary>{t('Contexto del proceso')}</summary>
             <pre>{JSON.stringify(context.general, null, 2)}</pre>
           </details>
         )}
@@ -357,16 +361,18 @@ function ContractView({ step, run }: { step: Step; run: Run }) {
         {!context.request &&
           !Object.keys(context.general).length &&
           !context.previous.length && (
-            <p className="muted">Aún no hay resultados anteriores.</p>
+            <p className="muted">{t('Aún no hay resultados anteriores.')}</p>
           )}
       </section>
       {(['inputs', 'outputs'] as const).map((direction) => (
         <section key={direction}>
           <h3>
-            {direction === 'inputs' ? 'Inputs · Entradas' : 'Outputs · Salidas'}
+            {direction === 'inputs'
+              ? t('Inputs · Entradas')
+              : t('Outputs · Salidas')}
           </h3>
           {!(step[direction] || []).length ? (
-            <p className="muted">Sin campos declarados.</p>
+            <p className="muted">{t('Sin campos declarados.')}</p>
           ) : (
             (step[direction] || []).map((port) => {
               const source =
@@ -386,25 +392,35 @@ function ContractView({ step, run }: { step: Step; run: Run }) {
                     <code>
                       {port.name} · {port.type}
                     </code>
-                    <span>{port.required ? 'Obligatorio' : 'Opcional'}</span>
+                    <span>
+                      {port.required ? t('Obligatorio') : t('Opcional')}
+                    </span>
                   </div>
                   {port.description && port.form?.label && (
                     <p>{port.description}</p>
                   )}
                   <small>
                     {source
-                      ? `Origen: ${source.stepId}.${source.output}`
+                      ? t('Origen: {0}.{1}', {
+                          0: source.stepId,
+                          1: source.output,
+                        })
                       : direction === 'inputs'
                         ? step.inputs?.find((input) => input.name === port.name)
                             ?.contextKey
-                          ? `Origen: contexto del proceso · ${step.inputs?.find((input) => input.name === port.name)?.contextKey}`
-                          : 'Origen: valor del plan'
-                        : 'Origen: resultado de la tarea'}
+                          ? t('Origen: contexto del proceso · {0}', {
+                              0:
+                                step.inputs?.find(
+                                  (input) => input.name === port.name,
+                                )?.contextKey || '',
+                            })
+                          : t('Origen: valor del plan')
+                        : t('Origen: resultado de la tarea')}
                   </small>
                   <pre>
                     {present
                       ? JSON.stringify(values[port.name], null, 2)
-                      : 'Sin valor registrado'}
+                      : t('Sin valor registrado')}
                   </pre>
                 </article>
               );
@@ -416,28 +432,30 @@ function ContractView({ step, run }: { step: Step; run: Run }) {
   );
 }
 function TraceView({ step, run }: { step: Step; run: Run }) {
+  useLocale();
   const [scope, setScope] = useState('step');
   const events = [...run.events]
     .filter((e) => scope === 'all' || e.stepId === step.id)
     .reverse();
   return (
     <div className="step-detail trace-view">
-      <h2 id="popup-title">Trazas del paso</h2>
+      <h2 id="popup-title">{t('Trazas del paso')}</h2>
       <p>{step.title}</p>
       <label className="trace-scope">
-        Mostrar{' '}
+        {t('Mostrar')}{' '}
         <select
-          aria-label="Alcance de logs"
+          aria-label={t('Alcance de logs')}
           value={scope}
           onChange={(e) => setScope(e.target.value)}
         >
-          <option value="step">Este paso</option>
-          <option value="all">Todo el proceso</option>
+          <option value="step">{t('Este paso')}</option>
+          <option value="all">{t('Todo el proceso')}</option>
         </select>
       </label>
       <p className="muted">
-        Resumen público → acción → observación. Se muestra lo que el agente o el
-        motor registra.
+        {t(
+          'Resumen público → acción → observación. Se muestra lo que el agente o el motor registra.',
+        )}
       </p>
       {step.result && isControl(step) && (
         <div className="result">
@@ -458,11 +476,11 @@ function TraceView({ step, run }: { step: Step; run: Run }) {
               </small>
             </div>
             {event.trace?.tool && <code>{event.trace.tool}</code>}
-            <p>{event.message || 'Cambio de estado registrado'}</p>
+            <p>{event.message || t('Cambio de estado registrado')}</p>
           </article>
         ))
       ) : (
-        <p className="muted">Todavía no hay trazas registradas.</p>
+        <p className="muted">{t('Todavía no hay trazas registradas.')}</p>
       )}
     </div>
   );
@@ -470,6 +488,7 @@ function TraceView({ step, run }: { step: Step; run: Run }) {
 const edgeTypes = { current: CurrentEdge };
 const nodeTypes = { step: StepNode, job: JobNode };
 function FitCanvas({ view }: { view: string }) {
+  useLocale();
   const { getNodes, getInternalNode, setViewport } = useReactFlow();
   const initialized = useStore(
     (state) =>
@@ -527,17 +546,18 @@ async function api<T>(path: string, data?: unknown): Promise<T> {
   const body = await res.json();
   if (!res.ok) {
     const messages: Record<string, string> = {
-      REVISION_CONFLICT:
+      REVISION_CONFLICT: t(
         'El flujo cambió mientras decidías. Revisa el estado actualizado y vuelve a intentarlo.',
-      PAUSED: 'El flujo está en pausa.',
-      TERMINAL: 'Este flujo ya terminó.',
-      FORBIDDEN: 'Esta acción corresponde a otro participante.',
-      EVIDENCE_REQUIRED: 'Escribe una respuesta antes de continuar.',
+      ),
+      PAUSED: t('El flujo está en pausa.'),
+      TERMINAL: t('Este flujo ya terminó.'),
+      FORBIDDEN: t('Esta acción corresponde a otro participante.'),
+      EVIDENCE_REQUIRED: t('Escribe una respuesta antes de continuar.'),
     };
     throw new Error(
       messages[body.error] ||
         body.message ||
-        'No se pudo completar la solicitud.',
+        t('No se pudo completar la solicitud.'),
     );
   }
   return body as T;
@@ -551,6 +571,7 @@ function Modal({
   children: ReactNode;
   onClose: () => void;
 }) {
+  useLocale();
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const previous =
@@ -600,6 +621,7 @@ function Modal({
   );
 }
 export function App() {
+  const locale = useLocale();
   const [preferences, setPreferences] = usePreferences();
   const [notice, setNotice] = useState('');
   const popupTrigger = useRef<HTMLElement | null>(null);
@@ -905,6 +927,12 @@ export function App() {
             run,
             run.steps.find((s) => s.id === id),
             item.id,
+            {
+              yes: t('Sí'),
+              no: 'No',
+              other: t('Otra opción'),
+              next: t('Continuar'),
+            },
           ),
           labelStyle: { fontSize: 11, fill: '#655e50' },
           labelBgStyle: { fill: '#f7f5ef', fillOpacity: 0.95 },
@@ -923,6 +951,7 @@ export function App() {
     );
     return { nodes, edges };
   }, [
+    locale,
     run,
     activity,
     measurements,
@@ -972,25 +1001,33 @@ export function App() {
       if (['submit', 'approve'].includes(type))
         setNotice(
           updated.status === 'completed'
-            ? 'Elección guardada. El proceso terminó.'
+            ? t('Elección guardada. El proceso terminó.')
             : updated.steps.some((s) => s.status === 'ready')
               ? updated.continuation
-                ? 'Elección guardada. Sigue la reanudación en el canvas.'
+                ? t('Elección guardada. Sigue la reanudación en el canvas.')
                 : run.agentWaiting
-                  ? 'Elección guardada. El siguiente paso ya está habilitado.'
-                  : 'Elección guardada. Este flujo continúa desde el chat; no tiene reanudación automática.'
-              : 'Elección guardada. Sigue el estado de la siguiente tarea en el canvas.',
+                  ? t(
+                      'Elección guardada. El siguiente paso ya está habilitado.',
+                    )
+                  : t(
+                      'Elección guardada. Este flujo continúa desde el chat; no tiene reanudación automática.',
+                    )
+              : t(
+                  'Elección guardada. Sigue el estado de la siguiente tarea en el canvas.',
+                ),
         );
       if (type === 'retry')
         setNotice(
-          'Solicitud de reintento enviada. Se conserva el historial y tus respuestas.',
+          t(
+            'Solicitud de reintento enviada. Se conserva el historial y tus respuestas.',
+          ),
         );
       setConfirmation(null);
       if (['submit', 'approve', 'reject', 'cancel', 'retry'].includes(type))
         setPopup(null);
       await refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo guardar.');
+      setError(e instanceof Error ? e.message : t('No se pudo guardar.'));
       await refresh();
     } finally {
       setBusy(false);
@@ -1000,14 +1037,19 @@ export function App() {
     try {
       await navigator.clipboard.writeText(
         run
-          ? `Continúa el flujo de Hyperion ${run.id}. Lee su estado y mi respuesta; ejecuta solo los pasos habilitados y registra resultados reales.`
-          : 'Quiero usar Hyperion. Pregúntame qué actividad quiero realizar y crea el flujo desde mi respuesta.',
+          ? t(
+              'Continúa el flujo de Hyperion {0}. Lee su estado y mi respuesta; ejecuta solo los pasos habilitados y registra resultados reales.',
+              { 0: run.id },
+            )
+          : t(
+              'Quiero usar Hyperion. Pregúntame qué actividad quiero realizar y crea el flujo desde mi respuesta.',
+            ),
       );
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setError(
-        'No se pudo copiar. Puedes seleccionar y copiar el ID del flujo.',
+        t('No se pudo copiar. Puedes seleccionar y copiar el ID del flujo.'),
       );
     }
   }
@@ -1034,7 +1076,9 @@ export function App() {
     );
     if (!detached) {
       setError(
-        'El navegador bloqueó la ventana. Permite abrir ventanas para Hyperion y vuelve a intentarlo.',
+        t(
+          'El navegador bloqueó la ventana. Permite abrir ventanas para Hyperion y vuelve a intentarlo.',
+        ),
       );
       return;
     }
@@ -1050,7 +1094,7 @@ export function App() {
           onClick={() => openPanel('request')}
         >
           <MessageSquareText size={15} />
-          Petición original
+          {t('Petición original')}
         </button>
         <button
           className="secondary"
@@ -1061,7 +1105,7 @@ export function App() {
           onClick={() => openPanel('activity')}
         >
           <History size={15} />
-          Actividad
+          {t('Actividad')}
         </button>
       </div>
       <div className="canvas-tools-group">
@@ -1076,12 +1120,12 @@ export function App() {
             }
           >
             <Layers3 size={15} />
-            {preferences.view === 'steps' ? 'Ver trabajos' : 'Ver pasos'}
+            {preferences.view === 'steps' ? t('Ver trabajos') : t('Ver pasos')}
           </button>
         )}
         <button className="secondary continue-button" onClick={copyPrompt}>
           <Copy size={15} />
-          {copied ? 'Pega la petición en tu chat' : 'Copiar continuación'}
+          {copied ? t('Pega la petición en tu chat') : t('Copiar continuación')}
         </button>
         {(live || run.status === 'paused') && (
           <>
@@ -1091,17 +1135,17 @@ export function App() {
               onClick={() => void act(live ? 'pause' : 'resume')}
             >
               {live ? <Pause size={14} /> : <Play size={14} />}
-              {live ? 'Pausar' : 'Reanudar'}
+              {live ? t('Pausar') : t('Reanudar')}
             </button>
             <button
               className="secondary icon-button"
-              aria-label="Cancelar flujo"
+              aria-label={t('Cancelar flujo')}
               aria-haspopup="dialog"
               disabled={busy || !online}
               onClick={() => setConfirmation('cancel')}
             >
               <Square size={14} />
-              <span className="options-only">Cancelar flujo</span>
+              <span className="options-only">{t('Cancelar flujo')}</span>
             </button>
           </>
         )}
@@ -1121,7 +1165,7 @@ export function App() {
       >
         <header className="topbar canvas-topbar">
           <div className="canvas-identity">
-            <a className="brand" href="/" aria-label="Hyperion, inicio">
+            <a className="brand" href="/" aria-label={t('Hyperion, inicio')}>
               <span className="brand-mark">
                 <img src={hyperionLogo} alt="" width="32" height="32" />
               </span>
@@ -1129,13 +1173,13 @@ export function App() {
             </a>
             <button
               className="secondary flows-button"
-              aria-label="Mis flujos"
-              title="Mis flujos"
+              aria-label={t('Mis flujos')}
+              title={t('Mis flujos')}
               aria-haspopup="dialog"
               onClick={() => setPopup('runs')}
             >
               <Workflow size={15} />
-              <span className="flows-label">Mis flujos</span>
+              <span className="flows-label">{t('Mis flujos')}</span>
             </button>
             {run && (
               <div className="canvas-title">
@@ -1153,8 +1197,8 @@ export function App() {
           <div className="topbar-right">
             <button
               className="icon-button more-options"
-              aria-label="Más opciones"
-              title="Más opciones"
+              aria-label={t('Más opciones')}
+              title={t('Más opciones')}
               aria-haspopup="dialog"
               onClick={() => setPopup('options')}
             >
@@ -1162,7 +1206,7 @@ export function App() {
             </button>
             <button
               className="icon-button"
-              aria-label="Ajustes"
+              aria-label={t('Ajustes')}
               aria-haspopup="dialog"
               onClick={() => setPopup('settings')}
             >
@@ -1170,7 +1214,7 @@ export function App() {
             </button>
             <button
               className="icon-button"
-              aria-label="Guía de uso"
+              aria-label={t('Guía de uso')}
               aria-haspopup="dialog"
               onClick={() => setPopup('guide')}
             >
@@ -1178,14 +1222,20 @@ export function App() {
             </button>
             <span
               className={`connection ${online ? 'online' : ''}`}
-              title={streaming ? 'Eventos en directo' : 'Consultando conexión'}
+              title={
+                streaming ? t('Eventos en directo') : t('Consultando conexión')
+              }
             >
               <span />
-              {online ? 'Conectado' : loaded ? 'Sin conexión' : 'Conectando'}
+              {online
+                ? t('Conectado')
+                : loaded
+                  ? t('Sin conexión')
+                  : t('Conectando')}
             </span>
             <button
               className="icon-button"
-              aria-label="Ayuda de conexión"
+              aria-label={t('Ayuda de conexión')}
               aria-haspopup="dialog"
               onClick={() => setHelp(true)}
             >
@@ -1197,42 +1247,47 @@ export function App() {
           {!loaded ? (
             <div className="empty-state">
               <LoaderCircle className="spin" />
-              <h1>Cargando tu espacio…</h1>
+              <h1>{t('Cargando tu espacio…')}</h1>
             </div>
           ) : !run ? (
             <div className="empty-state">
               <span className="empty-symbol">
                 <Workflow size={34} />
               </span>
-              <span className="eyebrow">DE LA INTENCIÓN A LA ACCIÓN</span>
+              <span className="eyebrow">
+                {t('DE LA INTENCIÓN A LA ACCIÓN')}
+              </span>
               <h1>
                 {runId
-                  ? 'No encontramos ese flujo'
-                  : 'Tu trabajo, paso a paso.'}
+                  ? t('No encontramos ese flujo')
+                  : t('Tu trabajo, paso a paso.')}
               </h1>
               <p>
                 {runId
-                  ? 'Comprueba el enlace o vuelve a tus flujos recientes.'
-                  : 'Conecta tu herramienta de IA y transforma una petición en un proceso que puedes ver, guiar y aprobar.'}
+                  ? t('Comprueba el enlace o vuelve a tus flujos recientes.')
+                  : t(
+                      'Conecta tu herramienta de IA y transforma una petición en un proceso que puedes ver, guiar y aprobar.',
+                    )}
               </p>
               <button
                 className="primary"
                 onClick={() => (runId ? selectRun('') : setHelp(true))}
               >
-                {runId ? 'Ver mis flujos' : 'Conectar mi agente'}{' '}
+                {runId ? t('Ver mis flujos') : t('Conectar mi agente')}{' '}
                 <ArrowUpRight size={16} />
               </button>
               {!online && (
                 <p role="alert">
-                  No pudimos conectar con Hyperion. Comprueba que el servidor
-                  está activo.
+                  {t(
+                    'No pudimos conectar con Hyperion. Comprueba que el servidor está activo.',
+                  )}
                 </p>
               )}
             </div>
           ) : (
             <section
               className="canvas-workspace"
-              aria-label="Canvas del workflow"
+              aria-label={t('Canvas del workflow')}
             >
               {runTools}
               <div className="graph">
@@ -1244,6 +1299,10 @@ export function App() {
                   nodeTypes={nodeTypes}
                   edgeTypes={edgeTypes}
                   fitView
+                  ariaLabelConfig={{
+                    'controls.zoomIn.ariaLabel': t('Acercar'),
+                    'controls.zoomOut.ariaLabel': t('Alejar'),
+                  }}
                   fitViewOptions={{ padding: 0.12, maxZoom: 1 }}
                   minZoom={0.15}
                   maxZoom={1.5}
@@ -1286,7 +1345,7 @@ export function App() {
                     <Check size={16} />
                     <span>{notice}</span>
                     <button
-                      aria-label="Cerrar aviso"
+                      aria-label={t('Cerrar aviso')}
                       onClick={() => setNotice('')}
                     >
                       <X size={16} />
@@ -1297,7 +1356,7 @@ export function App() {
                   <div role="alert" className="canvas-alert popup-error">
                     {error}
                     <button
-                      aria-label="Cerrar error"
+                      aria-label={t('Cerrar error')}
                       onClick={() => setError('')}
                     >
                       <X size={14} />
@@ -1312,8 +1371,8 @@ export function App() {
                     >
                       <History size={17} />
                       <span>
-                        <strong>El plan cambió</strong>Revisa los cambios antes
-                        de reanudar
+                        <strong>{t('El plan cambió')}</strong>
+                        {t('Revisa los cambios antes de reanudar')}
                       </span>
                       <ArrowUpRight size={16} />
                     </button>
@@ -1331,9 +1390,10 @@ export function App() {
                     <UserRound size={17} />
                     <span>
                       <strong>
-                        Tu turno · {waiting} {waiting === 1 ? 'paso' : 'pasos'}
+                        {t('Tu turno ·')} {waiting}{' '}
+                        {waiting === 1 ? t('paso') : t('pasos')}
                       </strong>
-                      Responder en el canvas
+                      {t('Responder en el canvas')}
                     </span>
                     <ArrowUpRight size={16} />
                   </button>
@@ -1353,10 +1413,10 @@ export function App() {
                     <span>
                       <strong>{continuationLabel(run.continuation)}</strong>
                       {run.continuation.status === 'uncertain'
-                        ? 'El conector debe verificar si inició el turno'
+                        ? t('El conector debe verificar si inició el turno')
                         : run.continuation.status === 'failed'
-                          ? 'Abre la tarea para reintentar'
-                          : 'Ver estado de la tarea'}
+                          ? t('Abre la tarea para reintentar')
+                          : t('Ver estado de la tarea')}
                     </span>
                     <ArrowUpRight size={16} />
                   </button>
@@ -1365,10 +1425,10 @@ export function App() {
                   <button className="canvas-next" onClick={copyPrompt}>
                     <HarnessIcon name={run.coordinator} />
                     <span>
-                      <strong>Continuar desde el chat</strong>
+                      <strong>{t('Continuar desde el chat')}</strong>
                       {copied
-                        ? 'Pégala en tu chat para continuar'
-                        : 'Respuesta guardada · Copiar continuación'}
+                        ? t('Pégala en tu chat para continuar')
+                        : t('Respuesta guardada · Copiar continuación')}
                     </span>
                     <Copy size={15} />
                   </button>
@@ -1391,7 +1451,7 @@ export function App() {
           >
             <button
               className="modal-close icon-button"
-              aria-label="Cerrar popup"
+              aria-label={t('Cerrar popup')}
               onClick={() => setPopup(null)}
             >
               <X size={19} />
@@ -1410,14 +1470,14 @@ export function App() {
                       onClick={() => setPopup('step')}
                     >
                       <Layers3 size={15} />
-                      Detalle
+                      {t('Detalle')}
                     </button>
                     <button
                       className={popup === 'activity' ? 'active' : ''}
                       onClick={() => setPopup('activity')}
                     >
                       <History size={15} />
-                      Actividad
+                      {t('Actividad')}
                     </button>
                     <button
                       className={popup === 'io' ? 'active' : ''}
@@ -1446,7 +1506,7 @@ export function App() {
                         {step.jobId
                           ? `${run.jobs?.find((j) => j.id === step.jobId)?.title} · `
                           : ''}
-                        PASO{' '}
+                        {t('PASO')}{' '}
                         {String(run.steps.indexOf(step) + 1).padStart(2, '0')}
                         <span className={`status-tag ${step.status}`}>
                           <StatusIcon status={step.status} />
@@ -1466,19 +1526,27 @@ export function App() {
                         }}
                       >
                         <Focus size={15} />
-                        Enfocar tarea
+                        {t('Enfocar tarea')}
                       </button>
                       {!step.interaction &&
                         !(step.status === 'waiting' && live) && (
                           <p className="step-description">
                             {step.description ||
                               (isControl(step)
-                                ? 'El motor aplica este nodo automáticamente al cumplirse sus condiciones y dependencias.'
+                                ? t(
+                                    'El motor aplica este nodo automáticamente al cumplirse sus condiciones y dependencias.',
+                                  )
                                 : step.kind === 'manual'
-                                  ? 'Comparte la información que necesita el agente para avanzar.'
+                                  ? t(
+                                      'Comparte la información que necesita el agente para avanzar.',
+                                    )
                                   : step.kind === 'approval'
-                                    ? 'Revisa los resultados anteriores y decide si el proceso puede continuar.'
-                                    : 'El agente ejecutará este paso y registrará su resultado aquí.')}
+                                    ? t(
+                                        'Revisa los resultados anteriores y decide si el proceso puede continuar.',
+                                      )
+                                    : t(
+                                        'El agente ejecutará este paso y registrará su resultado aquí.',
+                                      ))}
                           </p>
                         )}
                       {step.kind === 'agent' &&
@@ -1491,8 +1559,8 @@ export function App() {
                           >
                             <RotateCcw size={16} />{' '}
                             {step.status === 'running'
-                              ? 'Recuperar tarea'
-                              : 'Reintentar paso'}
+                              ? t('Recuperar tarea')
+                              : t('Reintentar paso')}
                           </button>
                         )}
                       {step.status === 'waiting' && live && (
@@ -1520,10 +1588,10 @@ export function App() {
                         className="step-secondary"
                         open={!(step.status === 'waiting' && live)}
                       >
-                        <summary>Detalles del paso</summary>
+                        <summary>{t('Detalles del paso')}</summary>
                         <dl className="step-meta">
                           <div>
-                            <dt>Responsable</dt>
+                            <dt>{t('Responsable')}</dt>
                             <dd>
                               {step.kind === 'agent' ? (
                                 <HarnessIcon name={run.coordinator} />
@@ -1534,23 +1602,23 @@ export function App() {
                                 ? 'Hyperion'
                                 : step.kind === 'agent'
                                   ? null
-                                  : 'Tú'}
+                                  : t('Tú')}
                             </dd>
                           </div>
                           <div>
-                            <dt>Tipo de paso</dt>
+                            <dt>{t('Tipo de paso')}</dt>
                             <dd>{kindLabels[step.kind]}</dd>
                           </div>
                           {step.attempt > 0 && (
                             <div>
-                              <dt>Intento</dt>
+                              <dt>{t('Intento')}</dt>
                               <dd>#{step.attempt}</dd>
                             </div>
                           )}
                         </dl>
                         {step.dependencies.length > 0 && (
                           <div className="dependencies">
-                            <h3>Depende de</h3>
+                            <h3>{t('Depende de')}</h3>
                             {step.dependencies.map((id) => {
                               const dependency = run.steps.find(
                                 (s) => s.id === id,
@@ -1577,8 +1645,8 @@ export function App() {
                             <h3>
                               <CheckCheck size={15} />
                               {step.status === 'failed'
-                                ? 'Error registrado'
-                                : 'Resultado registrado'}
+                                ? t('Error registrado')
+                                : t('Resultado registrado')}
                             </h3>
                             <p>{step.result}</p>
                           </div>
@@ -1587,7 +1655,7 @@ export function App() {
                           <div className="step-hint">
                             <LockKeyhole size={16} />
                             <p>
-                              Este paso se habilitará cuando termine:{' '}
+                              {t('Este paso se habilitará cuando termine:')}{' '}
                               {blockedReason}.
                             </p>
                           </div>
@@ -1596,8 +1664,9 @@ export function App() {
                           <div className="step-hint">
                             <LoaderCircle className="spin" size={17} />
                             <p>
-                              El agente tiene este paso en curso. Puedes revisar
-                              sus avances en Actividad.
+                              {t(
+                                'El agente tiene este paso en curso. Puedes revisar sus avances en Actividad.',
+                              )}
                             </p>
                           </div>
                         )}
@@ -1605,22 +1674,22 @@ export function App() {
                           <div className="step-hint">
                             <Bot size={17} />
                             <p>
-                              Este paso está listo. Si tu chat terminó su turno,
-                              envía la continuación para que el agente lo
-                              retome.
+                              {t(
+                                'Este paso está listo. Si tu chat terminó su turno, envía la continuación para que el agente lo retome.',
+                              )}
                               <button
                                 className="secondary"
                                 onClick={copyPrompt}
                               >
                                 {copied
-                                  ? 'Pega la petición en tu chat'
-                                  : 'Copiar continuación'}
+                                  ? t('Pega la petición en tu chat')
+                                  : t('Copiar continuación')}
                               </button>
                             </p>
                           </div>
                         )}
                         <div className="step-history">
-                          <h3>Actividad de este paso</h3>
+                          <h3>{t('Actividad de este paso')}</h3>
                           {run.events
                             .filter((e) => e.stepId === step.id)
                             .slice(-4)
@@ -1642,7 +1711,7 @@ export function App() {
                             ))}
                           {!run.events.some((e) => e.stepId === step.id) && (
                             <p className="muted">
-                              Todavía no hay actividad registrada.
+                              {t('Todavía no hay actividad registrada.')}
                             </p>
                           )}
                         </div>
@@ -1650,11 +1719,11 @@ export function App() {
                     </div>
                   ) : (
                     <div className="activity-list">
-                      <h2 id="popup-title">Historial del flujo</h2>
+                      <h2 id="popup-title">{t('Historial del flujo')}</h2>
                       <p className="muted">
                         {streaming
-                          ? 'En directo · acciones y decisiones registradas'
-                          : 'Actualización periódica · reconectando eventos'}
+                          ? t('En directo · acciones y decisiones registradas')
+                          : t('Actualización periódica · reconectando eventos')}
                       </p>
                       {!!run.planChanges?.length && (
                         <PlanChanges
@@ -1698,23 +1767,24 @@ export function App() {
               )}
             {popup === 'options' && (
               <div className="options-panel">
-                <span className="eyebrow">ESPACIO DE TRABAJO</span>
-                <h2 id="popup-title">Más opciones</h2>
+                <span className="eyebrow">{t('ESPACIO DE TRABAJO')}</span>
+                <h2 id="popup-title">{t('Más opciones')}</h2>
                 {run && (
                   <p className="muted">
-                    {completed}/{run.steps.length} completados · {running} en
-                    curso{skipped > 0 ? ` · ${skipped} omitidos` : ''}
+                    {completed}/{run.steps.length} {t('completados ·')}{' '}
+                    {running} {t('en curso')}
+                    {skipped > 0 ? t(' · {0} omitidos', { 0: skipped }) : ''}
                   </p>
                 )}
                 {runTools}
                 <div className="workspace-options">
                   <button onClick={() => openPanel('legend')}>
                     <Route size={17} />
-                    Colores del flujo
+                    {t('Colores del flujo')}
                   </button>
                   <button onClick={() => openPanel('guide')}>
                     <BookOpen size={17} />
-                    Guía de uso
+                    {t('Guía de uso')}
                   </button>
                   <button
                     onClick={() => {
@@ -1723,18 +1793,19 @@ export function App() {
                     }}
                   >
                     <CircleHelp size={17} />
-                    Ayuda de conexión
+                    {t('Ayuda de conexión')}
                   </button>
                   {!navigator.userAgent.includes('Electron/') && (
                     <button onClick={openWindow}>
                       <ExternalLink size={17} />
-                      Abrir en ventana
+                      {t('Abrir en ventana')}
                     </button>
                   )}
                 </div>
                 <p className="muted">
-                  La ventana independiente mantiene este mismo flujo. Puedes
-                  dejarla junto a tu chat.
+                  {t(
+                    'La ventana independiente mantiene este mismo flujo. Puedes dejarla junto a tu chat.',
+                  )}
                 </p>
               </div>
             )}
@@ -1744,58 +1815,62 @@ export function App() {
             )}
             {popup === 'guide' && (
               <div className="usage-guide">
-                <span className="eyebrow">GUÍA DE USO</span>
-                <h2 id="popup-title">De la conversación al flujo</h2>
+                <span className="eyebrow">{t('GUÍA DE USO')}</span>
+                <h2 id="popup-title">{t('De la conversación al flujo')}</h2>
                 <ol>
                   <li>
-                    <strong>Pide en tu chat</strong>
+                    <strong>{t('Pide en tu chat')}</strong>
                     <span>
-                      «Usa Hyperion para [actividad]». Tu agente crea el plan y
-                      comparte el enlace.
+                      {t(
+                        '«Usa Hyperion para [actividad]». Tu agente crea el plan y comparte el enlace.',
+                      )}
                     </span>
                   </li>
                   <li>
-                    <strong>Explora trabajos y pasos</strong>
+                    <strong>{t('Explora trabajos y pasos')}</strong>
                     <span>
-                      En «Más opciones», «Ver trabajos» resume el plan. Pulsa un
-                      trabajo para desplegar el detalle. «Ajustes» permite
-                      elegir tema y navegación.
+                      {t(
+                        'En «Más opciones», «Ver trabajos» resume el plan. Pulsa un trabajo para desplegar el detalle. «Ajustes» permite elegir tema y navegación.',
+                      )}
                     </span>
                   </li>
                   <li>
-                    <strong>Enfoca una tarea</strong>
+                    <strong>{t('Enfoca una tarea')}</strong>
                     <span>
-                      Elige en «Ir a tarea». Abre detalles, datos o logs desde
-                      sus botones. «Vista general» muestra todo el flujo.
+                      {t(
+                        'Elige en «Ir a tarea». Abre detalles, datos o logs desde sus botones. «Vista general» muestra todo el flujo.',
+                      )}
                     </span>
                   </li>
                   <li>
-                    <strong>Sigue el avance</strong>
+                    <strong>{t('Sigue el avance')}</strong>
                     <span>
-                      Activa «Seguir actividad». La vista avanza a la tarea que
-                      requiere atención. Mover o ampliar el canvas vuelve a
-                      vista libre.
+                      {t(
+                        'Activa «Seguir actividad». La vista avanza a la tarea que requiere atención. Mover o ampliar el canvas vuelve a vista libre.',
+                      )}
                     </span>
                   </li>
                   <li>
-                    <strong>Participa</strong>
+                    <strong>{t('Participa')}</strong>
                     <span>
-                      En «Tu turno», lee la pregunta y guarda tu elección. I/O
-                      muestra entradas y salidas; Logs muestra acciones y
-                      resultados.
+                      {t(
+                        'En «Tu turno», lee la pregunta y guarda tu elección. I/O muestra entradas y salidas; Logs muestra acciones y resultados.',
+                      )}
                     </span>
                   </li>
                   <li>
-                    <strong>Continúa en tu chat</strong>
+                    <strong>{t('Continúa en tu chat')}</strong>
                     <span>
-                      «Continuar en…» copia una petición. Pégala en el mismo
-                      chat para que el agente retome el flujo.
+                      {t(
+                        '«Continuar en…» copia una petición. Pégala en el mismo chat para que el agente retome el flujo.',
+                      )}
                     </span>
                   </li>
                 </ol>
                 <p className="guide-note">
-                  El seguimiento mueve la vista. La ejecución continúa en tu
-                  herramienta de IA.
+                  {t(
+                    'El seguimiento mueve la vista. La ejecución continúa en tu herramienta de IA.',
+                  )}
                 </p>
               </div>
             )}
@@ -1803,28 +1878,30 @@ export function App() {
               <div className="request-popup">
                 <span className="eyebrow">
                   <Bot size={16} />
-                  Creado desde {titleCase(run.coordinator)}
+                  {t('Creado desde')} {titleCase(run.coordinator)}
                 </span>
-                <h2 id="popup-title">Petición original</h2>
+                <h2 id="popup-title">{t('Petición original')}</h2>
                 <p>
                   {run.request ||
-                    'Este flujo anterior no conserva la petición original.'}
+                    t('Este flujo anterior no conserva la petición original.')}
                 </p>
                 {run.description && (
                   <p className="request-description">{run.description}</p>
                 )}
-                <div className="code-note">ID del flujo: {run.id}</div>
+                <div className="code-note">
+                  {t('ID del flujo:')} {run.id}
+                </div>
                 <p className="muted">
-                  El agente registra los pasos desde tu petición. Cada nodo
-                  mantiene sus instrucciones, resultados y acciones en este
-                  canvas.
+                  {t(
+                    'El agente registra los pasos desde tu petición. Cada nodo mantiene sus instrucciones, resultados y acciones en este canvas.',
+                  )}
                 </p>
               </div>
             )}
             {popup === 'runs' && (
               <>
-                <h2 id="popup-title">Mis flujos</h2>
-                <p>Elige el workflow que quieres abrir en el canvas.</p>
+                <h2 id="popup-title">{t('Mis flujos')}</h2>
+                <p>{t('Elige el workflow que quieres abrir en el canvas.')}</p>
                 <div className="popup-run-list">
                   {runs.map((item) => (
                     <button
@@ -1845,7 +1922,9 @@ export function App() {
                   ))}
                   {!runs.length && (
                     <p>
-                      Tus flujos aparecerán aquí cuando tu agente los registre.
+                      {t(
+                        'Tus flujos aparecerán aquí cuando tu agente los registre.',
+                      )}
                     </p>
                   )}
                 </div>
@@ -1868,7 +1947,7 @@ export function App() {
           >
             <button
               className="modal-close icon-button"
-              aria-label="Cerrar ayuda"
+              aria-label={t('Cerrar ayuda')}
               onClick={() => setHelp(false)}
             >
               <X size={20} />
@@ -1876,40 +1955,47 @@ export function App() {
             <span className="empty-symbol">
               <Bot size={27} />
             </span>
-            <h2 id="help-title">Tu agente, conectado a Hyperion.</h2>
+            <h2 id="help-title">{t('Tu agente, conectado a Hyperion.')}</h2>
             <p>
-              Haz la petición en Codex, Claude, Cursor o tu herramienta
-              conectada. El agente registra un plan y ejecuta sus tareas; tú
-              respondes y apruebas aquí.
+              {t(
+                'Haz la petición en Codex, Claude, Cursor o tu herramienta conectada. El agente registra un plan y ejecuta sus tareas; tú respondes y apruebas aquí.',
+              )}
             </p>
             <ol>
               <li>
-                <strong>Plantea tu objetivo</strong>
-                <span>«Usa Hyperion para guiarme paso a paso…»</span>
+                <strong>{t('Plantea tu objetivo')}</strong>
+                <span>{t('«Usa Hyperion para guiarme paso a paso…»')}</span>
               </li>
               <li>
-                <strong>Participa desde el flujo</strong>
-                <span>Selecciona los pasos que indiquen «Tu turno».</span>
-              </li>
-              <li>
-                <strong>Continúa en el chat</strong>
+                <strong>{t('Participa desde el flujo')}</strong>
                 <span>
-                  Tras responder, pide al agente que lea el estado y continúe.
+                  {t('Selecciona los pasos que indiquen «Tu turno».')}
+                </span>
+              </li>
+              <li>
+                <strong>{t('Continúa en el chat')}</strong>
+                <span>
+                  {t(
+                    'Tras responder, pide al agente que lea el estado y continúe.',
+                  )}
                 </span>
               </li>
             </ol>
             <div className="code-note">
-              Escribe en tu chat: «Usa Hyperion para [tu actividad]». El agente
-              conecta el canvas y crea el plan. Aquí no necesitas escribir
-              comandos.
+              {t(
+                'Escribe en tu chat: «Usa Hyperion para [tu actividad]». El agente conecta el canvas y crea el plan. Aquí no necesitas escribir comandos.',
+              )}
             </div>
             <p className="muted">
-              Esta versión coordina a un agente externo. No inicia agentes ni
-              conversaciones automáticamente.
+              {t(
+                'Esta versión coordina a un agente externo. No inicia agentes ni conversaciones automáticamente.',
+              )}
             </p>
             <button className="primary full" onClick={copyPrompt}>
               <Copy size={16} />
-              {copied ? 'Petición copiada' : 'Copiar petición para mi agente'}
+              {copied
+                ? t('Petición copiada')
+                : t('Copiar petición para mi agente')}
             </button>
           </section>
         </Modal>
@@ -1927,19 +2013,25 @@ export function App() {
           >
             <h2 id="confirm-title">
               {confirmation === 'cancel'
-                ? 'Cancelar este flujo'
+                ? t('Cancelar este flujo')
                 : confirmation === 'retry'
-                  ? 'Recuperar tarea atascada'
-                  : 'Rechazar este paso'}
+                  ? t('Recuperar tarea atascada')
+                  : t('Rechazar este paso')}
             </h2>
             <p>
               {confirmation === 'retry'
-                ? 'Se habilitará un nuevo intento conservando tus respuestas y el historial. Esto no cancela herramientas externas: el agente debe comprobar qué terminó antes de repetir acciones.'
-                : 'El flujo quedará cerrado. Esta decisión no deshace acciones que el agente ya haya ejecutado.'}
+                ? t(
+                    'Se habilitará un nuevo intento conservando tus respuestas y el historial. Esto no cancela herramientas externas: el agente debe comprobar qué terminó antes de repetir acciones.',
+                  )
+                : t(
+                    'El flujo quedará cerrado. Esta decisión no deshace acciones que el agente ya haya ejecutado.',
+                  )}
             </p>
             {confirmation === 'reject' && (
               <>
-                <label htmlFor="rejection-reason">Motivo del rechazo</label>
+                <label htmlFor="rejection-reason">
+                  {t('Motivo del rechazo')}
+                </label>
                 <textarea
                   id="rejection-reason"
                   rows={3}
@@ -1959,7 +2051,7 @@ export function App() {
                 className="secondary"
                 onClick={() => setConfirmation(null)}
               >
-                Volver
+                {t('Volver')}
               </button>
               <button
                 className="danger"
@@ -1979,12 +2071,12 @@ export function App() {
                   )
                 }
               >
-                Confirmar{' '}
+                {t('Confirmar')}{' '}
                 {confirmation === 'cancel'
-                  ? 'cancelación'
+                  ? t('cancelación')
                   : confirmation === 'retry'
-                    ? 'recuperación'
-                    : 'rechazo'}
+                    ? t('recuperación')
+                    : t('rechazo')}
               </button>
             </div>
           </section>

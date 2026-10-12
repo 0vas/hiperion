@@ -1,3 +1,4 @@
+import { t, useLocale } from './i18n';
 import { useState } from 'react';
 import { Check, Plus, X } from 'lucide-react';
 import { fieldError, fieldLabel, type FormPort } from './decision-form';
@@ -12,6 +13,7 @@ export function DecisionFields({
   onChange: (values: Record<string, string>) => void;
   singleQuestion?: boolean;
 }) {
+  useLocale();
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const required = ports.filter((p) => p.required);
   const optional = ports.filter((p) => !p.required);
@@ -41,7 +43,7 @@ export function DecisionFields({
           <span
             className="decision-check"
             role="img"
-            aria-label={value.trim() && !error ? 'Resuelto' : 'Pendiente'}
+            aria-label={value.trim() && !error ? t('Resuelto') : t('Pendiente')}
           >
             {value.trim() && !error ? <Check size={13} /> : index + 1}
           </span>
@@ -76,7 +78,7 @@ export function DecisionFields({
                     )}
                     <span>
                       {v === 'true'
-                        ? port.form?.trueLabel || 'Sí'
+                        ? port.form?.trueLabel || t('Sí')
                         : port.form?.falseLabel || 'No'}
                     </span>
                   </label>
@@ -87,7 +89,7 @@ export function DecisionFields({
                     type="button"
                     onClick={() => change('')}
                   >
-                    Quitar respuesta
+                    {t('Quitar respuesta')}
                   </button>
                 )}
               </div>
@@ -116,7 +118,7 @@ export function DecisionFields({
                   aria-describedby={describedBy}
                 >
                   <option value="">
-                    {port.form.placeholder || 'Elige una opción…'}
+                    {port.form.placeholder || t('Elige una opción…')}
                   </option>
                   {port.form.options.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -135,7 +137,9 @@ export function DecisionFields({
                   onBlur={blur}
                   aria-invalid={!!error}
                   aria-describedby={describedBy}
-                  placeholder={port.form?.placeholder || 'Escribe una cantidad'}
+                  placeholder={
+                    port.form?.placeholder || t('Escribe una cantidad')
+                  }
                 />
               ) : (
                 <textarea
@@ -150,10 +154,10 @@ export function DecisionFields({
                   placeholder={
                     port.form?.placeholder ||
                     (port.type === 'string'
-                      ? 'Escribe una respuesta breve…'
+                      ? t('Escribe una respuesta breve…')
                       : port.type === 'array'
-                        ? '["Primer elemento", "Segundo elemento"]'
-                        : '{"nombre": "valor"}')
+                        ? t('["Primer elemento", "Segundo elemento"]')
+                        : t('{"nombre": "valor"}'))
                   }
                 />
               )}
@@ -172,14 +176,14 @@ export function DecisionFields({
     <section className="decision-checklist">
       {required.length > 1 && (
         <div className="checklist-progress">
-          <span>Tu lista</span>
+          <span>{t('Tu lista')}</span>
           <span aria-live="polite">
-            {answered} de {required.length} resueltos
+            {answered} {t('de')} {required.length} {t('resueltos')}
           </span>
         </div>
       )}
       {required.length > 0 && (
-        <ol aria-label="Lista de decisiones">{required.map(render)}</ol>
+        <ol aria-label={t('Lista de decisiones')}>{required.map(render)}</ol>
       )}
       {optional.length > 0 &&
         (required.length ? (
@@ -189,18 +193,20 @@ export function DecisionFields({
               <span>
                 {optional.length === 1
                   ? fieldLabel(optional[0]!)
-                  : 'Añadir detalles'}{' '}
-                <small>Opcional</small>
+                  : t('Añadir detalles')}{' '}
+                <small>{t('Opcional')}</small>
               </span>
             </summary>
-            <ol aria-label="Datos opcionales">{optional.map(render)}</ol>
+            <ol aria-label={t('Datos opcionales')}>{optional.map(render)}</ol>
           </details>
         ) : (
           <>
             <p className="field-hint">
-              Completa al menos un dato para continuar.
+              {t('Completa al menos un dato para continuar.')}
             </p>
-            <ol aria-label="Lista de decisiones">{optional.map(render)}</ol>
+            <ol aria-label={t('Lista de decisiones')}>
+              {optional.map(render)}
+            </ol>
           </>
         ))}
     </section>
