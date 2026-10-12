@@ -1,3 +1,4 @@
+import hyperionLogo from './brands/hyperion.png';
 import { continuationLabel } from './continuation-label';
 import { PlanChanges } from './PlanChanges';
 import { contextForStep, routeLabel } from '../domain/context';
@@ -1122,32 +1123,7 @@ export function App() {
           <div className="canvas-identity">
             <a className="brand" href="/" aria-label="Hyperion, inicio">
               <span className="brand-mark">
-                <svg
-                  viewBox="0 0 40 40"
-                  width="32"
-                  height="32"
-                  aria-hidden="true"
-                >
-                  <circle
-                    cx="20"
-                    cy="20"
-                    r="8"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M20 2v7m0 22v7M2 20h7m22 0h7M7 7l5 5m16 16 5 5M7 33l5-5m16-16 5-5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M16 15v10m8-10v10m-8-5h8"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  />
-                </svg>
+                <img src={hyperionLogo} alt="" width="32" height="32" />
               </span>
               <span className="brand-word">hyperion</span>
             </a>

@@ -1,6 +1,14 @@
-import { app, BrowserWindow, dialog, session, Menu, clipboard } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  session,
+  Menu,
+  clipboard,
+  shell,
+} from 'electron';
 import { fileURLToPath } from 'node:url';
-import { existsSync, writeFileSync } from 'node:fs';
+import { existsSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { setupDesktopClient } from '../dist/adapters/desktop-setup.js';
 import { connectWithDialog } from './onboarding.mjs';
@@ -10,7 +18,39 @@ import {
   rememberDesktop,
   rememberWorkspace,
 } from '../dist/adapters/desktop.js';
+import { createUpdateController } from './update-dialog.mjs';
+import { recoverStartup } from './startup.mjs';
 let window;
+const updater = createUpdateController({
+  app,
+  dialog,
+  shell,
+  getWindow: () => window,
+});
+function diagnostics(error) {
+  const folder = app.getPath('logs');
+  mkdirSync(folder, { recursive: true });
+  appendFileSync(
+    resolve(folder, 'startup.log'),
+    `${new Date().toISOString()} ${String(error.message || error)}\n`,
+    { mode: 0o600 },
+  );
+}
+async function startWithRecovery(args) {
+  return recoverStartup({
+    start: () => openRun(args),
+    dialog,
+    record: async (error) => {
+      try {
+        diagnostics(error);
+      } catch {}
+    },
+    showLogs: async () => {
+      await shell.openPath(app.getPath('logs'));
+    },
+    checkUpdates: () => updater.check(true),
+  });
+}
 let target;
 const pending = [];
 let connecting = false;
@@ -115,7 +155,6 @@ if (!app.requestSingleInstanceLock()) {
           permission === 'clipboard-sanitized-write',
         ),
       );
-      await openRun(process.argv);
       Menu.setApplicationMenu(
         Menu.buildFromTemplate([
           {
@@ -125,6 +164,11 @@ if (!app.requestSingleInstanceLock()) {
                 label: 'Conectar con mi IA',
                 click: () => connect(),
               },
+              {
+                label: 'Buscar actualizaciones…',
+                click: () => updater.check(true),
+              },
+              { label: 'Cancelar descarga', click: () => updater.cancel() },
               { type: 'separator' },
               { role: 'quit' },
             ],
@@ -135,6 +179,10 @@ if (!app.requestSingleInstanceLock()) {
         ]),
       );
 
+      if (!(await startWithRecovery(process.argv))) {
+        app.quit();
+        return;
+      }
       rememberDesktop({
         executable: process.execPath,
         args: app.isPackaged ? [] : [fileURLToPath(import.meta.url)],
@@ -144,7 +192,13 @@ if (!app.requestSingleInstanceLock()) {
         !target.run &&
         !existsSync(resolve(target.directory, 'desktop-onboarding.json'))
       )
-        void connect();
+        await connect();
+      if (app.isPackaged && !process.env.HYPERION_DISABLE_UPDATE_CHECK) {
+        const timer = setTimeout(() => {
+          if (!connecting) void updater.check(false);
+        }, 15000);
+        timer.unref();
+      }
     })
     .catch((error) => {
       report(error);
@@ -154,5 +208,6 @@ if (!app.requestSingleInstanceLock()) {
     if (!window || window.isDestroyed())
       void openRun(process.argv).catch(report);
   });
+  app.on('before-quit', () => updater.cancel());
   app.on('window-all-closed', () => app.quit());
 }

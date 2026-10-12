@@ -96,6 +96,19 @@ test('desktop and split share one real service, decisions and agent progress', a
     const page = await app.firstWindow();
     await page.getByRole('heading', { name: run.title }).waitFor();
     assert.equal(await page.evaluate(() => typeof window.require), 'undefined');
+    assert.equal(
+      await page
+        .locator('.brand-mark img')
+        .evaluate((img) => img.complete && img.naturalWidth > 0),
+      true,
+    );
+    assert.ok(
+      await app.evaluate(({ Menu }) =>
+        Menu.getApplicationMenu().items[0].submenu.items.some(
+          (item) => item.label === 'Buscar actualizaciones…',
+        ),
+      ),
+    );
     await app.evaluate(async ({ Menu, dialog }) => {
       const original = dialog.showMessageBox;
       let count = 0;
