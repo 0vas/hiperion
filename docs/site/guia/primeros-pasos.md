@@ -12,7 +12,7 @@ Necesitas una herramienta de IA compatible y Hyperion conectado a ella. La conex
 
 <Downloads />
 
-[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.0638).
+[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.1722).
 
 Elige el instalador para tu equipo: `.dmg` para Mac (Apple Silicon o Intel) y `.exe` para Windows x64. Ábrelo e instala la aplicación. En Mac, mueve Hyperion a **Aplicaciones** antes de conectar tu IA. Esta preview macOS tiene firma ad-hoc, pero no notarización: Apple puede bloquear su apertura. Windows no tiene firma de editor.
 
@@ -109,7 +109,7 @@ El modo automático toma el idioma del sistema o del navegador; si no está sopo
 Cambiar la interfaz no traduce nombres de tareas, preguntas del agente, respuestas, resultados ni logs. Tampoco reinicia el flujo ni descarta un formulario sin enviar. Los diagnósticos originales de herramientas y del servicio mantienen su texto para poder investigarlos.
 :::
 
-Este soporte está disponible en el código de `main`. El instalador **2026.10.12.0638 UTC** todavía no lo incluye; se incorporará al siguiente lanzamiento.
+Incluido en el instalador **2026.10.12.1722 UTC · Preview**, junto con los artefactos por paso y los recorridos enlazados.
 
 ## Actualizar Desktop
 

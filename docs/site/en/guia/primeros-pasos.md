@@ -101,11 +101,11 @@ Automatic mode follows the system or browser language and falls back to English 
 Switching the interface does not translate task names, agent questions, answers, results or logs. It does not restart the workflow or discard an unsubmitted form. Original tool and service diagnostics retain their text for troubleshooting.
 :::
 
-This support is available in the `main` source code. The **2026.10.12.0638 UTC** installer does not include it yet; it will be included in the next release.
+Included in the **2026.10.12.1722 UTC · Preview** installer, together with step artifacts and linked runs.
 
 ## Update Desktop
 
-From CalVer **2026.10.12.0638 UTC**, open **Hyperion → Buscar actualizaciones…**. The app checks GitHub and offers an installer for your computer; you choose whether to download it. Size and SHA-256 are checked before revealing the installer. Cancel with **Hyperion → Cancelar descarga**. Workflows remain in local storage.
+From CalVer **2026.10.12.0638 UTC**, open **Hyperion → Check for updates…**. The app checks GitHub and offers an installer for your computer; you choose whether to download it. Size and SHA-256 are checked before revealing the installer. Cancel with **Hyperion → Cancel download**. Workflows remain in local storage.
 
 **The first migration from 0.4 or 0.5.1 to CalVer is manual from this page**: the old updater does not recognize the new tags. Public versions use **YYYY.MM.DD.HHmm UTC**, including hours and minutes; Preview is a separate channel. Subsequent updates are compared chronologically.
 

@@ -76,5 +76,5 @@ Puedes decir en el mismo chat: «Ahora traduce esta guía al inglés». El agent
 **Continuar desde aquí**, al final del gráfico, te ayuda a preparar esa petición y copiarla al chat conectado. No ejecuta por sí mismo un agente. Si el proceso sigue abierto y necesitas cambiarlo, usa la revisión del plan; si falló una tarea, usa reintentar.
 
 ::: info Disponibilidad
-Los artefactos y recorridos enlazados están implementados en el código fuente. Un instalador anterior no incorpora estas funciones automáticamente: comprueba las notas de su versión.
+Los instaladores **2026.10.12.1722 UTC · Preview** incluyen artefactos y recorridos enlazados. [Descarga la nueva versión](primeros-pasos.md) si conservas una anterior.
 :::

@@ -162,4 +162,4 @@ An agent creates a linked run with `POST /api/runs` using `{commandId, plan, par
 
 The child records immutable `origin: {runId, revision, title}`. The parent's snapshot, revision and events remain unchanged. SQLite records the relationship atomically with the child and receipt. Each parent supports up to 32 direct continuations. Read responses project `links.previous` and `links.next[]`, each with `id`, `title`, `status` and `request`. SSE refreshes these links without inventing a parent revision. These navigation links sit outside the executable DAG: the canvas connects the prior end to the new start, and both runs retain independent states and coordinators.
 
-Implemented in source; a previously published installer does not gain these endpoints automatically.
+Included in Desktop **2026.10.12.1722 UTC · Preview**. Older installers require an update to provide these endpoints.

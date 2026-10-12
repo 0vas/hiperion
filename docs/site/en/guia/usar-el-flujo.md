@@ -72,5 +72,5 @@ Say in the same chat: “Now translate this guide into English.” The agent cre
 **Continue from here**, at the end of the graph, helps you draft that request and copy it to the connected chat. It does not execute an agent by itself. Use plan revision for changes to unfinished work, or retry for a failed task.
 
 ::: info Availability
-Artifacts and linked runs are implemented in source. Older installers do not acquire these features automatically; check their release notes.
+The **2026.10.12.1722 UTC · Preview** installers include artifacts and linked runs. [Download the new version](primeros-pasos.md) if you are using an older one.
 :::

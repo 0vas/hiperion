@@ -140,4 +140,4 @@ hyperion create /absolute/path/next-plan.json new-user-request-id --from COMPLET
 
 The portable skill's `guide` command accepts the same `--from` flag. MCP uses `hyperion_create_run` with `parentRunId`, `commandId` and the new `plan`. See [the sample plan](../examples/continue-guide.json). The new request must be real, not inferred from completion or elapsed time. The previous run remains completed; each canvas links to the other. This is separate from retrying an attempt or reconnecting a suspended chat. No provider gets automatic wakeup merely by supporting MCP.
 
-These artifact and cycle APIs are available in source. Public installer availability must be checked against its release notes.
+These artifact and cycle APIs ship in the **2026.10.12.1722 UTC · Preview** installers. Reconnect the harness after updating Desktop so it can load the new tools.

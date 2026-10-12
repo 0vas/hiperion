@@ -2,7 +2,7 @@
 
 Electron aloja el mismo canvas del navegador y usa el mismo servicio HTTP local autenticado. El proceso del chat conserva la ejecución: Desktop presenta decisiones y resultados. El usuario elige split/escritorio en la conversación; el adaptador `open RUN_ID desktop` lanza la instalación registrada en su primer arranque.
 
-La [preview descargable](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.0638) incluye instaladores para macOS Apple Silicon/Intel y Windows x64.
+La [preview descargable](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.1722) incluye instaladores para macOS Apple Silicon/Intel y Windows x64.
 
 ## Desarrollo y distribución
 
@@ -16,7 +16,7 @@ Los binarios pertenecen a GitHub Releases, no al historial Git. `release/` está
 
 ## Límites
 
-El renderizador tiene sandbox, aislamiento de contexto y Node deshabilitado; navegación y ventanas se limitan al origen local autenticado. No se permite abrir URLs remotas desde el canvas. La aplicación empaqueta archivos sin ASAR para que su proceso Node independiente pueda servir los assets y sobrevivir al cierre de la ventana. No hay bridge IPC de filesystem expuesto al renderizador.
+El renderizador tiene sandbox, aislamiento de contexto y Node deshabilitado; navegación y ventanas se limitan al origen local autenticado. Los enlaces HTTP(S) de artefactos se abren en el navegador del sistema; el renderizador sigue limitado al origen local. La aplicación empaqueta archivos sin ASAR para que su proceso Node independiente pueda servir los assets y sobrevivir al cierre de la ventana. No hay bridge IPC de filesystem expuesto al renderizador.
 
 Si otro servicio ocupa el puerto o las credenciales no coinciden, la aplicación informa del error; no toma control de esa instancia. Para apuntar a otro servicio hay que cerrar la ventana actual. El servidor continúa al cerrar Desktop para que split y el chat conserven acceso.
 
@@ -55,6 +55,10 @@ Para generar una distribución macOS notarizada, ejecutar **Desktop installers**
 Para publicar archivos ya probados sin volver a compilarlos, crear primero una release **draft** con notas revisadas y `target_commitish` igual al commit del build. Ejecutar **Publish verified Desktop artifacts** con el ID de un run exitoso de **Desktop installers** en `main`. El workflow verifica procedencia, selecciona cada instalador desde su plataforma nativa, sube a la release draft y compara tamaño y SHA-256 remotos antes de publicarla. Rechaza releases ya públicas; no sobrescribe sus binarios. No añade notarización a los artefactos.
 
 La web usa `docs/site/.vitepress/release.json` como registro de la última release **publicada**. Actualizarlo solo después de subir y verificar los instaladores; no anunciar un enlace antes de que exista su asset. El campo `macNotarized` solo puede ser verdadero con evidencia de notarización y validación de Gatekeeper.
+
+## Entregables y recorridos enlazados (2026.10.12.1722)
+
+Esta preview incluye español e inglés, artefactos por paso con vista previa/descarga y vínculos entre un flujo completado y un nuevo recorrido. Los archivos permanecen asociados a su intento; la continuación conserva el historial anterior. La publicación no añade notarización.
 
 ## Interface language
 

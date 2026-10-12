@@ -17,7 +17,7 @@ El modo automático toma el idioma del sistema o del navegador; si no está sopo
 **Tu contenido conserva su idioma.**
 Cambiar la interfaz no traduce nombres de tareas, preguntas del agente, respuestas, resultados ni logs. Tampoco reinicia el flujo ni descarta un formulario sin enviar. Los diagnósticos originales de herramientas y del servicio mantienen su texto para poder investigarlos.
 
-Este soporte está disponible en el código de `main`. El instalador **2026.10.12.0638 UTC** todavía no lo incluye; se incorporará al siguiente lanzamiento.
+Incluido en el instalador **2026.10.12.1722 UTC · Preview**, junto con los artefactos por paso y los recorridos enlazados.
 
 ## Invocarlo desde una conversación
 
@@ -196,4 +196,4 @@ Después de completar el flujo puedes continuar la conversación, por ejemplo: �
 
 También puedes usar **Continuar desde aquí** al final del gráfico para preparar la nueva petición y copiarla al chat conectado. Ese botón no inicia un agente por sí mismo. Una continuación nueva no sirve para saltar una aprobación pendiente ni para recuperar una tarea atascada; esas situaciones usan los controles existentes.
 
-Estas funciones están implementadas en el código fuente. Los instaladores publicados con anterioridad no se actualizan por cambiar la documentación.
+Estas funciones están incluidas en el instalador **2026.10.12.1722 UTC · Preview**. Actualiza desde [la página de descarga](conexion.md) o desde Buscar actualizaciones en Desktop.
