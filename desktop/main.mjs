@@ -1,3 +1,4 @@
+import { VERSION, RELEASE_CHANNEL } from '../dist/version.js';
 import {
   app,
   BrowserWindow,
@@ -26,6 +27,8 @@ const updater = createUpdateController({
   dialog,
   shell,
   getWindow: () => window,
+  currentVersion: VERSION,
+  channel: RELEASE_CHANNEL,
 });
 function diagnostics(error) {
   const folder = app.getPath('logs');
@@ -155,11 +158,19 @@ if (!app.requestSingleInstanceLock()) {
           permission === 'clipboard-sanitized-write',
         ),
       );
+      app.setAboutPanelOptions({
+        applicationName: 'Hyperion',
+        applicationVersion: `${VERSION} UTC · ${RELEASE_CHANNEL}`,
+      });
       Menu.setApplicationMenu(
         Menu.buildFromTemplate([
           {
             label: 'Hyperion',
             submenu: [
+              {
+                label: `Hyperion ${VERSION} UTC`,
+                click: () => app.showAboutPanel(),
+              },
               {
                 label: 'Conectar con mi IA',
                 click: () => connect(),

@@ -1,6 +1,6 @@
 {
   "name": "hyperion-workflows",
-  "version": "0.5.1-preview.1",
+  "version": "2026.10.12-build.398",
   "private": true,
   "description": "Human-guided workflows for any AI tool",
   "license": "MIT",
@@ -26,7 +26,8 @@
     "desktop": "npm run build && electron desktop/main.mjs",
     "desktop:pack": "npm run build && electron-builder --config desktop/builder.config.cjs --dir --publish never",
     "desktop:dist": "npm run build && electron-builder --config desktop/builder.config.cjs --publish never",
-    "test:desktop": "node --test tests/desktop-smoke.mjs tests/desktop-runtime.mjs"
+    "test:desktop": "node --test tests/desktop-smoke.mjs tests/desktop-runtime.mjs",
+    "release:sync": "node scripts/sync-release.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",

@@ -81,3 +81,7 @@ Maintain source JSON and generated Archify HTML together. Archify is the interac
 Keep the canvas primary, tasks compact, forms explicit and details progressively disclosed. Use SVG UI icons, meaningful state colors with text/symbols, and motion that communicates state. Background motion must loop without a visible reset and honor pause, hidden tabs and reduced motion. Never let decorative animation imply runtime progress.
 
 Do not publish, deploy, push or send messages externally without user authorization. Existing explicit authorization in the current conversation applies; do not ask again for an already authorized action. Follow the user's chosen branch/PR workflow and verify deployment before claiming the public site is updated.
+
+## Release identity
+
+Use public UTC CalVer `YYYY.MM.DD.HHmm` from `src/release.json`, with a separate preview/stable channel. Run `npm run release:sync` when changing it; package/native versions are compatibility encodings, not product SemVer. Keep artifact names, runtime, web and release notes aligned. Never overwrite an already published minute. The old 0.5.1 updater needs one manual migration to CalVer. A request for notarized distribution must fail if credentials are absent; do not quietly ship ad-hoc as an equivalent.

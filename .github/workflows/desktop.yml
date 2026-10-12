@@ -1,6 +1,11 @@
 name: Desktop installers
 on:
   workflow_dispatch:
+    inputs:
+      notarized:
+        description: Require Apple-notarized macOS distribution (fails without credentials)
+        type: boolean
+        default: false
   push:
     paths:
       - 'desktop/**'
@@ -10,6 +15,9 @@ on:
       - '.github/workflows/desktop.yml'
       - '.gitattributes'
       - 'src/client/brands/hyperion.png'
+      - 'src/release.json'
+      - 'src/version.ts'
+      - 'scripts/sync-release.mjs'
 permissions:
   contents: read
 concurrency:
@@ -43,6 +51,7 @@ jobs:
       - run: npm run test:desktop
       - run: npm run desktop:dist -- ${{ matrix.target }}
         env:
+          HYPERION_REQUIRE_NOTARIZATION: ${{ runner.os == 'macOS' && inputs.notarized && '1' || '0' }}
           CSC_LINK: ${{ runner.os == 'macOS' && secrets.CSC_LINK || '' }}
           CSC_KEY_PASSWORD: ${{ runner.os == 'macOS' && secrets.CSC_KEY_PASSWORD || '' }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -60,6 +69,8 @@ jobs:
           if [ "$HYPERION_SIGNED" = "true" ]; then
             xcrun stapler validate "$HYPERION_BUNDLE"
             spctl --assess --type execute --verbose=2 "$HYPERION_BUNDLE"
+          else
+            echo "### macOS preview is NOT Apple-notarized; Gatekeeper can block it." >> "$GITHUB_STEP_SUMMARY"
           fi
       - run: npm run test:desktop
         env:

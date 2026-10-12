@@ -41,3 +41,13 @@ Si el servicio no inicia, Desktop mantiene un diálogo con Reintentar, Ver diagn
 Al aceptar Descargar actualización, el usuario elige dónde guardarla. La app muestra progreso, permite **Cancelar descarga** y valida tamaño y SHA-256 publicados por GitHub antes de reemplazar el archivo de destino. Los archivos parciales se eliminan si falla la descarga. Solo se aceptan assets del repositorio oficial. El digest comprueba integridad, no notarización. Se muestra el instalador en Finder/Explorer; no se ejecuta ni se instala silenciosamente. La versión 0.4.0 no dispone de este menú y necesita la primera actualización manual.
 
 La marca canónica es `docs/site/public/brand/hyperion-titan.png`; Desktop y el canvas usan copias idénticas comprobadas por `tests/desktop-brand.test.ts`. Después de cambiar la marca hay que regenerar instaladores; modificar Pages no modifica una release anterior.
+
+## Versiones CalVer y bloqueo de macOS
+
+Desde `2026.10.12.0638`, la identidad pública es **AAAA.MM.DD.HHMM UTC**: el minuto queda fijado al preparar la release en `src/release.json`. El canal (`preview` o `stable`) es independiente. No se renombra una release antigua ni se reutiliza su versión para binarios distintos. `npm run release:sync` actualiza la codificación de compatibilidad de npm; `desktop/release-version.cjs` genera números nativos para Apple/Windows. Esos campos técnicos no representan incrementos SemVer. Runtime, etiquetas, instaladores, menú Acerca de y web muestran CalVer.
+
+**La 0.5.1 no entiende etiquetas CalVer: la primera migración es manual desde la web.** Las siguientes actualizaciones usan el comparador CalVer. Un canal estable no recibe previews; un fallo de red no significa estar actualizado.
+
+El aviso «Apple could not verify Hyperion.app is free of malware» bloquea esta preview por falta de notarización; sellar con firma ad-hoc no lo elimina. Si el usuario decide confiar en su copia oficial, después de intentar abrirla puede elegir **Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente**, confirmar y volver a abrir. Es una excepción para esa app; no debe desactivarse Gatekeeper globalmente. [Procedimiento de Apple](https://support.apple.com/en-us/102445). No confundirlo con avisos de malware detectado o de app dañada: requieren diagnóstico.
+
+Para generar una distribución macOS notarizada, ejecutar **Desktop installers** con `notarized=true`. El build falla si faltan credenciales Developer ID/notarización; nunca degrada silenciosamente esa solicitud a ad-hoc. Las compilaciones preview siguen disponibles, pero CI las identifica como **NOT Apple-notarized**. Sin certificado Developer ID y cuenta Apple Developer, la distribución sin este bloqueo continúa pendiente.

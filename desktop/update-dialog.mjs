@@ -5,6 +5,8 @@ export function createUpdateController({
   dialog,
   shell,
   getWindow,
+  currentVersion = app.getVersion(),
+  channel,
   check = checkForUpdate,
   download = downloadUpdate,
 }) {
@@ -20,16 +22,18 @@ export function createUpdateController({
       const window = getWindow();
       try {
         const update = await check(
-          app.getVersion(),
+          currentVersion,
           process.platform,
           process.arch,
+          undefined,
+          channel,
         );
         if (!update) {
           if (manual)
             await dialog.showMessageBox(window, {
               type: 'info',
               message: 'No hay una versión más reciente compatible',
-              detail: `Versión instalada: ${app.getVersion()}`,
+              detail: `Versión instalada: ${currentVersion}`,
               buttons: ['Listo'],
             });
           return;
@@ -37,7 +41,7 @@ export function createUpdateController({
         const answer = await dialog.showMessageBox(window, {
           type: 'info',
           message: `Hyperion ${update.version} está disponible`,
-          detail: `Tienes ${app.getVersion()}. Se descargará el instalador desde GitHub y se verificará su integridad. La instalación se realiza después, con las comprobaciones de tu sistema.`,
+          detail: `Tienes ${currentVersion}. Se descargará el instalador desde GitHub y se verificará su integridad. La instalación se realiza después, con las comprobaciones de tu sistema.`,
           buttons: ['Descargar actualización', 'Ahora no'],
           cancelId: 1,
         });

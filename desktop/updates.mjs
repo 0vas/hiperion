@@ -1,9 +1,12 @@
+import { parseCalVer } from './release-version.cjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { open, rename, rm } from 'node:fs/promises';
 
 const releasesURL =
   'https://api.github.com/repos/0vas/hyperion/releases?per_page=30';
 function version(value) {
+  const calendar = parseCalVer(value);
+  if (calendar) return calendar;
   const match =
     /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([\da-zA-Z.-]+))?$/.exec(
       value,
@@ -13,6 +16,8 @@ function version(value) {
     : null;
 }
 function compare(a, b) {
+  if (a.calver || b.calver)
+    return a.calver && b.calver ? a.timestamp - b.timestamp : a.calver ? 1 : -1;
   for (let i = 0; i < 3; i++)
     if (a.numbers[i] !== b.numbers[i]) return a.numbers[i] - b.numbers[i];
   if (!a.pre || !b.pre) return a.pre ? -1 : b.pre ? 1 : 0;
@@ -44,7 +49,7 @@ function validAsset(asset, tag) {
     )
   );
 }
-export function selectRelease(releases, current, platform, arch) {
+export function selectRelease(releases, current, platform, arch, channel) {
   const installed = version(current);
   if (!installed) throw new Error('Versión instalada inválida.');
   if (!Array.isArray(releases))
@@ -64,7 +69,8 @@ export function selectRelease(releases, current, platform, arch) {
           release.draft ||
           !next ||
           compare(next, installed) <= 0 ||
-          (!installed.pre && (release.prerelease || next.pre))
+          ((channel || (installed.pre ? 'preview' : 'stable')) !== 'preview' &&
+            (release.prerelease || next.pre))
         )
           return [];
         const name = `Hyperion-${release.tag_name.replace(/^v/, '')}-${suffix}`;
@@ -85,7 +91,13 @@ export function selectRelease(releases, current, platform, arch) {
     null
   );
 }
-export async function checkForUpdate(current, platform, arch, fetcher = fetch) {
+export async function checkForUpdate(
+  current,
+  platform,
+  arch,
+  fetcher = fetch,
+  channel,
+) {
   const response = await fetcher(releasesURL, {
     headers: {
       Accept: 'application/vnd.github+json',
@@ -98,7 +110,7 @@ export async function checkForUpdate(current, platform, arch, fetcher = fetch) {
     throw new Error(
       `GitHub respondió ${response.status}. Inténtalo más tarde.`,
     );
-  return selectRelease(await response.json(), current, platform, arch);
+  return selectRelease(await response.json(), current, platform, arch, channel);
 }
 export async function downloadUpdate(
   update,
