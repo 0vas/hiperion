@@ -67,3 +67,13 @@ Esta preview incluye español e inglés, artefactos por paso con vista previa/de
 The sandboxed preload exposes only language get/set and change notifications. Main-process handlers validate the owning window, local origin, main frame and allowed preference before writing. Browser-only use persists a separate `hyperion.language.v1` localStorage preference. No translation service receives workflow content. Raw service/tool diagnostics retain their original language.
 
 When adding interface copy, use the translation helpers and update the English catalog. Avoid translating plan titles, field labels supplied by agents, answers, receipts or other evidence. Run the language unit/native-dialog tests and `tests/e2e/i18n.spec.ts`; the Desktop smoke test also switches languages while a human decision is unsaved.
+
+## Sustitución del servicio al actualizar (2026.10.12.2101)
+
+Al abrir la nueva app, el lanzador compara la versión del servicio y autentica sus credenciales. Para una versión anterior verifica el PID que escucha en loopback, su propietario y la línea de comando exacta del runtime/servidor de esta instalación. Un proceso ajeno, una instalación movida o una versión más reciente no se detienen.
+
+Antes de reemplazar el servicio crea una copia consistente mediante SQLite `VACUUM INTO` en `<datos>/backups/before-upgrade-*.sqlite` y comprueba su integridad. Mantiene la misma base de datos y credenciales: no restaura un snapshot antiguo, reinicia tareas ni cambia decisiones. Dos lanzadores simultáneos se coordinan con un bloqueo local. Un fallo del respaldo impide detener el servicio.
+
+En macOS/Linux usa SIGTERM para el cierre del servidor; Windows termina solo el proceso identificado y SQLite recupera las transacciones confirmadas del WAL. Los clientes pueden reconectar después del breve corte. Una tarea externa en curso permanece en su estado registrado; sus efectos no se reejecutan. La copia previa queda guardada para recuperación y no se elimina automáticamente. Este mecanismo no instala el nuevo binario: el usuario sigue abriendo el instalador descargado.
+
+Validación: `tests/runtime-upgrade.test.ts` cubre rechazos y bloqueo; `tests/desktop-upgrade.mjs` conserva estados, artefactos, vínculos y recibos entre procesos con versiones distintas, también con el runtime empaquetado de cada plataforma.

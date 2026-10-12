@@ -119,4 +119,6 @@ Desde la versión CalVer **2026.10.12.0638 UTC**, abre **Hyperion → Buscar act
 
 La versión 0.4.0 necesita una actualización manual. Su bundle macOS tiene una firma incompleta; volver a descargar el mismo instalador no corrige esa firma. La nueva preview sella correctamente el bundle, pero **no está notarizada por Apple**. Una firma ad-hoc no garantiza aceptación por Gatekeeper. Si macOS bloquea la instalación, consulta la [guía de Apple](https://support.apple.com/102445); no desactives la protección global del equipo.
 
-Si falla el servicio local, la nueva app muestra opciones para reintentar, abrir el diagnóstico o buscar actualizaciones. Si el puerto ya lo usa otra versión, debes cerrar esa instancia antes de reintentar; tus ejecuciones no se borran.
+Desde **2026.10.12.2101**, al abrir la app actualizada, Hyperion respalda y reinicia automáticamente el servicio antiguo de la misma instalación. Conserva flujos, archivos, respuestas e historial; no vuelve a ejecutar tareas. No necesitas reiniciar el ordenador. La copia previa queda en `backups` dentro del almacenamiento local.
+
+Si el puerto pertenece a otro programa o instalación, las credenciales no coinciden o no puede crear el respaldo, conserva el proceso y muestra el diagnóstico. Una app antigua tampoco detiene un servicio más reciente. Las opciones Reintentar, Ver diagnóstico y Buscar actualizaciones siguen disponibles.

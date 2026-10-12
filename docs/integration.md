@@ -141,3 +141,7 @@ hyperion create /absolute/path/next-plan.json new-user-request-id --from COMPLET
 The portable skill's `guide` command accepts the same `--from` flag. MCP uses `hyperion_create_run` with `parentRunId`, `commandId` and the new `plan`. See [the sample plan](../examples/continue-guide.json). The new request must be real, not inferred from completion or elapsed time. The previous run remains completed; each canvas links to the other. This is separate from retrying an attempt or reconnecting a suspended chat. No provider gets automatic wakeup merely by supporting MCP.
 
 These artifact and cycle APIs ship in the **2026.10.12.1722 UTC · Preview** installers. Reconnect the harness after updating Desktop so it can load the new tools.
+
+## Upgrading the local runtime
+
+From 2026.10.12.2101, Desktop, CLI and MCP share a launcher that automatically replaces an older authenticated server from the same installation. It checks the listening PID, OS owner and exact server command, creates an integrity-checked SQLite backup, serializes concurrent launches, then reuses the original data directory and credentials. Other installations, unknown processes, failed authentication/backups and newer servers are never terminated. Existing clients reconnect; an interrupted request retries with its original command ID. This restarts the service, not workflow tasks or an idle conversation. No provider-specific wakeup capability is added.

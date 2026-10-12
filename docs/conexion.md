@@ -68,7 +68,7 @@ Para generar una distribución desde las fuentes: `npm ci` y `npm pack` (el empa
 
 La skill incluye rutas absolutas al ejecutable y al almacenamiento, sin tokens. Las instalaciones de paquete usan `~/.hyperion` por defecto; el checkout actual conserva su `.hyperion` existente. `HYPERION_DATA_DIR` permite elegir otra ubicación. Así, cambiar de proyecto no crea otra instancia ni pierde los flujos. `--agent ID` permite registrar cualquier identidad local, sin lista cerrada de marcas.
 
-Si mueves Hyperion o lo actualizas, vuelve a ejecutar `hyperion install` (en las fuentes, construye antes con `npm run build`). Se conservan las skills ajenas; una modificación manual de los archivos administrados provoca un conflicto explícito. Para retirar la integración, elimina únicamente las carpetas de skill mostradas por el instalador; esto no borra tus flujos. El servicio iniciado sigue disponible al terminar el chat. Una versión antigua que ocupe el puerto debe detenerse antes de cargar una nueva.
+Si mueves Hyperion o lo actualizas, vuelve a ejecutar `hyperion install` (en las fuentes, construye antes con `npm run build`). Se conservan las skills ajenas; una modificación manual de los archivos administrados provoca un conflicto explícito. Para retirar la integración, elimina únicamente las carpetas de skill mostradas por el instalador; esto no borra tus flujos. El servicio iniciado sigue disponible al terminar el chat. Desde el código de 2026.10.12.2101, el lanzador respalda SQLite y sustituye automáticamente el servicio antiguo de la misma instalación, conservando credenciales y flujos. Si es otra instalación o no puede autenticarla, no la detiene.
 
 El reconocimiento nativo en cada producto debe verificarse tras recargar su sesión. Las pruebas automatizadas verifican instalación, ejecución del script, API y MCP; no equivalen a una conversación nativa completa en cada cliente.
 
@@ -84,7 +84,7 @@ npm run hyperion -- setup cursor
 
 `setup` resuelve las rutas de Node y del adaptador, registra la identidad y configura el cliente. Construye el adaptador si todavía no existe. Codex y Claude Code requieren su CLI instalada; Cursor recibe una entrada en su configuración local de usuario. Los demás servidores se conservan; una entrada distinta de Hyperion en Cursor se señala como conflicto.
 
-Recarga las herramientas MCP o abre una sesión nueva del cliente. Al cargar Hyperion, el adaptador inicia el servidor local si hace falta y reutiliza la instancia autenticada si ya existe. El arranque no escribe mensajes en el canal de herramientas; sus logs quedan en `.hyperion/server.log`. La instancia permanece disponible después de cerrar el adaptador. Si una versión anterior ocupa el puerto, detén esa instancia antes de reconectar. Tras actualizar el repositorio, ejecuta `npm run build`.
+Recarga las herramientas MCP o abre una sesión nueva del cliente. Al cargar Hyperion, el adaptador inicia el servidor local si hace falta y reutiliza la instancia autenticada si ya existe. El arranque no escribe mensajes en el canal de herramientas; sus logs quedan en `.hyperion/server.log`. La instancia permanece disponible después de cerrar el adaptador. La actualización sustituye el servicio antiguo autenticado de la misma instalación después de respaldar SQLite; un proceso ajeno se conserva. Tras actualizar el repositorio, ejecuta `npm run build`.
 
 Luego basta con escribir en el chat:
 

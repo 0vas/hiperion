@@ -22,6 +22,8 @@ Tres vistas del mismo sistema. Selecciona una y abre Archify para explorar los c
 
 <ArchitectureAtlas kind="deployment" />
 
+El lanzador compartido puede sustituir el servicio antiguo autenticado de la misma instalación después de verificar su proceso y crear un respaldo consistente de SQLite. Conserva el estado de los flujos y las tareas externas; no añade un endpoint de apagado ni reanudación del chat. [Ciclo de actualización del runtime](https://github.com/0vas/hyperion/blob/main/docs/decisions/0034-runtime-replacement-on-upgrade.md).
+
 Desktop también comprueba releases de GitHub y descarga instaladores tras confirmación, validando tamaño y SHA-256. La integridad ad-hoc de macOS no equivale a notarización. [Decisión de distribución y actualizaciones](https://github.com/0vas/hyperion/blob/main/docs/decisions/0031-desktop-integrity-and-updates.md).
 
 ::: info Lo que está disponible

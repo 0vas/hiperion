@@ -22,6 +22,8 @@ Three views of the same system. Select one and open Archify to explore the compo
 
 <ArchitectureAtlas kind="deployment" />
 
+The shared launcher can replace an older authenticated service from the same installation after verifying its process identity and creating an integrity-checked SQLite backup. This preserves workflow state and external tasks; it adds no shutdown endpoint or chat wakeup. [Runtime upgrade lifecycle](https://github.com/0vas/hyperion/blob/main/docs/decisions/0034-runtime-replacement-on-upgrade.md).
+
 Desktop also checks GitHub releases and downloads installers after confirmation, validating size and SHA-256. macOS ad-hoc integrity is not notarization. [Distribution and update decision](https://github.com/0vas/hyperion/blob/main/docs/decisions/0031-desktop-integrity-and-updates.md).
 
 ::: info What is available
