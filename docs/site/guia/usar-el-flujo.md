@@ -88,3 +88,5 @@ Arrastra el asa de puntos sobre una tarjeta o símbolo. Con teclado, enfoca el n
 ::: tip Tu distribución, el mismo proceso
 Las posiciones se conservan en este navegador por flujo, orientación y vista de pasos/trabajos, incluso al recibir actividad del agente. No cambian las dependencias ni el historial, y no se sincronizan con otros dispositivos.
 :::
+
+Disponible en los instaladores **2026.10.12.2204 UTC · Preview**. [Descargar](primeros-pasos.md).

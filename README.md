@@ -40,11 +40,11 @@ Google Antigravity is supported by the Desktop connection assistant and `setup a
 
 The request is enough: the agent asks for missing context, constructs the workflow and shares its canvas. You can request **split** or **desktop** in the chat; both show the same run. After a human handoff, ask the chat to continue. Hyperion does not wake an idle conversation automatically.
 
-**Direct downloads:** [macOS · Apple Silicon](https://github.com/0vas/hyperion/releases/download/v2026.10.12.2101/Hyperion-2026.10.12.2101-mac-arm64.dmg) · [macOS · Intel](https://github.com/0vas/hyperion/releases/download/v2026.10.12.2101/Hyperion-2026.10.12.2101-mac-x64.dmg) · [Windows · x64](https://github.com/0vas/hyperion/releases/download/v2026.10.12.2101/Hyperion-2026.10.12.2101-win-x64.exe).
+**Direct downloads:** [macOS · Apple Silicon](https://github.com/0vas/hyperion/releases/download/v2026.10.12.2204/Hyperion-2026.10.12.2204-mac-arm64.dmg) · [macOS · Intel](https://github.com/0vas/hyperion/releases/download/v2026.10.12.2204/Hyperion-2026.10.12.2204-mac-x64.dmg) · [Windows · x64](https://github.com/0vas/hyperion/releases/download/v2026.10.12.2204/Hyperion-2026.10.12.2204-win-x64.exe).
 
-These are **2026.10.12.2101 UTC · Preview** installers (CalVer: year, month, day, hour and minute) with automatic replacement of the older local service after a verified SQLite backup, Spanish/English interfaces, step artifacts, linked conversation cycles and in-app update downloads. macOS bundles are sealed with ad-hoc signing but are not Apple-notarized; Windows installers have no publisher signature. **Apple can block this preview from opening.** If you choose to trust it, follow [the individual app exception steps](https://0vas.github.io/hyperion/en/guia/primeros-pasos.html#macos-blocks-the-app). Developer ID signing and Apple notarization remain pending. The first migration from 0.4/0.5.1 to CalVer is manual; the old updater cannot read CalVer tags.
+These are **2026.10.12.2204 UTC · Preview** installers (CalVer: year, month, day, hour and minute) with a readable canvas, draggable nodes, an automatic layout reset, and replacement of the older local service after a verified SQLite backup, Spanish/English interfaces, step artifacts, linked conversation cycles and in-app update downloads. macOS bundles are sealed with ad-hoc signing but are not Apple-notarized; Windows installers have no publisher signature. **Apple can block this preview from opening.** If you choose to trust it, follow [the individual app exception steps](https://0vas.github.io/hyperion/en/guia/primeros-pasos.html#macos-blocks-the-app). Developer ID signing and Apple notarization remain pending. The first migration from 0.4/0.5.1 to CalVer is manual; the old updater cannot read CalVer tags.
 
-**[Download Hyperion Desktop — preview](https://github.com/0vas/hyperion/releases/tag/v2026.10.12.2101)** · macOS Apple Silicon / Intel · Windows x64.
+**[Download Hyperion Desktop — preview](https://github.com/0vas/hyperion/releases/tag/v2026.10.12.2204)** · macOS Apple Silicon / Intel · Windows x64.
 
 Developer signing/notarization and a stable release remain pending. The operating system may block this preview. The [Desktop installers workflow](https://github.com/0vas/hyperion/actions/workflows/desktop.yml) builds and tests the packaged application on each platform. Protocol tests do not replace native conversation testing in every AI client.
 
@@ -158,8 +158,8 @@ Use `127.0.0.1` in browser URLs, not `localhost`; Host and Origin are checked ag
 
 The canvas and Desktop support Spanish and English, automatically selected from the system/browser language. Change it in **Settings → Language** (or **Ajustes → Idioma**); Desktop also exposes **Hyperion → Language**. The preference persists, and switching preserves current workflow data and unsubmitted answers. User/agent content and original diagnostics are not translated. See the [language guide](https://0vas.github.io/hyperion/en/guia/primeros-pasos.html#app-language).
 
-Included in the **2026.10.12.2101 UTC · Preview** installers.
+Included in the **2026.10.12.2204 UTC · Preview** installers.
 
 ### Deliverables and continued conversations
 
-Each agent step can expose generated files and links in **Artifacts**, with safe previews and downloads. A new user request after completion can start a linked workflow: the graph shows the previous end and the new beginning while retaining both histories. Included in **2026.10.12.2101 UTC · Preview**. See [the usage guide](docs/manual-uso.md) and [integration examples](docs/integration.md).
+Each agent step can expose generated files and links in **Artifacts**, with safe previews and downloads. A new user request after completion can start a linked workflow: the graph shows the previous end and the new beginning while retaining both histories. Included in **2026.10.12.2204 UTC · Preview**. See [the usage guide](docs/manual-uso.md) and [integration examples](docs/integration.md).

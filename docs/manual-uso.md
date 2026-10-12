@@ -205,3 +205,5 @@ La vista inicial mantiene las tarjetas legibles; un flujo largo puede quedar par
 Arrastra el asa de puntos de cualquier tarea, evento, compuerta, trabajo o enlace de continuación. También puedes enfocar el nodo, pulsar Intro y moverlo con las flechas. Los botones de la tarjeta siguen abriendo sus detalles. **Ordenar flujo** restaura la distribución automática de la vista actual.
 
 Las posiciones se guardan localmente por flujo, orientación y vista de pasos/trabajos. Las actualizaciones del agente no las borran. Mover un nodo no cambia dependencias, ejecución, decisiones ni historial; tampoco mueve el mismo flujo en otro navegador o dispositivo.
+
+Disponible en los instaladores **2026.10.12.2204 UTC · Preview**.
