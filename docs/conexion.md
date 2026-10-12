@@ -11,7 +11,7 @@ La pausa persistente y el alcance por herramienta se explican en [Reanudación a
 
 No necesitas instalar Node, escribir comandos ni editar archivos. Hyperion Desktop incluye el runtime. La conexión sirve para otros proyectos y chats sin contexto previo. La IA pide solo los datos que falten y genera el proceso; no debes explicarle cómo dibujar el canvas ni cómo registrar los pasos.
 
-**[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.1722)**: elige el `.dmg` de Apple Silicon o Intel, o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. Los instaladores no tienen firma de distribución/notarización y pueden mostrar avisos del sistema. La release estable firmada sigue pendiente.
+**[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.2101)**: elige el `.dmg` de Apple Silicon o Intel, o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. Los instaladores no tienen firma de distribución/notarización y pueden mostrar avisos del sistema. La release estable firmada sigue pendiente.
 
 | Aplicación     | Qué prepara el asistente                                                             |
 | -------------- | ------------------------------------------------------------------------------------ |
@@ -68,7 +68,7 @@ Para generar una distribución desde las fuentes: `npm ci` y `npm pack` (el empa
 
 La skill incluye rutas absolutas al ejecutable y al almacenamiento, sin tokens. Las instalaciones de paquete usan `~/.hyperion` por defecto; el checkout actual conserva su `.hyperion` existente. `HYPERION_DATA_DIR` permite elegir otra ubicación. Así, cambiar de proyecto no crea otra instancia ni pierde los flujos. `--agent ID` permite registrar cualquier identidad local, sin lista cerrada de marcas.
 
-Si mueves Hyperion o lo actualizas, vuelve a ejecutar `hyperion install` (en las fuentes, construye antes con `npm run build`). Se conservan las skills ajenas; una modificación manual de los archivos administrados provoca un conflicto explícito. Para retirar la integración, elimina únicamente las carpetas de skill mostradas por el instalador; esto no borra tus flujos. El servicio iniciado sigue disponible al terminar el chat. Desde el código de 2026.10.12.2101, el lanzador respalda SQLite y sustituye automáticamente el servicio antiguo de la misma instalación, conservando credenciales y flujos. Si es otra instalación o no puede autenticarla, no la detiene.
+Si mueves Hyperion o lo actualizas, vuelve a ejecutar `hyperion install` (en las fuentes, construye antes con `npm run build`). Se conservan las skills ajenas; una modificación manual de los archivos administrados provoca un conflicto explícito. Para retirar la integración, elimina únicamente las carpetas de skill mostradas por el instalador; esto no borra tus flujos. El servicio iniciado sigue disponible al terminar el chat. Desde 2026.10.12.2101, el lanzador respalda SQLite y sustituye automáticamente el servicio antiguo de la misma instalación, conservando credenciales y flujos. Si es otra instalación o no puede autenticarla, no la detiene.
 
 El reconocimiento nativo en cada producto debe verificarse tras recargar su sesión. Las pruebas automatizadas verifican instalación, ejecución del script, API y MCP; no equivalen a una conversación nativa completa en cada cliente.
 

@@ -12,7 +12,7 @@ Necesitas una herramienta de IA compatible y Hyperion conectado a ella. La conex
 
 <Downloads />
 
-[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.1722).
+[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.2101).
 
 Elige el instalador para tu equipo: `.dmg` para Mac (Apple Silicon o Intel) y `.exe` para Windows x64. Ábrelo e instala la aplicación. En Mac, mueve Hyperion a **Aplicaciones** antes de conectar tu IA. Esta preview macOS tiene firma ad-hoc, pero no notarización: Apple puede bloquear su apertura. Windows no tiene firma de editor.
 
