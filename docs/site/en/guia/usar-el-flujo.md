@@ -74,3 +74,13 @@ Say in the same chat: “Now translate this guide into English.” The agent cre
 ::: info Availability
 The **2026.10.12.1722 UTC · Preview** installers include artifacts and linked runs. [Download the new version](primeros-pasos.md) if you are using an older one.
 :::
+
+## Move and arrange nodes
+
+The canvas opens at a readable scale. For a long workflow, use **Overview** to fit the entire graph or **Focus current step** to inspect a task. **Completed** means that step has finished; open its package icon to inspect artifacts.
+
+Drag the dotted grip above a card or symbol. With a keyboard, focus the node, press Enter and use the arrow keys. **Arrange flow** restores the automatic layout for the current view.
+
+::: tip Your arrangement, the same process
+Positions are saved in this browser per workflow, orientation and steps/jobs view, including when agent activity arrives. They do not change dependencies or history, and do not sync across devices.
+:::

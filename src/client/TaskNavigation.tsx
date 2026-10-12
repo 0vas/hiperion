@@ -11,6 +11,7 @@ import {
 } from '@xyflow/react';
 import {
   Focus,
+  LayoutGrid,
   ArrowRight,
   ArrowDown,
   Scan,
@@ -36,6 +37,8 @@ const statuses: Record<string, string> = localizedLabels({
 export type FocusRequest = { id: string; nonce: number } | null;
 export function TaskNavigation({
   run,
+  onReset,
+  canReset,
   orientation,
   onOrientation,
   view,
@@ -48,6 +51,8 @@ export function TaskNavigation({
   onFocused,
 }: {
   run: Run;
+  onReset: () => void;
+  canReset: boolean;
   orientation: 'vertical' | 'horizontal';
   onOrientation: () => void;
   view: string;
@@ -213,6 +218,14 @@ export function TaskNavigation({
           title={t('Tarea actual')}
         >
           <Focus style={{ fill: 'none' }} />
+        </ControlButton>
+        <ControlButton
+          onClick={onReset}
+          disabled={!canReset}
+          aria-label={t('Ordenar flujo')}
+          title={t('Ordenar flujo')}
+        >
+          <LayoutGrid style={{ fill: 'none' }} />
         </ControlButton>
       </Controls>
       <section

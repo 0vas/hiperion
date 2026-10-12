@@ -78,3 +78,13 @@ Puedes decir en el mismo chat: «Ahora traduce esta guía al inglés». El agent
 ::: info Disponibilidad
 Los instaladores **2026.10.12.1722 UTC · Preview** incluyen artefactos y recorridos enlazados. [Descarga la nueva versión](primeros-pasos.md) si conservas una anterior.
 :::
+
+## Mueve y ordena los nodos
+
+El canvas abre a una escala legible. En un recorrido largo, usa **Vista general** para encajar todo o **Enfocar paso actual** para revisar una tarea. **Completado** significa que ese paso terminó; abre su icono de paquete para consultar los artefactos.
+
+Arrastra el asa de puntos sobre una tarjeta o símbolo. Con teclado, enfoca el nodo, pulsa Intro y usa las flechas. **Ordenar flujo** restaura la distribución automática de la vista actual.
+
+::: tip Tu distribución, el mismo proceso
+Las posiciones se conservan en este navegador por flujo, orientación y vista de pasos/trabajos, incluso al recibir actividad del agente. No cambian las dependencias ni el historial, y no se sincronizan con otros dispositivos.
+:::

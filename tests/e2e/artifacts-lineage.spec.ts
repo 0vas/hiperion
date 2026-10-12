@@ -77,11 +77,12 @@ test('step artifacts preview safely and a finished graph links to a requested ne
   await page.getByRole('button', { name: 'Cerrar popup', exact: true }).click();
   await command('complete');
   await expect(page.getByTestId('run-status')).toHaveText('Completado');
+  // Aligned SVG paths have zero bounding-box width; assert drawn geometry instead.
   await expect(
     page.locator(
       '.react-flow__edge[data-id="lineage:new:end"] path.react-flow__edge-path',
     ),
-  ).toBeVisible();
+  ).toHaveAttribute('d', /^M.+/);
   await page
     .getByRole('button', { name: 'Continuar desde aquí', exact: true })
     .click();
@@ -127,7 +128,7 @@ test('step artifacts preview safely and a finished graph links to a requested ne
         run.id +
         ':begin"] path.react-flow__edge-path',
     ),
-  ).toBeVisible();
+  ).toHaveAttribute('d', /^M.+/);
   for (const orientation of ['vertical', 'horizontal']) {
     if (orientation === 'horizontal')
       await page

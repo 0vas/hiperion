@@ -1,3 +1,4 @@
+import { NodeDragHandle } from './NodeDragHandle';
 import { t, useLocale } from './i18n';
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 import { ChevronDown, Layers3 } from 'lucide-react';
@@ -18,6 +19,7 @@ export function JobNode({ data }: NodeProps<Node<JobNodeData>>) {
   useLocale();
   return (
     <>
+      <NodeDragHandle />
       <Handle
         type="target"
         position={data.horizontal ? Position.Left : Position.Top}

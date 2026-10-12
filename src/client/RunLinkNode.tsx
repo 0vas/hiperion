@@ -1,3 +1,4 @@
+import { NodeDragHandle } from './NodeDragHandle';
 import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
 import { ArrowUpRight, CircleCheck, Plus, GitBranch } from 'lucide-react';
 import { t, useLocale } from './i18n';
@@ -11,6 +12,7 @@ export function RunLinkNode({ data }: NodeProps<Node<RunLinkData>>) {
   useLocale();
   return (
     <div className="run-link-node">
+      <NodeDragHandle />
       <Handle
         type="target"
         position={data.horizontal ? Position.Left : Position.Top}

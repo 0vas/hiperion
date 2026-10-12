@@ -1,3 +1,5 @@
+import { NodeDragHandle } from './NodeDragHandle';
+import { useNodePositions } from './node-positions';
 import { Artifacts } from './Artifacts';
 import { RunLinkNode } from './RunLinkNode';
 import { t, useLocale, localizedLabels, getLocale } from './i18n';
@@ -244,6 +246,7 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
   );
   return (
     <>
+      <NodeDragHandle />
       <Handle
         type="target"
         position={data.horizontal ? Position.Left : Position.Top}
@@ -538,14 +541,21 @@ function FitCanvas({ view }: { view: string }) {
         bounds,
         width - canvasInsets.side * 2,
         Math.max(100, height - canvasInsets.top - canvasInsets.bottom),
-        0.15,
+        0.9,
         1,
         0.12,
       );
       void setViewport({
         ...viewport,
-        x: viewport.x + canvasInsets.side,
-        y: viewport.y + canvasInsets.top,
+        x:
+          bounds.width * viewport.zoom > width - canvasInsets.side * 2
+            ? canvasInsets.side - bounds.x * viewport.zoom
+            : viewport.x + canvasInsets.side,
+        y:
+          bounds.height * viewport.zoom >
+          height - canvasInsets.top - canvasInsets.bottom
+            ? canvasInsets.top - bounds.y * viewport.zoom
+            : viewport.y + canvasInsets.top,
       });
     }
   }, [
@@ -812,12 +822,33 @@ export function App() {
   // Controlled nodes must retain React Flow's measurements between snapshots.
   // Dropping them invalidates handles and unmounts every connected edge.
   const measurementKey = `${run?.id}:${preferences.view}:${preferences.orientation}`;
+  const {
+    positions: manualPositions,
+    change: moveNodes,
+    reset: resetPositions,
+  } = useNodePositions(measurementKey);
+  const [selection, setSelection] = useState<{
+    key: string;
+    ids: Record<string, boolean>;
+  }>({ key: '', ids: {} });
+  const [layoutReset, setLayoutReset] = useState(0);
   const [measurements, setMeasurements] = useState<{
     key: string;
     nodes: Record<string, { width: number; height: number }>;
   }>({ key: '', nodes: {} });
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
+      moveNodes(changes);
+      if (changes.some((change) => change.type === 'position'))
+        setFollowing(false);
+      if (changes.some((change) => change.type === 'select'))
+        setSelection((previous) => {
+          const ids =
+            previous.key === measurementKey ? { ...previous.ids } : {};
+          for (const change of changes)
+            if (change.type === 'select') ids[change.id] = change.selected;
+          return { key: measurementKey, ids };
+        });
       setMeasurements((previous) => {
         let next = previous.key === measurementKey ? previous.nodes : {};
         for (const change of changes) {
@@ -835,7 +866,7 @@ export function App() {
           : { key: measurementKey, nodes: next };
       });
     },
-    [measurementKey],
+    [measurementKey, moveNodes],
   );
   const graph = useMemo(() => {
     if (!run) return { nodes: [], edges: [] };
@@ -859,8 +890,9 @@ export function App() {
           type: 'job',
           measured,
           position: positions[item.id]!,
-          draggable: false,
-          focusable: false,
+          draggable: true,
+          dragHandle: '.node-drag-handle',
+          focusable: true,
           data: {
             title: item.title,
             horizontal: preferences.orientation === 'horizontal',
@@ -917,8 +949,9 @@ export function App() {
               step?.id === item.id),
           onSelect: selectStep,
         },
-        draggable: false,
-        focusable: false,
+        draggable: true,
+        dragHandle: '.node-drag-handle',
+        focusable: true,
       };
     });
     const edges: Edge[] = displayed.flatMap((item) =>
@@ -1000,7 +1033,7 @@ export function App() {
       const cross = horizontal ? 'y' : 'x';
       const depth = upstream
         ? Math.min(...anchors.map((item) => positions[item.id]![axis])) -
-          (horizontal ? 480 : 300)
+          (horizontal ? 360 : 150)
         : Math.max(
             ...anchors.map(
               (item) =>
@@ -1009,10 +1042,21 @@ export function App() {
                   horizontal ? 'width' : 'height'
                 ] || 220),
             ),
-          ) + 150;
+          ) + 80;
       const center =
-        anchors.reduce((sum, item) => sum + positions[item.id]![cross], 0) /
-        anchors.length;
+        anchors.reduce(
+          (sum, item) =>
+            sum +
+            positions[item.id]![cross] +
+            (measurements.nodes[item.id]?.[horizontal ? 'height' : 'width'] ||
+              (horizontal ? 140 : isControl(item) ? 180 : 280)) /
+              2,
+          0,
+        ) /
+          anchors.length -
+        (measurements.nodes[id]?.[horizontal ? 'height' : 'width'] ||
+          (horizontal ? 100 : 280)) /
+          2;
       const position = horizontal
         ? { x: depth, y: center + (index - (total - 1) / 2) * 210 }
         : { x: center + (index - (total - 1) / 2) * 330, y: depth };
@@ -1025,8 +1069,9 @@ export function App() {
             ? measurements.nodes[id]
             : undefined,
         data: { title, direction, horizontal, onOpen },
-        draggable: false,
-        focusable: false,
+        draggable: true,
+        dragHandle: '.node-drag-handle',
+        focusable: true,
       });
       anchors.forEach((item) =>
         edges.push({
@@ -1060,13 +1105,25 @@ export function App() {
         setNextRequest('');
         setPopup('next-cycle');
       });
-    return { nodes, edges };
+    return {
+      nodes: nodes.map((node) => ({
+        ...node,
+        position: Object.hasOwn(manualPositions, node.id)
+          ? manualPositions[node.id]!
+          : node.position,
+        selected:
+          selection.key === measurementKey && selection.ids[node.id] === true,
+      })),
+      edges,
+    };
   }, [
     locale,
     run,
     activity,
     measurements,
     measurementKey,
+    manualPositions,
+    selection,
     step?.id,
     selectStep,
     popup,
@@ -1411,14 +1468,24 @@ export function App() {
                   edgeTypes={edgeTypes}
                   fitView
                   ariaLabelConfig={{
+                    'node.a11yDescription.default': t(
+                      'Pulsa Intro para seleccionar y usa las flechas para mover. Escape cancela la selección.',
+                    ),
+                    'node.a11yDescription.keyboardDisabled': t(
+                      'Pulsa Intro para seleccionar y usa las flechas para mover. Escape cancela la selección.',
+                    ),
+                    'node.a11yDescription.ariaLiveMessage': ({ x, y }) =>
+                      t('Nodo movido a {0}, {1}', { 0: x, 1: y }),
                     'controls.zoomIn.ariaLabel': t('Acercar'),
                     'controls.zoomOut.ariaLabel': t('Alejar'),
                   }}
                   fitViewOptions={{ padding: 0.12, maxZoom: 1 }}
                   minZoom={0.15}
                   maxZoom={1.5}
+                  deleteKeyCode={null}
                   nodesConnectable={false}
-                  nodesDraggable={false}
+                  nodesDraggable
+                  onNodeDragStart={() => setFollowing(false)}
                   elementsSelectable
                   zoomOnDoubleClick={false}
                   onMoveStart={(event) => {
@@ -1426,10 +1493,16 @@ export function App() {
                   }}
                 >
                   <FitCanvas
-                    view={`${preferences.view}:${preferences.orientation}:${run.status}:${run.links?.next.map((link) => link.id).join()}`}
+                    view={`${preferences.view}:${preferences.orientation}:${layoutReset}`}
                   />
                   <Background color="#c6c0b2" gap={28} size={0.8} />
                   <TaskNavigation
+                    canReset={Object.keys(manualPositions).length > 0}
+                    onReset={() => {
+                      resetPositions();
+                      setFollowing(false);
+                      setLayoutReset((n) => n + 1);
+                    }}
                     orientation={preferences.orientation}
                     onOrientation={() =>
                       setPreferences((p) => ({

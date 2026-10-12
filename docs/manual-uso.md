@@ -197,3 +197,11 @@ Después de completar el flujo puedes continuar la conversación, por ejemplo: �
 También puedes usar **Continuar desde aquí** al final del gráfico para preparar la nueva petición y copiarla al chat conectado. Ese botón no inicia un agente por sí mismo. Una continuación nueva no sirve para saltar una aprobación pendiente ni para recuperar una tarea atascada; esas situaciones usan los controles existentes.
 
 Estas funciones están incluidas en el instalador **2026.10.12.1722 UTC · Preview**. Actualiza desde [la página de descarga](conexion.md) o desde Buscar actualizaciones en Desktop.
+
+## Organizar el canvas
+
+La vista inicial mantiene las tarjetas legibles; un flujo largo puede quedar parcialmente fuera del encuadre. Usa **Vista general** para ver todo el recorrido o **Enfocar paso actual** para revisar una tarea. Un paso marcado **Completado** ya terminó: abre su icono de paquete para consultar **Artefactos**, o **Logs** para revisar lo que ocurrió.
+
+Arrastra el asa de puntos de cualquier tarea, evento, compuerta, trabajo o enlace de continuación. También puedes enfocar el nodo, pulsar Intro y moverlo con las flechas. Los botones de la tarjeta siguen abriendo sus detalles. **Ordenar flujo** restaura la distribución automática de la vista actual.
+
+Las posiciones se guardan localmente por flujo, orientación y vista de pasos/trabajos. Las actualizaciones del agente no las borran. Mover un nodo no cambia dependencias, ejecución, decisiones ni historial; tampoco mueve el mismo flujo en otro navegador o dispositivo.

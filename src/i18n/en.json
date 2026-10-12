@@ -433,5 +433,9 @@
   "Copiar petición para el chat": "Copy request for chat",
   "Petición copiada. Envíala en tu chat para continuar.": "Request copied. Send it in your chat to continue.",
   "Usa Hyperion para continuar desde el flujo completado {0}. Crea un nuevo recorrido enlazado a ese flujo y conserva su historial. Mi nueva petición: {1}": "Use Hyperion to continue from completed workflow {0}. Create a new workflow linked to it and preserve its history. My new request: {1}",
-  "Recorrido anterior": "Previous workflow"
+  "Recorrido anterior": "Previous workflow",
+  "Ordenar flujo": "Arrange flow",
+  "Arrastra para mover · Usa las flechas al enfocar el nodo": "Drag to move · Use arrow keys when the node is focused",
+  "Pulsa Intro para seleccionar y usa las flechas para mover. Escape cancela la selección.": "Press Enter to select, then use the arrow keys to move. Escape clears the selection.",
+  "Nodo movido a {0}, {1}": "Node moved to {0}, {1}"
 }
