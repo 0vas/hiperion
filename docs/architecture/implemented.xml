@@ -5,7 +5,7 @@
   <elements>
     <element identifier="I1" xsi:type="ApplicationComponent">
       <name>Interfaz visual web / desktop</name>
-      <documentation>React · canvas SVG · Electron opcional</documentation>
+      <documentation>React · canvas SVG · artefactos por paso · fin a nuevo inicio · Electron opcional</documentation>
     </element>
     <element identifier="I2" xsi:type="ApplicationComponent">
       <name>Adaptadores de agente</name>
@@ -17,7 +17,7 @@
     </element>
     <element identifier="I4" xsi:type="ApplicationComponent">
       <name>Persistencia de ejecuciones</name>
-      <documentation>SQLite · transacciones y recibos</documentation>
+      <documentation>SQLite · snapshots, recibos, bytes de artefactos y vínculos entre recorridos</documentation>
     </element>
     <element identifier="I5" xsi:type="ApplicationComponent">
       <name>Motor de workflow</name>

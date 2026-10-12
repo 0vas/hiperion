@@ -8,7 +8,7 @@
     "output": "docs/site/public/architecture/process-es.html",
     "repository": {
       "url": "https://github.com/0vas/hiperion.git",
-      "revision": "8f0e793ef8e9ee572e89d1126a384589b67154e3"
+      "revision": "83cf85d420b44b3b3a34e08bdfd03c042f0fcc09"
     },
     "translations": {
       "page.title": "{title} · Diagrama",
@@ -541,6 +541,56 @@
           "end_line": 40
         }
       ]
+    },
+    {
+      "id": "artifact",
+      "type": "backend",
+      "label": "Artefacto del paso",
+      "sublabel": "Archivo · enlace · intento",
+      "pos": [40, 600],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/domain/artifacts.ts",
+          "line": 74,
+          "end_line": 125
+        }
+      ]
+    },
+    {
+      "id": "files",
+      "type": "database",
+      "label": "Resultados guardados",
+      "sublabel": "Bytes separados del snapshot",
+      "pos": [370, 600],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/server/store.ts",
+          "line": 178,
+          "end_line": 234
+        }
+      ]
+    },
+    {
+      "id": "cycle",
+      "type": "frontend",
+      "label": "Nuevo recorrido",
+      "sublabel": "Origen · historial conservado",
+      "pos": [840, 600],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/server/store.ts",
+          "line": 93,
+          "end_line": 150
+        },
+        {
+          "path": "src/client/RunLinkNode.tsx",
+          "line": 1,
+          "end_line": 49
+        }
+      ]
     }
   ],
   "connections": [
@@ -573,6 +623,24 @@
       "to": "next",
       "label": "Habilita",
       "variant": "emphasis"
+    },
+    {
+      "from": "next",
+      "to": "artifact",
+      "label": "Produce",
+      "variant": "emphasis"
+    },
+    {
+      "from": "artifact",
+      "to": "files",
+      "label": "Registra",
+      "variant": "emphasis"
+    },
+    {
+      "from": "files",
+      "to": "cycle",
+      "label": "Nueva petición tras el fin",
+      "variant": "emphasis"
     }
   ],
   "cards": [
@@ -590,6 +658,14 @@
       "items": [
         "La audiencia elegida pasa al borrador como salida referenciada.",
         "El agente publica el borrador; la persona decide su revisión."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Fin → nuevo inicio",
+      "items": [
+        "El coordinador registra archivos reales; el canvas ofrece vista previa inerte y descarga.",
+        "Una nueva petición crea un recorrido enlazado. El padre completado no se reabre."
       ]
     }
   ]

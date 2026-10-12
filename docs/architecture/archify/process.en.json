@@ -8,7 +8,7 @@
     "output": "docs/site/public/architecture/process-en.html",
     "repository": {
       "url": "https://github.com/0vas/hiperion.git",
-      "revision": "8f0e793ef8e9ee572e89d1126a384589b67154e3"
+      "revision": "83cf85d420b44b3b3a34e08bdfd03c042f0fcc09"
     }
   },
   "components": [
@@ -101,6 +101,56 @@
           "end_line": 40
         }
       ]
+    },
+    {
+      "id": "artifact",
+      "type": "backend",
+      "label": "Step artifact",
+      "sublabel": "File · link · attempt",
+      "pos": [40, 600],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/domain/artifacts.ts",
+          "line": 74,
+          "end_line": 125
+        }
+      ]
+    },
+    {
+      "id": "files",
+      "type": "database",
+      "label": "Stored deliverables",
+      "sublabel": "Bytes outside the snapshot",
+      "pos": [370, 600],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/server/store.ts",
+          "line": 178,
+          "end_line": 234
+        }
+      ]
+    },
+    {
+      "id": "cycle",
+      "type": "frontend",
+      "label": "New cycle",
+      "sublabel": "Origin · preserved history",
+      "pos": [840, 600],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/server/store.ts",
+          "line": 93,
+          "end_line": 150
+        },
+        {
+          "path": "src/client/RunLinkNode.tsx",
+          "line": 1,
+          "end_line": 49
+        }
+      ]
     }
   ],
   "connections": [
@@ -133,6 +183,24 @@
       "to": "next",
       "label": "Enable",
       "variant": "emphasis"
+    },
+    {
+      "from": "next",
+      "to": "artifact",
+      "label": "Produces",
+      "variant": "emphasis"
+    },
+    {
+      "from": "artifact",
+      "to": "files",
+      "label": "Registers",
+      "variant": "emphasis"
+    },
+    {
+      "from": "files",
+      "to": "cycle",
+      "label": "New request after completion",
+      "variant": "emphasis"
     }
   ],
   "cards": [
@@ -150,6 +218,14 @@
       "items": [
         "The selected audience reaches the draft as a referenced output.",
         "The agent reports the draft; the person reviews it."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "End → new beginning",
+      "items": [
+        "The coordinator registers real files; the canvas offers inert previews and downloads.",
+        "A new user request creates a linked run. The completed parent is not reopened."
       ]
     }
   ]

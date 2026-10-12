@@ -230,19 +230,28 @@ test('desktop and split share one real service, decisions and agent progress', a
       .filter({ hasText: '# Guía preparada' })
       .waitFor();
     // Native download uses the same authenticated session, with no navigation away.
-    await app.evaluate(
-      ({ BrowserWindow }, savePath) => {
-        BrowserWindow.getAllWindows()[0].webContents.session.once(
-          'will-download',
-          (_event, item) => item.setSavePath(savePath),
-        );
-      },
+    const download = app.evaluate(
+      ({ BrowserWindow }, savePath) =>
+        new Promise((resolve, reject) => {
+          const timeout = setTimeout(
+            () => reject(new Error('Native download timed out')),
+            10000,
+          );
+          BrowserWindow.getAllWindows()[0].webContents.session.once(
+            'will-download',
+            (_event, item) => {
+              item.setSavePath(savePath);
+              item.once('done', (_event, state) => {
+                clearTimeout(timeout);
+                resolve({ state, name: item.getFilename() });
+              });
+            },
+          );
+        }),
       join(home, 'guia.md'),
     );
-    const download = page.waitForEvent('download');
     await page.getByRole('link', { name: 'Descargar', exact: true }).click();
-    assert.equal((await download).suggestedFilename(), 'guia.md');
-    await (await download).path();
+    assert.deepEqual(await download, { state: 'completed', name: 'guia.md' });
     assert.equal(
       readFileSync(join(home, 'guia.md'), 'utf8'),
       '# Guía preparada',

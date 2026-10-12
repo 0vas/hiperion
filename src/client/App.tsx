@@ -999,7 +999,8 @@ export function App() {
       const axis = horizontal ? 'x' : 'y';
       const cross = horizontal ? 'y' : 'x';
       const depth = upstream
-        ? Math.min(...anchors.map((item) => positions[item.id]![axis])) - 300
+        ? Math.min(...anchors.map((item) => positions[item.id]![axis])) -
+          (horizontal ? 480 : 300)
         : Math.max(
             ...anchors.map(
               (item) =>
@@ -1030,6 +1031,7 @@ export function App() {
       anchors.forEach((item) =>
         edges.push({
           id: `${id}:${item.id}`,
+          markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--muted)' },
           source: upstream ? id : item.id,
           target: upstream ? item.id : id,
           type: 'smoothstep',
