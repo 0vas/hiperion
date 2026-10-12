@@ -37,7 +37,7 @@ export async function ensureServer(
     let response: Response;
     try {
       response = await fetch(client.url + '/api/health', {
-        signal: AbortSignal.timeout(800),
+        signal: AbortSignal.timeout(3000),
       });
     } catch (error) {
       // Only an unavailable listener authorizes starting a process; other failures are reported.

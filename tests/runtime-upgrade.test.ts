@@ -126,3 +126,26 @@ test('foreign or unauthenticated listener is never stopped or backed up', async 
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('a responsive service under load is not mistaken for an unavailable runtime', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'hyperion-slow-health-'));
+  const server = createServer((req, res) => {
+    res.setHeader('content-type', 'application/json');
+    if (req.url === '/api/health')
+      setTimeout(
+        () => res.end(JSON.stringify({ ok: true, version: VERSION })),
+        1100,
+      );
+    else res.end('[]');
+  });
+  await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
+  try {
+    const url = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+    assert.deepEqual(await ensureServer({ directory: dir, url }), {
+      started: false,
+    });
+  } finally {
+    await new Promise<void>((done) => server.close(() => done()));
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
