@@ -14,12 +14,6 @@ const installers = [
     format: 'DMG · Apple Silicon',
   },
   {
-    platform: 'macos',
-    name: 'macOS · Intel',
-    asset: 'mac-x64.dmg',
-    format: 'DMG · x64',
-  },
-  {
     platform: 'windows',
     name: 'Windows · x64',
     asset: 'win-x64.exe',
@@ -67,7 +61,34 @@ const installers = [
         <DocIcon name="download" class="download-action" />
       </a>
     </div>
-    <aside v-if="!published.macNotarized" class="download-status">
+    <aside v-if="published.macNotarized" class="download-status">
+      <strong>{{
+        lang === 'es'
+          ? 'macOS Apple Silicon: notarizado con Developer ID'
+          : 'macOS Apple Silicon: notarized with Developer ID'
+      }}</strong>
+      <p>
+        {{
+          lang === 'es'
+            ? 'Gatekeeper debería aceptar esta copia oficial. Windows sigue sin firma de editor.'
+            : 'Gatekeeper should accept this official copy. Windows still has no publisher signature.'
+        }}
+      </p>
+      <a
+        :href="
+          withBase(
+            lang === 'es'
+              ? '/guia/primeros-pasos.html#macos-bloquea-la-app'
+              : '/en/guia/primeros-pasos.html#macos-blocks-the-app',
+          )
+        "
+        >{{
+          lang === 'es' ? 'Ver pasos de instalación' : 'View installation steps'
+        }}
+        <DocIcon name="arrow"
+      /></a>
+    </aside>
+    <aside v-else class="download-status">
       <strong>{{
         lang === 'es'
           ? 'macOS: esta preview aún no está notarizada por Apple'

@@ -12,13 +12,13 @@ You need a compatible AI tool connected to Hyperion. Set up the connection once;
 
 <Downloads />
 
-Choose the installer for your computer. On macOS, open the DMG and move Hyperion to **Applications** before connecting your AI. On Windows, open the EXE. The macOS preview is ad-hoc signed but not notarized: Apple may block opening it. Windows has no publisher signature.
+Choose the installer for your computer. On Apple Silicon Macs, open the DMG and move Hyperion to **Applications** before connecting your AI. On Windows, open the EXE. The Apple Silicon installer is signed with **Developer ID** and **notarized by Apple**. Windows has no publisher signature.
 
 ### macOS blocks the app
 
-“Apple could not verify Hyperion.app is free of malware” appears because this preview is not notarized. The message alone does not establish download corruption; it is not an Apple security approval either.
+With the current notarized distribution, Gatekeeper should accept Hyperion. If “Apple could not verify Hyperion.app is free of malware” still appears, that alone does not establish download corruption; confirm you downloaded the official release and try again.
 
-If you choose to trust the copy downloaded from the official repository:
+If macOS still blocks an official copy:
 
 1. Move **Hyperion.app** to **Applications** and attempt to open it once.
 2. Choose **Done** in the alert.
@@ -26,8 +26,6 @@ If you choose to trust the copy downloaded from the official repository:
 4. Confirm opening and authenticate if macOS requests it.
 
 This exception applies to Hyperion. Do not disable Gatekeeper system-wide. If the button is absent, the Mac is managed, or the alert says the app is damaged or contains malware, do not force it open: consult [Apple’s official guide](https://support.apple.com/en-us/102445) and report the exact message.
-
-Removing this distribution block requires a Developer ID certificate and Apple notarization, which remain pending.
 
 ## 2. Connect your AI
 
@@ -109,7 +107,7 @@ From CalVer **2026.10.12.0638 UTC**, open **Hyperion → Check for updates…**.
 
 **The first migration from 0.4 or 0.5.1 to CalVer is manual from this page**: the old updater does not recognize the new tags. Public versions use **YYYY.MM.DD.HHmm UTC**, including hours and minutes; Preview is a separate channel. Subsequent updates are compared chronologically.
 
-Version 0.4.0 requires a manual upgrade. Its macOS bundle has an incomplete signature; downloading the same installer again does not fix it. The new preview seals the bundle correctly but **is not notarized by Apple**. Ad-hoc signing does not guarantee Gatekeeper acceptance. If macOS blocks installation, consult [Apple’s guide](https://support.apple.com/102445); do not disable system-wide protection.
+Version 0.4.0 requires a manual upgrade. Its macOS bundle has an incomplete signature; downloading the same installer again does not fix it. The current Apple Silicon installer is Developer ID signed and notarized by Apple. If macOS blocks installation, consult [Apple’s guide](https://support.apple.com/102445); do not disable system-wide protection.
 
 Starting with **2026.10.12.2101**, opening the updated app automatically backs up and restarts the older service from the same installation. Workflows, files, answers and history remain intact; tasks are not executed again. You do not need to restart your computer. The backup remains in `backups` inside the local data directory.
 

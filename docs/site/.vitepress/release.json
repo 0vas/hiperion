@@ -2,5 +2,5 @@
   "version": "2026.10.12.2204",
   "channel": "preview",
   "timezone": "UTC",
-  "macNotarized": false
+  "macNotarized": true
 }
