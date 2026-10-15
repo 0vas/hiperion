@@ -59,9 +59,17 @@ jobs:
         run: |
           mkdir publish
           cp "artifacts/Hyperion-macos-latest/Hyperion-${VERSION}-mac-arm64.dmg" publish/
-          cp "artifacts/Hyperion-macos-15-intel/Hyperion-${VERSION}-mac-x64.dmg" publish/
           cp "artifacts/Hyperion-windows-latest/Hyperion-${VERSION}-win-x64.exe" publish/
+          # Intel DMG is optional (public policy: arm64 + win). Include it when the build produced one.
+          intel="artifacts/Hyperion-macos-15-intel/Hyperion-${VERSION}-mac-x64.dmg"
+          if [ -f "$intel" ]; then
+            cp "$intel" publish/
+          else
+            echo "Intel macOS DMG absent; publishing arm64 + Windows only."
+          fi
           cd publish
+          test -f "Hyperion-${VERSION}-mac-arm64.dmg"
+          test -f "Hyperion-${VERSION}-win-x64.exe"
           sha256sum *.dmg *.exe > SHA256SUMS.txt
           gh release upload "$TAG" *.dmg *.exe SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
       - name: Verify remote digests before publishing

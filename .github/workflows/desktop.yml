@@ -35,10 +35,13 @@ jobs:
           - os: macos-15-intel
             target: --mac --x64
             executable: release/mac/Hyperion.app/Contents/MacOS/Hyperion
+            # Intel stapler/CloudKit flakiness must not block arm64+win publication.
+            optional: true
           - os: windows-latest
             target: --win --x64
             executable: release/win-unpacked/Hyperion.exe
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.optional == true }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
