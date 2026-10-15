@@ -146,7 +146,6 @@ test('branded pages offer direct installers and a working Archify viewer in both
     ).toBeVisible();
     for (const [name, asset] of [
       ['macOS · Apple Silicon', 'mac-arm64.dmg'],
-      ['macOS · Intel', 'mac-x64.dmg'],
       ['Windows · x64', 'win-x64.exe'],
     ]) {
       await expect(
@@ -579,7 +578,7 @@ test('downloads identify platforms and illustrated guides reveal contextual anno
     await page.goto(`/hyperion/${locale}`);
     await expect(
       page.locator('.download-card svg[data-platform="macos"]'),
-    ).toHaveCount(2);
+    ).toHaveCount(1);
     await expect(
       page.locator('.download-card svg[data-platform="windows"]'),
     ).toHaveCount(1);
@@ -949,8 +948,13 @@ test('CalVer minute and macOS opening instructions remain visible in both themes
           '2026-10-12T22:04:00Z',
         );
         await expect(downloads.locator('.download-status')).toContainText(
-          locale ? 'not yet notarized' : 'no está notarizada',
+          locale
+            ? 'notarized with Developer ID'
+            : 'notarizado con Developer ID',
         );
+        await expect(
+          page.getByRole('link', { name: 'macOS · Intel', exact: true }),
+        ).toHaveCount(0);
         await downloads
           .getByRole('link', {
             name: locale
