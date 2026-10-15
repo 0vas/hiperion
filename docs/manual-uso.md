@@ -206,4 +206,4 @@ Arrastra el asa de puntos de cualquier tarea, evento, compuerta, trabajo o enlac
 
 Las posiciones se guardan localmente por flujo, orientación y vista de pasos/trabajos. Las actualizaciones del agente no las borran. Mover un nodo no cambia dependencias, ejecución, decisiones ni historial; tampoco mueve el mismo flujo en otro navegador o dispositivo.
 
-Disponible en los instaladores **2026.10.12.2204 UTC · Preview**.
+Disponible en los instaladores **2026.10.15.1916 UTC · Preview**.
