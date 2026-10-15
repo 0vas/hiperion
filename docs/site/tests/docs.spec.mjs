@@ -948,7 +948,9 @@ test('CalVer minute and macOS opening instructions remain visible in both themes
           '2026-10-12T22:04:00Z',
         );
         await expect(downloads.locator('.download-status')).toContainText(
-          locale ? 'notarized with Developer ID' : 'notarizado con Developer ID',
+          locale
+            ? 'notarized with Developer ID'
+            : 'notarizado con Developer ID',
         );
         await expect(
           page.getByRole('link', { name: 'macOS · Intel', exact: true }),
