@@ -29,6 +29,15 @@ test('desktop targets reuse one local run, reject remote navigation and launch w
     const recovered = desktopTarget([], home);
     assert.equal(recovered.directory, target.directory);
     assert.equal(recovered.service, target.service);
+    const alternate = {
+      ...target,
+      service: 'http://127.0.0.1:54321',
+      url: 'http://127.0.0.1:54321/?run=abc-123',
+    };
+    rememberWorkspace(alternate, home);
+    const sticky = desktopTarget([], home);
+    assert.equal(sticky.service, alternate.service);
+    assert.equal(sticky.directory, target.directory);
     rememberDesktop({ executable: process.execPath, args: [] }, home);
     const launch = desktopLaunch(target, home);
     assert.equal(launch.executable, process.execPath);

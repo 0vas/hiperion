@@ -1,6 +1,7 @@
 import { VERSION } from '../version.js';
 import { spawn } from 'node:child_process';
 import { openSync, closeSync } from 'node:fs';
+import { createServer } from 'node:net';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadCredentials } from '../server/config.js';
@@ -11,28 +12,159 @@ import {
   withRuntimeLock,
 } from './runtime-upgrade.js';
 
-/** Reuses the authenticated instance or starts one loopback service. Never writes to MCP stdout. */
-export async function ensureServer(
-  options: { directory?: string; url?: string; agentId?: string } = {},
-): Promise<{
+export const DEFAULT_SERVICE = 'http://127.0.0.1:4317';
+
+/** Spanish source string; Desktop/en.json localize it. Never surface bare UNAUTHORIZED. */
+export const FOREIGN_PORT_MESSAGE =
+  'Otro Hyperion, otra cuenta de este Mac u otra instalación ya usa este puerto local. Cierra esa app o esa sesión e inténtalo de nuevo. Hyperion no detuvo ese proceso.';
+
+type EnsureOptions = { directory?: string; url?: string; agentId?: string };
+type EnsureResult = {
   started: boolean;
   pid?: number;
   upgraded?: boolean;
   backup?: string;
-}> {
-  const config = loadCredentials(options.directory);
-  const client = new HyperionClient({
-    ...options,
-    directory: config.directory,
-  });
-  const target = new URL(client.url);
-  const serverArgs = import.meta.url.endsWith('.ts')
+  url: string;
+};
+
+function isLoopbackHttp(url: string) {
+  try {
+    const target = new URL(url);
+    return (
+      target.protocol === 'http:' &&
+      target.hostname === '127.0.0.1' &&
+      !target.username &&
+      !target.password
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isUnauthorized(error: unknown) {
+  return (
+    error instanceof Error &&
+    /UNAUTHORIZED|401|Wrong workspace|credential/i.test(error.message)
+  );
+}
+
+function isForeignInstall(error: unknown) {
+  return (
+    error instanceof Error &&
+    /another installation or process/i.test(error.message)
+  );
+}
+
+function foreignConflict(cause?: unknown) {
+  const error = new Error(FOREIGN_PORT_MESSAGE);
+  if (cause !== undefined) (error as Error & { cause?: unknown }).cause = cause;
+  return error;
+}
+
+async function freeLoopbackPort() {
+  const server = createServer();
+  await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
+  const port = (server.address() as { port: number }).port;
+  await new Promise<void>((done) => server.close(() => done()));
+  return port;
+}
+
+type PortClass = 'free' | 'ours' | 'foreign' | 'other' | 'newer';
+
+async function classifyPort(
+  url: string,
+  options: EnsureOptions,
+  directory: string,
+): Promise<PortClass> {
+  const client = new HyperionClient({ ...options, url, directory });
+  let response: Response;
+  try {
+    response = await fetch(client.url + '/api/health', {
+      signal: AbortSignal.timeout(3000),
+    });
+  } catch (error) {
+    if (
+      error instanceof TypeError &&
+      (error.cause as { code?: string })?.code === 'ECONNREFUSED'
+    )
+      return 'free';
+    throw new Error(`Cannot reach Hyperion at ${client.url}`);
+  }
+  const health = (await response.json()) as { ok?: boolean; version?: string };
+  if (!response.ok || health.ok !== true || typeof health.version !== 'string')
+    return 'other';
+  try {
+    await client.list();
+  } catch (error) {
+    if (isUnauthorized(error)) return 'foreign';
+    throw error;
+  }
+  if (health.version === VERSION) return 'ours';
+  if (olderRuntime(health.version, VERSION)) return 'ours';
+  return 'newer';
+}
+
+function serverCommand() {
+  return import.meta.url.endsWith('.ts')
     ? [
         '--import',
         import.meta.resolve('tsx'),
         fileURLToPath(new URL('../server/main.ts', import.meta.url)),
       ]
     : [fileURLToPath(new URL('../server/main.js', import.meta.url))];
+}
+
+/** Reuses the authenticated instance or starts one loopback service. Never writes to MCP stdout. */
+export async function ensureServer(
+  options: EnsureOptions = {},
+): Promise<EnsureResult> {
+  const config = loadCredentials(options.directory);
+  const serverArgs = serverCommand();
+  const requested = options.url || process.env.HYPERION_URL || DEFAULT_SERVICE;
+
+  const bind = async (url: string): Promise<EnsureResult> => {
+    try {
+      return await bindOrReuse(url, options, config.directory, serverArgs);
+    } catch (error) {
+      if (
+        !(error instanceof Error && error.message === FOREIGN_PORT_MESSAGE) ||
+        !isLoopbackHttp(url)
+      )
+        throw error;
+      const alt = `http://127.0.0.1:${await freeLoopbackPort()}`;
+      return bindOrReuse(alt, options, config.directory, serverArgs);
+    }
+  };
+
+  // Prefer :4317 when a remembered alternate is dead/free and the default is free or ours.
+  // Keep a live authenticated alternate sticky so we never open a second server on the same data dir.
+  if (requested !== DEFAULT_SERVICE && isLoopbackHttp(requested)) {
+    const atRequested = await classifyPort(
+      requested,
+      options,
+      config.directory,
+    );
+    if (atRequested === 'ours') return bind(requested);
+    const atDefault = await classifyPort(
+      DEFAULT_SERVICE,
+      options,
+      config.directory,
+    );
+    if (atDefault === 'ours' || atDefault === 'free')
+      return bind(DEFAULT_SERVICE);
+  }
+
+  return bind(requested);
+}
+
+async function bindOrReuse(
+  url: string,
+  options: EnsureOptions,
+  directory: string,
+  serverArgs: string[],
+): Promise<EnsureResult> {
+  const client = new HyperionClient({ ...options, url, directory });
+  const target = new URL(client.url);
   const probe = async () => {
     let response: Response;
     try {
@@ -60,30 +192,41 @@ export async function ensureServer(
       throw new Error(
         'The configured port belongs to another service. No process was stopped.',
       );
-    await client.list(); // Authenticate before considering ANY replacement.
+    try {
+      await client.list(); // Authenticate before considering ANY replacement.
+    } catch (error) {
+      if (isUnauthorized(error)) throw foreignConflict(error);
+      throw error;
+    }
     return health.version;
   };
-  return withRuntimeLock(config.directory, async () => {
+  return withRuntimeLock(directory, async () => {
     const running = await probe();
-    if (running === VERSION) return { started: false };
+    if (running === VERSION) return { started: false, url: client.url };
     let backup: string | undefined;
     if (running) {
       if (!olderRuntime(running, VERSION))
         throw new Error(
           `A newer or unrecognized Hyperion service (${running}) is already running. Open the newer installed app; it was not stopped.`,
         );
-      backup = await replaceOlderRuntime({
-        directory: config.directory,
-        url: client.url,
-        command: [process.execPath, ...serverArgs],
-        authenticate: async () => {
-          if ((await probe()) !== running)
-            throw new Error('Hyperion changed during update; retry.');
-        },
-      });
+      try {
+        backup = await replaceOlderRuntime({
+          directory,
+          url: client.url,
+          command: [process.execPath, ...serverArgs],
+          authenticate: async () => {
+            if ((await probe()) !== running)
+              throw new Error('Hyperion changed during update; retry.');
+          },
+        });
+      } catch (error) {
+        if (isForeignInstall(error) || isUnauthorized(error))
+          throw foreignConflict(error);
+        throw error;
+      }
     }
     const root = fileURLToPath(new URL('../../', import.meta.url));
-    const log = resolve(config.directory, 'server.log');
+    const log = resolve(directory, 'server.log');
     const descriptor = openSync(log, 'a', 0o600);
     const child = spawn(process.execPath, serverArgs, {
       cwd: root,
@@ -92,7 +235,7 @@ export async function ensureServer(
       env: {
         ...process.env,
         ...(process.versions.electron ? { ELECTRON_RUN_AS_NODE: '1' } : {}),
-        HYPERION_DATA_DIR: config.directory,
+        HYPERION_DATA_DIR: directory,
         HYPERION_PORT: target.port || '80',
       },
     });
@@ -108,6 +251,7 @@ export async function ensureServer(
         return {
           started: true,
           pid: child.pid,
+          url: client.url,
           ...(backup ? { upgraded: true, backup } : {}),
         };
       await new Promise((resolve) => setTimeout(resolve, 100));

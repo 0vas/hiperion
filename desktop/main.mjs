@@ -108,9 +108,17 @@ async function openRun(args) {
         'Cierra Hyperion Desktop antes de conectar otra instancia local. Tu flujo actual está protegido.',
       ),
     );
-  await ensureServer({ directory: next.directory, url: next.service });
-  target = next;
-  rememberWorkspace(next);
+  const startup = await ensureServer({
+    directory: next.directory,
+    url: next.service,
+  });
+  const service = startup.url || next.service;
+  target = {
+    ...next,
+    service,
+    url: `${service}/${next.run ? `?run=${next.run}` : ''}`,
+  };
+  rememberWorkspace(target);
   if (!window || window.isDestroyed()) {
     window = new BrowserWindow({
       title: 'Hyperion',
