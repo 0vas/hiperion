@@ -103,7 +103,7 @@ Included in the **2026.10.12.1722 UTC · Preview** installer, together with step
 
 ## Update Desktop
 
-From CalVer **2026.10.12.0638 UTC**, open **Hyperion → Check for updates…**. The app checks GitHub and offers an installer for your computer; you choose whether to download it. Size and SHA-256 are checked before revealing the installer. Cancel with **Hyperion → Cancel download**. Workflows remain in local storage.
+From CalVer **2026.10.12.0638 UTC**, open **Hyperion → Check for updates…**. The app checks GitHub and offers an installer for your computer. **Update and restart** downloads the official installer, checks size and SHA-256, then applies it and relaunches Hyperion (on macOS it replaces this app after `codesign`; on Windows it runs the verified NSIS installer). **Download installer…** saves the file for a manual install. Cancel with **Hyperion → Cancel download**. Workflows remain in local storage.
 
 **The first migration from 0.4 or 0.5.1 to CalVer is manual from this page**: the old updater does not recognize the new tags. Public versions use **YYYY.MM.DD.HHmm UTC**, including hours and minutes; Preview is a separate channel. Subsequent updates are compared chronologically.
 
