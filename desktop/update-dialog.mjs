@@ -52,9 +52,9 @@ export function createUpdateController({
         }
         const answer = await dialog.showMessageBox(window, {
           type: 'info',
-          message: t('Hyperion {0} está disponible', { 0: update.version }),
+          message: t('Actualización disponible'),
           detail: t(
-            'Tienes {0}. Se descargará el instalador oficial desde GitHub, se verificará su tamaño y SHA-256, y podrás aplicar la actualización y reiniciar Hyperion. Tus flujos permanecen en el almacenamiento local.',
+            'Tienes {0}. Se descarga desde GitHub, se verifica el digest y Hyperion se reinicia. Tus flujos se conservan.',
             { 0: currentVersion },
           ),
           buttons: [
@@ -104,11 +104,10 @@ export function createUpdateController({
         } catch (error) {
           const failed = await dialog.showMessageBox(window, {
             type: 'error',
-            message: t('No se pudo aplicar la actualización'),
-            detail: t(
-              '{0}\n\nLa app en ejecución no se modificó. Puedes mostrar el instalador verificado e instalarlo manualmente.',
-              { 0: String(error.message || error) },
+            message: t(
+              'No se pudo actualizar. Revisa la red o el digest del instalador.',
             ),
+            detail: String(error.message || error),
             buttons: [t('Mostrar instalador'), t('Listo')],
             cancelId: 1,
             defaultId: 0,
@@ -119,7 +118,9 @@ export function createUpdateController({
         if (!controller?.signal.aborted && (manual || controller))
           await dialog.showMessageBox(window, {
             type: 'error',
-            message: t('No se pudo completar la actualización'),
+            message: t(
+              'No se pudo actualizar. Revisa la red o el digest del instalador.',
+            ),
             detail: String(error.message || error),
             buttons: [t('Listo')],
           });

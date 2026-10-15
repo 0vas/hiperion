@@ -56,6 +56,11 @@ test('Actualizar y reiniciar requires consent, downloads under userData/updates,
     shell: { showItemInFolder: (path) => calls.push(['show', path]) },
   });
   await controller.check();
+  assert.equal(boxes[0].message, 'Actualización disponible');
+  assert.match(
+    boxes[0].detail,
+    /Se descarga desde GitHub, se verifica el digest y Hyperion se reinicia/,
+  );
   assert.equal(boxes[0].buttons[0], 'Actualizar y reiniciar');
   assert.equal(boxes[0].buttons[1], 'Ahora no');
   assert.equal(boxes[0].buttons[2], 'Descargar instalador…');
@@ -144,7 +149,10 @@ test('apply failure offers Mostrar instalador and does not quit', async () => {
     dialog: {
       showMessageBox: async (_w, options) => {
         calls.push(options);
-        if (options.message === 'No se pudo aplicar la actualización')
+        if (
+          options.message ===
+          'No se pudo actualizar. Revisa la red o el digest del instalador.'
+        )
           return { response: 0 };
         return { response: 0 };
       },
@@ -161,7 +169,8 @@ test('apply failure offers Mostrar instalador and does not quit', async () => {
       (m) =>
         m &&
         typeof m === 'object' &&
-        m.message === 'No se pudo aplicar la actualización',
+        m.message ===
+          'No se pudo actualizar. Revisa la red o el digest del instalador.',
     ),
   );
   assert.ok(calls.some((c) => Array.isArray(c) && c[0] === 'show'));
