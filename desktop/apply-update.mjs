@@ -62,6 +62,7 @@ export async function applyMacDmg(
     executablePath = process.execPath,
     execFile = defaultExecFile,
     mountPoint = join(tmpdir(), `hyperion-update-${randomUUID()}`),
+    ensureWritable = assertWritableParent,
   } = {},
 ) {
   if (!installerPath.endsWith('.dmg'))
@@ -69,7 +70,7 @@ export async function applyMacDmg(
   const currentApp = resolveAppBundle(executablePath);
   const parent = dirname(currentApp);
   try {
-    await assertWritableParent(parent);
+    await ensureWritable(parent);
   } catch {
     throw new Error(
       'No hay permiso de escritura para reemplazar Hyperion.app. No se modificó la instalación.',

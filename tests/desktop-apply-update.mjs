@@ -6,7 +6,6 @@ import {
   writeFileSync,
   readFileSync,
   rmSync,
-  chmodSync,
   existsSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -81,29 +80,28 @@ test('applyMacDmg refuses unwritable destination and never leaves a half-replace
   mkdirSync(join(incoming, 'Contents', 'MacOS'), { recursive: true });
   writeFileSync(join(incoming, 'Contents', 'MacOS', 'Hyperion'), 'new');
   writeFileSync(dmg, 'dmg');
-  chmodSync(root, 0o555);
+  let spawned = false;
   try {
     await assert.rejects(
       applyMacDmg(dmg, {
         executablePath: join(current, 'Contents', 'MacOS', 'Hyperion'),
         mountPoint: mount,
-        execFile: async (command, args) => {
-          if (command === 'hdiutil' && args[0] === 'attach')
-            return { stdout: '' };
-          if (command === 'codesign') return { stdout: '' };
-          if (command === 'hdiutil' && args[0] === 'detach')
-            return { stdout: '' };
-          return { stdout: '' };
+        ensureWritable: async () => {
+          throw new Error('EACCES');
+        },
+        execFile: async () => {
+          spawned = true;
+          throw new Error('hdiutil must not run when unwritable');
         },
       }),
       /escribible|writable|permiso|permission/i,
     );
+    assert.equal(spawned, false);
     assert.equal(
       readFileSync(join(current, 'Contents', 'MacOS', 'Hyperion'), 'utf8'),
       'old',
     );
   } finally {
-    chmodSync(root, 0o700);
     rmSync(root, { recursive: true, force: true });
   }
 });
