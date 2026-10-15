@@ -229,6 +229,7 @@
   "Omitida": "Skipped",
   "Omitido": "Skipped",
   "Opcional": "Optional",
+  "Otro Hyperion, otra cuenta de este Mac u otra instalación ya usa este puerto local. Cierra esa app o esa sesión e inténtalo de nuevo. Hyperion no detuvo ese proceso.": "Another Hyperion, another account on this Mac, or another installation already uses this local port. Close that app or session and try again. Hyperion did not stop that process.",
   "Origen: contexto del proceso · {0}": "Source: process context · {0}",
   "Origen: resultado de la tarea": "Source: task result",
   "Origen: valor del plan": "Source: plan value",

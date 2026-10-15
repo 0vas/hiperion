@@ -121,9 +121,14 @@ try {
         process.env.HYPERION_DATA_DIR,
       );
     const startup = await ensureServer();
-    const client = new HyperionClient();
+    const service =
+      startup.url || process.env.HYPERION_URL || 'http://127.0.0.1:4317';
+    const client = new HyperionClient({
+      url: service,
+      directory: process.env.HYPERION_DATA_DIR,
+    });
     rememberWorkspace({
-      service: client.url,
+      service,
       directory: process.env.HYPERION_DATA_DIR!,
     });
     let result: unknown;
