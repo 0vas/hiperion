@@ -69,41 +69,6 @@ async function freeLoopbackPort() {
   return port;
 }
 
-type PortClass = 'free' | 'ours' | 'foreign' | 'other' | 'newer';
-
-async function classifyPort(
-  url: string,
-  options: EnsureOptions,
-  directory: string,
-): Promise<PortClass> {
-  const client = new HyperionClient({ ...options, url, directory });
-  let response: Response;
-  try {
-    response = await fetch(client.url + '/api/health', {
-      signal: AbortSignal.timeout(3000),
-    });
-  } catch (error) {
-    if (
-      error instanceof TypeError &&
-      (error.cause as { code?: string })?.code === 'ECONNREFUSED'
-    )
-      return 'free';
-    throw new Error(`Cannot reach Hyperion at ${client.url}`);
-  }
-  const health = (await response.json()) as { ok?: boolean; version?: string };
-  if (!response.ok || health.ok !== true || typeof health.version !== 'string')
-    return 'other';
-  try {
-    await client.list();
-  } catch (error) {
-    if (isUnauthorized(error)) return 'foreign';
-    throw error;
-  }
-  if (health.version === VERSION) return 'ours';
-  if (olderRuntime(health.version, VERSION)) return 'ours';
-  return 'newer';
-}
-
 function serverCommand() {
   return import.meta.url.endsWith('.ts')
     ? [
@@ -122,39 +87,22 @@ export async function ensureServer(
   const serverArgs = serverCommand();
   const requested = options.url || process.env.HYPERION_URL || DEFAULT_SERVICE;
 
-  const bind = async (url: string): Promise<EnsureResult> => {
-    try {
-      return await bindOrReuse(url, options, config.directory, serverArgs);
-    } catch (error) {
-      if (
-        !(error instanceof Error && error.message === FOREIGN_PORT_MESSAGE) ||
-        !isLoopbackHttp(url)
-      )
-        throw error;
-      const alt = `http://127.0.0.1:${await freeLoopbackPort()}`;
-      return bindOrReuse(alt, options, config.directory, serverArgs);
-    }
-  };
-
-  // Prefer :4317 when a remembered alternate is dead/free and the default is free or ours.
-  // Keep a live authenticated alternate sticky so we never open a second server on the same data dir.
-  if (requested !== DEFAULT_SERVICE && isLoopbackHttp(requested)) {
-    const atRequested = await classifyPort(
-      requested,
-      options,
-      config.directory,
-    );
-    if (atRequested === 'ours') return bind(requested);
-    const atDefault = await classifyPort(
-      DEFAULT_SERVICE,
-      options,
-      config.directory,
-    );
-    if (atDefault === 'ours' || atDefault === 'free')
-      return bind(DEFAULT_SERVICE);
+  // Honor the requested URL. Foreign Hyperion on that loopback port → another free
+  // port (never kill the foreign listener). Do not rewrite a free explicit port to
+  // :4317 — that broke reserved-port tests and would ignore HYPERION_URL.
+  // Preferring :4317 again is Desktop's sticky workspace reopen concern: a live
+  // authenticated alternate must stay sticky to avoid two servers on one data dir.
+  try {
+    return await bindOrReuse(requested, options, config.directory, serverArgs);
+  } catch (error) {
+    if (
+      !(error instanceof Error && error.message === FOREIGN_PORT_MESSAGE) ||
+      !isLoopbackHttp(requested)
+    )
+      throw error;
+    const alt = `http://127.0.0.1:${await freeLoopbackPort()}`;
+    return bindOrReuse(alt, options, config.directory, serverArgs);
   }
-
-  return bind(requested);
 }
 
 async function bindOrReuse(
