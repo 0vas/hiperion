@@ -4,6 +4,8 @@ title: Hyperion
 description: Turn a conversation into a plan you can see, guide and follow.
 ---
 
+<LandscapeTeaser />
+
 ## From chat to canvas
 
 <Quickstart />

@@ -72,8 +72,8 @@ Choose a case, copy the request and paste it into your connected AI tool. The ag
 For developers who prefer a local checkout instead of Desktop. Requires Node.js 22.13 or newer.
 
 ```sh
-git clone https://github.com/0vas/hiperion.git
-cd hiperion
+git clone https://github.com/0vas/hyperion.git
+cd hyperion
 npm ci
 npm run build
 npm start
