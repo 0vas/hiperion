@@ -2,7 +2,7 @@
 
 ## Product and scope
 
-Hyperion turns a natural-language request into a visible, human-guided workflow. The external AI agent plans and performs work; Hyperion owns the recorded process state, validates transitions, collects human decisions and shows evidence. Preserve the MIT license and the provider-independent domain model. Product name: **Hyperion**; repository: `0vas/hiperion`.
+Hyperion turns a natural-language request into a visible, human-guided workflow. The external AI agent plans and performs work; Hyperion owns the recorded process state, validates transitions, collects human decisions and shows evidence. Preserve the MIT license and the provider-independent domain model. Product name: **Hyperion**; repository: `0vas/hyperion`.
 
 The same process can be viewed in a browser, a split window or Electron. Olimpo is a possible consumer, not a privileged dependency. Codex, ChatGPT, Claude, Claude Code, Cursor, Hermes and Google Antigravity are integration targets, not proof of equivalent installed capabilities.
 

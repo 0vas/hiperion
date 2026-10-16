@@ -36,4 +36,4 @@ La identidad del harness no altera las reglas del workflow. La referencia de ses
 
 ![Reanudación independiente del harness en ArchiMate](../../architecture/continuation.svg)
 
-[Contrato, fuentes oficiales y pruebas del protocolo](https://github.com/0vas/hiperion/blob/main/docs/continuacion-agnostica.md).
+[Contrato, fuentes oficiales y pruebas del protocolo](https://github.com/0vas/hyperion/blob/main/docs/continuacion-agnostica.md).

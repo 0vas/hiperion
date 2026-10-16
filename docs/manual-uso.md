@@ -196,7 +196,7 @@ Después de completar el flujo puedes continuar la conversación, por ejemplo: �
 
 También puedes usar **Continuar desde aquí** al final del gráfico para preparar la nueva petición y copiarla al chat conectado. Ese botón no inicia un agente por sí mismo. Una continuación nueva no sirve para saltar una aprobación pendiente ni para recuperar una tarea atascada; esas situaciones usan los controles existentes.
 
-Estas funciones están incluidas en el instalador **2026.10.12.1722 UTC · Preview**. Actualiza desde [la página de descarga](conexion.md) o desde Buscar actualizaciones en Desktop.
+Estas funciones están incluidas en el instalador **2026.10.15.2036 UTC · Preview**. Actualiza desde [la página de descarga](conexion.md) o desde **Hyperion → Buscar actualizaciones…** en Desktop (**Actualizar y reiniciar** aplica el instalador verificado y reinicia; también puedes solo descargarlo).
 
 ## Organizar el canvas
 
@@ -206,4 +206,4 @@ Arrastra el asa de puntos de cualquier tarea, evento, compuerta, trabajo o enlac
 
 Las posiciones se guardan localmente por flujo, orientación y vista de pasos/trabajos. Las actualizaciones del agente no las borran. Mover un nodo no cambia dependencias, ejecución, decisiones ni historial; tampoco mueve el mismo flujo en otro navegador o dispositivo.
 
-Disponible en los instaladores **2026.10.12.2204 UTC · Preview**.
+Disponible en los instaladores **2026.10.15.2036 UTC · Preview**.
