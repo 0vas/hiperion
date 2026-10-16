@@ -110,7 +110,9 @@ test('mobile navigation and reading remain accessible in both themes', async ({
   await page.goto('/hyperion/guia/primeros-pasos.html');
   await page.getByRole('button', { name: /Navegación móvil/ }).click();
   await page.getByRole('link', { name: 'Guía', exact: true }).click();
-  await expect(page.locator('h1')).toHaveText('Tu primer flujo');
+  await expect(page.locator('h1')).toContainText(
+    'Un paisaje para el trabajo de tu IA',
+  );
 });
 
 test('language switch preserves the page and English search stays in English', async ({
