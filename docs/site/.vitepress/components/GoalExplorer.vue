@@ -101,14 +101,10 @@ function nodeState(
 
   if (node.kind === 'exclusive') return 'decision';
   const idsA = new Set(
-    edges
-      .filter((e) => edgeBranch(e) === 'A')
-      .flatMap((e) => [e.from, e.to]),
+    edges.filter((e) => edgeBranch(e) === 'A').flatMap((e) => [e.from, e.to]),
   );
   const idsB = new Set(
-    edges
-      .filter((e) => edgeBranch(e) === 'B')
-      .flatMap((e) => [e.from, e.to]),
+    edges.filter((e) => edgeBranch(e) === 'B').flatMap((e) => [e.from, e.to]),
   );
   const onlyA = idsA.has(node.id) && !idsB.has(node.id);
   const onlyB = idsB.has(node.id) && !idsA.has(node.id);
