@@ -152,7 +152,7 @@ export default defineConfig({
   themeConfig: {
     logo: '/brand/hyperion-titan.png',
     siteTitle: 'Hyperion',
-    socialLinks: [{ icon: 'github', link: 'https://github.com/0vas/hiperion' }],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/0vas/hyperion' }],
     search: {
       provider: 'local',
       options: {

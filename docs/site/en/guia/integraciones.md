@@ -51,4 +51,4 @@ Compatible clients can use MCP, the CLI or the local API. They must supply an ag
 
 The current edition connects applications on the same computer. Do not expose the local service as a remote server.
 
-Integrator references: [technical setup](https://github.com/0vas/hiperion/blob/main/docs/conexion.md), [protocol](https://github.com/0vas/hiperion/blob/main/docs/protocol.md), [process contract](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md).
+Integrator references: [technical setup](https://github.com/0vas/hyperion/blob/main/docs/conexion.md), [protocol](https://github.com/0vas/hyperion/blob/main/docs/protocol.md), [process contract](https://github.com/0vas/hyperion/blob/main/docs/process-contract.md).

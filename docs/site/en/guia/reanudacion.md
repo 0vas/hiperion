@@ -34,4 +34,4 @@ Without a connector, cooperative execution can continue while the host keeps its
 
 Harness identity does not change workflow rules. Session references, permissions and duplicate-turn prevention belong to the connector.
 
-[Explore the architecture](../referencia/arquitectura.md) · [Contract, official sources and protocol tests](https://github.com/0vas/hiperion/blob/main/docs/continuacion-agnostica.md)
+[Explore the architecture](../referencia/arquitectura.md) · [Contract, official sources and protocol tests](https://github.com/0vas/hyperion/blob/main/docs/continuacion-agnostica.md)

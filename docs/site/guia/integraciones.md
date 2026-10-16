@@ -55,4 +55,4 @@ Un cliente compatible puede usar el servidor MCP, la CLI o la API local. Debe ap
 
 La edición actual comunica aplicaciones en el mismo equipo. No expongas el servicio local como un servidor remoto para conectar otros equipos.
 
-Para integradores: [conexión técnica](https://github.com/0vas/hiperion/blob/main/docs/conexion.md), [protocolo](https://github.com/0vas/hiperion/blob/main/docs/protocol.md) y [contrato del proceso](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md).
+Para integradores: [conexión técnica](https://github.com/0vas/hyperion/blob/main/docs/conexion.md), [protocolo](https://github.com/0vas/hyperion/blob/main/docs/protocol.md) y [contrato del proceso](https://github.com/0vas/hyperion/blob/main/docs/process-contract.md).
