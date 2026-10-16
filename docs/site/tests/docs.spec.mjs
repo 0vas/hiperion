@@ -427,7 +427,14 @@ test('video landing uses a centered headline, wide product view and controllable
     ).toHaveAttribute('aria-pressed', 'true');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await expect(video).not.toHaveAttribute('src');
-    await expect(hero.locator('h1 span')).toHaveCSS('animation-name', 'none');
+    await expect(hero.locator('h1 .headline-accent')).toHaveCSS(
+      'animation-name',
+      'none',
+    );
+    await expect(hero.locator('h1')).toHaveText(
+      en ? 'Your ideas.In motion.' : 'Tus ideas.En movimiento.',
+    );
+    await expect(hero.locator('.headline-caret')).toHaveCount(0);
     expect(
       (
         await new AxeBuilder({ page })
@@ -452,6 +459,51 @@ test('video landing uses a centered headline, wide product view and controllable
     ).toBeInViewport();
     await page.emulateMedia({ reducedMotion: 'no-preference' });
   }
+});
+
+test('hero headline types through phrase pairs and freezes on pause or reduced motion', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/hyperion/');
+  const title = page.locator('#landscape-title');
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await expect(title).toHaveAttribute('aria-label', 'Tus ideas. En movimiento.');
+  await expect
+    .poll(async () => (await title.innerText()).replace(/\s+/g, ''), {
+      timeout: 12_000,
+    })
+    .not.toBe('Tusideas.Enmovimiento.');
+  await page
+    .getByRole('button', { name: 'Pausar fondo', exact: true })
+    .click();
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await expect(page.locator('.headline-caret')).toHaveCount(0);
+  await page.waitForTimeout(800);
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await expect(page.locator('.headline-caret')).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/hyperion/en/');
+  await expect(page.locator('#landscape-title')).toHaveText(
+    'Your ideas.In motion.',
+  );
+  await expect(page.locator('#landscape-title')).toHaveAttribute(
+    'aria-label',
+    'Your ideas. In motion.',
+  );
+  await expect
+    .poll(
+      async () =>
+        (await page.locator('#landscape-title').innerText()).replace(
+          /\s+/g,
+          '',
+        ),
+      { timeout: 12_000 },
+    )
+    .not.toBe('Yourideas.Inmotion.');
 });
 
 test('cinematic landing stays readable in split windows and small phones', async ({
@@ -503,7 +555,9 @@ test('video failure keeps the poster, navigation and download actions usable', a
     'poster',
     '/hyperion/brand/cinema-poster.svg',
   );
-  await expect(page.locator('h1')).toHaveText('Tus ideas.En movimiento.');
+  await expect(page.locator('#landscape-title')).toHaveText(
+    'Tus ideas.En movimiento.',
+  );
   await page
     .getByRole('link', { name: 'Descargar Hyperion', exact: true })
     .click();
