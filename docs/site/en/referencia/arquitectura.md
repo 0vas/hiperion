@@ -66,14 +66,14 @@ The conversation provides intent. The persisted run provides operational state. 
 
 | Boundary         | Responsibility                                                           | Source                                                                                                                                                                 |
 | ---------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| External harness | Interpret the request, propose steps, use tools and report results       | [Integration contract](https://github.com/0vas/hiperion/blob/main/docs/integration.md)                                                                                 |
-| Adapters         | CLI and MCP share an HTTP client; discovery and local bootstrap          | [src/adapters](https://github.com/0vas/hiperion/tree/main/src/adapters)                                                                                                |
-| Local API        | Authenticate identities, distinguish roles and expose commands/reads/SSE | [app.ts](https://github.com/0vas/hiperion/blob/main/src/server/app.ts)                                                                                                 |
-| Domain engine    | Transitions, dependencies, gateways, contracts and revisions             | [src/domain](https://github.com/0vas/hiperion/tree/main/src/domain)                                                                                                    |
-| Store and queue  | SQLite snapshots, idempotent receipts and durable deliveries             | [store.ts](https://github.com/0vas/hiperion/blob/main/src/server/store.ts), [continuations.ts](https://github.com/0vas/hiperion/blob/main/src/server/continuations.ts) |
-| Canvas           | Present state, collect decisions and display step activity               | [src/client](https://github.com/0vas/hiperion/tree/main/src/client)                                                                                                    |
-| Desktop          | Host the canvas, start/reuse the service and assist connection setup     | [desktop](https://github.com/0vas/hiperion/tree/main/desktop)                                                                                                          |
-| Optional worker  | Claim deliveries and delegate resumption to an installed connector       | [continuation-worker.ts](https://github.com/0vas/hiperion/blob/main/src/adapters/continuation-worker.ts)                                                               |
+| External harness | Interpret the request, propose steps, use tools and report results       | [Integration contract](https://github.com/0vas/hyperion/blob/main/docs/integration.md)                                                                                 |
+| Adapters         | CLI and MCP share an HTTP client; discovery and local bootstrap          | [src/adapters](https://github.com/0vas/hyperion/tree/main/src/adapters)                                                                                                |
+| Local API        | Authenticate identities, distinguish roles and expose commands/reads/SSE | [app.ts](https://github.com/0vas/hyperion/blob/main/src/server/app.ts)                                                                                                 |
+| Domain engine    | Transitions, dependencies, gateways, contracts and revisions             | [src/domain](https://github.com/0vas/hyperion/tree/main/src/domain)                                                                                                    |
+| Store and queue  | SQLite snapshots, idempotent receipts and durable deliveries             | [store.ts](https://github.com/0vas/hyperion/blob/main/src/server/store.ts), [continuations.ts](https://github.com/0vas/hyperion/blob/main/src/server/continuations.ts) |
+| Canvas           | Present state, collect decisions and display step activity               | [src/client](https://github.com/0vas/hyperion/tree/main/src/client)                                                                                                    |
+| Desktop          | Host the canvas, start/reuse the service and assist connection setup     | [desktop](https://github.com/0vas/hyperion/tree/main/desktop)                                                                                                          |
+| Optional worker  | Claim deliveries and delegate resumption to an installed connector       | [continuation-worker.ts](https://github.com/0vas/hyperion/blob/main/src/adapters/continuation-worker.ts)                                                               |
 
 These are responsibility boundaries, not eight independently deployed microservices.
 
@@ -133,7 +133,7 @@ Archify provides interactive exploration. ArchiMate retains formal component and
 
 </details>
 
-[XML models and SVG views](https://github.com/0vas/hiperion/tree/main/docs/architecture) · [Architecture decisions](https://github.com/0vas/hiperion/tree/main/docs/decisions). XML references can be checked; no unperformed XSD validation or formal import is claimed.
+[XML models and SVG views](https://github.com/0vas/hyperion/tree/main/docs/architecture) · [Architecture decisions](https://github.com/0vas/hyperion/tree/main/docs/decisions). XML references can be checked; no unperformed XSD validation or formal import is claimed.
 
 ## Keeping the architecture verifiable
 
@@ -142,7 +142,7 @@ Archify provides interactive exploration. ArchiMate retains formal component and
 - **Experience:** Playwright checks decisions, navigation and simulations. A test connector does not certify a real harness.
 - **Documentation:** contract, integration or component changes must update ES/EN guides, diagrams and examples in the same change.
 
-[AGENTS.md](https://github.com/0vas/hiperion/blob/main/AGENTS.md) records the repository map, invariants and documentation update matrix. The [process contract](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md) details the executable format.
+[AGENTS.md](https://github.com/0vas/hyperion/blob/main/AGENTS.md) records the repository map, invariants and documentation update matrix. The [process contract](https://github.com/0vas/hyperion/blob/main/docs/process-contract.md) details the executable format.
 
 </details>
 
