@@ -1,26 +1,29 @@
 # Instalar y conectar Hyperion
 
+La pausa persistente y el alcance por herramienta se explican en [Reanudación agnóstica](continuacion-agnostica.md). La conexión MCP local y la reanudación de un chat cerrado son capacidades distintas.
+
 ## Conectar sin comandos (recomendado)
 
 1. Instala **Hyperion Desktop**: `.dmg` en macOS o `.exe` en Windows. En macOS, arrastra Hyperion a Aplicaciones antes de abrirlo.
-2. Al abrirlo, elige **Codex**, **Cursor**, **Claude Desktop** o **Claude Code**. Si ya lo usabas, entra en **Hyperion → Conectar con mi IA**.
+2. Al abrirlo, elige **Codex**, **Cursor**, **Claude Desktop**, **Claude Code** o **Antigravity** (desde 0.5.1-preview.1). Si ya lo usabas, entra en **Hyperion → Conectar con mi IA**.
 3. Reinicia la aplicación elegida y abre un chat nuevo. Si solicita habilitar Hyperion, acepta para usar sus herramientas.
 4. Escribe tu objetivo: **«Usa Hyperion para preparar una guía breve de bienvenida a mi proyecto»**.
 
 No necesitas instalar Node, escribir comandos ni editar archivos. Hyperion Desktop incluye el runtime. La conexión sirve para otros proyectos y chats sin contexto previo. La IA pide solo los datos que falten y genera el proceso; no debes explicarle cómo dibujar el canvas ni cómo registrar los pasos.
 
-**[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v0.4.0-preview.1)**: elige el `.dmg` de Apple Silicon o Intel, o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. Los instaladores no tienen firma de distribución/notarización y pueden mostrar avisos del sistema. La release estable firmada sigue pendiente.
+**[Descargar Hyperion Desktop](https://github.com/0vas/hyperion/releases/tag/v2026.10.15.2036)**: elige el `.dmg` de Apple Silicon o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. El instalador de Apple Silicon está firmado con Developer ID y notarizado por Apple; Windows no tiene firma de editor. Intel macOS no se publica en esta release. La release estable sigue pendiente.
 
-| Aplicación     | Qué prepara el asistente                                                    |
-| -------------- | --------------------------------------------------------------------------- |
-| Codex          | Conexión MCP de usuario; también respeta `CODEX_HOME` cuando está definido. |
-| Cursor         | Conexión MCP de usuario para los proyectos locales.                         |
-| Claude Desktop | Conexión MCP en la configuración de escritorio de macOS o Windows.          |
-| Claude Code    | Skill Hyperion en su carpeta de skills de usuario.                          |
+| Aplicación     | Qué prepara el asistente                                                             |
+| -------------- | ------------------------------------------------------------------------------------ |
+| Codex          | Conexión MCP de usuario; también respeta `CODEX_HOME` cuando está definido.          |
+| Cursor         | Conexión MCP de usuario para los proyectos locales.                                  |
+| Claude Desktop | Conexión MCP en la configuración de escritorio de macOS o Windows.                   |
+| Claude Code    | Skill Hyperion en su carpeta de skills de usuario.                                   |
+| Antigravity    | Conexión MCP global con respaldo; disponible en Desktop 0.5.1-preview.1 o posterior. |
 
 La conexión usa rutas absolutas al runtime incluido y al almacenamiento local; no escribe tokens en la configuración del cliente. Guarda copia del archivo anterior, conserva otros servidores y rechaza una entrada Hyperion diferente. «Conexión configurada» confirma la instalación; el cliente debe reiniciarse y cargar las herramientas para usarla. Puedes repetir el asistente para conectar otra aplicación.
 
-Para actualizar, conserva Hyperion en la misma ubicación. Si lo mueves y aparece un conflicto, retira la antigua entrada Hyperion desde la configuración del cliente y vuelve a conectarlo. Para desconectarlo, elimina solo esa entrada (o la skill Hyperion en Claude Code). Tus flujos se conservan.
+Para actualizar Desktop, usa **Hyperion → Buscar actualizaciones…** y **Actualizar y reiniciar** (descarga oficial con comprobación de tamaño y SHA-256, luego aplica y reinicia). Conserva Hyperion en la misma ubicación. Si lo mueves y aparece un conflicto, retira la antigua entrada Hyperion desde la configuración del cliente y vuelve a conectarlo. Para desconectarlo, elimina solo esa entrada (o la skill Hyperion en Claude Code). Tus flujos se conservan.
 
 La edición actual requiere herramientas en el mismo ordenador. Claude en el navegador y los agentes que ejecutan en la nube no acceden a este servicio local. La primera conexión es necesaria: mencionar el nombre en una aplicación sin integración no instala Hyperion por sí solo.
 
@@ -50,10 +53,10 @@ La frase por sí sola no instala capacidades en una herramienta que nunca ha car
 
 ### Instalar el paquete sin clonar el repositorio
 
-Con el archivo de distribución `hyperion-workflows-0.4.0.tgz`:
+Con el archivo de distribución `hyperion-workflows-2026.10.12-build.398.tgz`:
 
 ```sh
-npm install --global ./hyperion-workflows-0.4.0.tgz
+npm install --global ./hyperion-workflows-2026.10.12-build.398.tgz
 hyperion install
 ```
 
@@ -65,7 +68,7 @@ Para generar una distribución desde las fuentes: `npm ci` y `npm pack` (el empa
 
 La skill incluye rutas absolutas al ejecutable y al almacenamiento, sin tokens. Las instalaciones de paquete usan `~/.hyperion` por defecto; el checkout actual conserva su `.hyperion` existente. `HYPERION_DATA_DIR` permite elegir otra ubicación. Así, cambiar de proyecto no crea otra instancia ni pierde los flujos. `--agent ID` permite registrar cualquier identidad local, sin lista cerrada de marcas.
 
-Si mueves Hyperion o lo actualizas, vuelve a ejecutar `hyperion install` (en las fuentes, construye antes con `npm run build`). Se conservan las skills ajenas; una modificación manual de los archivos administrados provoca un conflicto explícito. Para retirar la integración, elimina únicamente las carpetas de skill mostradas por el instalador; esto no borra tus flujos. El servicio iniciado sigue disponible al terminar el chat. Una versión antigua que ocupe el puerto debe detenerse antes de cargar una nueva.
+Si mueves Hyperion o lo actualizas, vuelve a ejecutar `hyperion install` (en las fuentes, construye antes con `npm run build`). Se conservan las skills ajenas; una modificación manual de los archivos administrados provoca un conflicto explícito. Para retirar la integración, elimina únicamente las carpetas de skill mostradas por el instalador; esto no borra tus flujos. El servicio iniciado sigue disponible al terminar el chat. Desde 2026.10.12.2101, el lanzador respalda SQLite y sustituye automáticamente el servicio antiguo de la misma instalación, conservando credenciales y flujos. Si es otra instalación, otra cuenta del sistema o no puede autenticarla, no la detiene; Desktop elige otro puerto libre en `127.0.0.1` y recuerda esa URL mientras el servicio propio siga vivo (el valor por defecto sigue siendo `4317` cuando no hay URL recordada).
 
 El reconocimiento nativo en cada producto debe verificarse tras recargar su sesión. Las pruebas automatizadas verifican instalación, ejecución del script, API y MCP; no equivalen a una conversación nativa completa en cada cliente.
 
@@ -81,7 +84,7 @@ npm run hyperion -- setup cursor
 
 `setup` resuelve las rutas de Node y del adaptador, registra la identidad y configura el cliente. Construye el adaptador si todavía no existe. Codex y Claude Code requieren su CLI instalada; Cursor recibe una entrada en su configuración local de usuario. Los demás servidores se conservan; una entrada distinta de Hyperion en Cursor se señala como conflicto.
 
-Recarga las herramientas MCP o abre una sesión nueva del cliente. Al cargar Hyperion, el adaptador inicia el servidor local si hace falta y reutiliza la instancia autenticada si ya existe. El arranque no escribe mensajes en el canal de herramientas; sus logs quedan en `.hyperion/server.log`. La instancia permanece disponible después de cerrar el adaptador. Si una versión anterior ocupa el puerto, detén esa instancia antes de reconectar. Tras actualizar el repositorio, ejecuta `npm run build`.
+Recarga las herramientas MCP o abre una sesión nueva del cliente. Al cargar Hyperion, el adaptador inicia el servidor local si hace falta y reutiliza la instancia autenticada si ya existe. El arranque no escribe mensajes en el canal de herramientas; sus logs quedan en `.hyperion/server.log`. La instancia permanece disponible después de cerrar el adaptador. La actualización sustituye el servicio antiguo autenticado de la misma instalación después de respaldar SQLite; un proceso ajeno se conserva. Tras actualizar el repositorio, ejecuta `npm run build`.
 
 Luego basta con escribir en el chat:
 
@@ -136,6 +139,22 @@ codex mcp get hyperion
 Comprueba en Codex que estén disponibles las herramientas `hyperion_create_run`, `hyperion_get_run`, `hyperion_step`, `hyperion_list_runs`, `hyperion_wait` y `hyperion_open`. Si la conversación actual no las carga, inicia una sesión que recoja la configuración actualizada. En esta conversación ya podemos trabajar mediante la CLI, sin esperar a cargar MCP.
 
 La configuración stdio y los comandos de registro se basan en la [documentación oficial de Codex](https://developers.openai.com/codex/mcp).
+
+### Antigravity
+
+En Desktop 0.5.1-preview.1 o posterior, selecciona **Hyperion → Conectar con mi IA → Antigravity**. No requiere Node ni CLI de Google. Los instaladores publicados `0.4.0-preview.1` todavía no contienen esta opción.
+
+Desde un checkout preparado, la alternativa es:
+
+```sh
+npm run hyperion -- setup antigravity
+```
+
+Ambas vías configuran `mcpServers.hyperion` en `~/.gemini/config/mcp_config.json`, con rutas absolutas y sin claves de proveedor. Conservan otros servidores, respaldan el archivo antes de modificarlo y rechazan una entrada Hyperion distinta o deshabilitada. Repetir la conexión ya configurada no cambia el archivo. El adaptador inicia o reutiliza el servicio local al cargar MCP.
+
+Reinicia Antigravity o recarga MCP y comprueba `hyperion_create_run` y `hyperion_get_run`. Luego pide tu objetivo en el chat. Si tu instalación usa una ubicación distinta, consulta **MCP Servers → Manage MCP Servers → View raw config** y usa la alternativa manual `npm run hyperion -- connect antigravity`, trasladando `command`, `args` y `env` del archivo generado. Esta alternativa manual requiere tener el servicio local iniciado.
+
+La [documentación oficial de MCP de Antigravity](https://antigravity.google/docs/mcp), consultada el 11 de octubre de 2026, describe el formato global. Las pruebas verifican configuración y protocolo MCP con identidad `antigravity`; no equivalen a una conversación real en la aplicación. La reanudación automática de un chat finalizado requiere un conector adicional, aún pendiente.
 
 ### Claude Code
 

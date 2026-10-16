@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { setupDesktopClient } from '../src/adapters/desktop-setup.js';
 
-test('desktop connects Codex, Cursor and Claude Desktop without vendor CLIs and preserves existing configuration', async () => {
+test('desktop connects Codex, Cursor, Claude Desktop and Antigravity without vendor CLIs and preserves existing configuration', async () => {
   const home = mkdtempSync(join(tmpdir(), 'hyperion-desktop-setup-'));
   try {
     for (const [id, relative, original] of [
@@ -19,6 +19,11 @@ test('desktop connects Codex, Cursor and Claude Desktop without vendor CLIs and 
         'codex',
         '.codex/config.toml',
         '# Keep my preferences\nmodel = "my-model"\n[mcp_servers.other]\ncommand = "keep-me"\n',
+      ],
+      [
+        'antigravity',
+        '.gemini/config/mcp_config.json',
+        '{"preferences":{"keep":true},"mcpServers":{"other":{"command":"keep-me"}}}\n',
       ],
       [
         'cursor',
@@ -74,6 +79,12 @@ test('desktop setup refuses conflicts and malformed configuration without changi
         '{"mcpServers":{"hyperion":{"command":"different"}}}',
       ],
       ['cursor', '.cursor/mcp.json', '{"mcpServers":[]}'],
+      ['antigravity', '.gemini/config/mcp_config.json', '{"mcpServers":[]}'],
+      [
+        'antigravity',
+        '.gemini/config/mcp_config.json',
+        '{"mcpServers":{"hyperion":{"command":"different"}}}',
+      ],
       [
         'claude-desktop',
         'Library/Application Support/Claude/claude_desktop_config.json',
@@ -132,5 +143,30 @@ test('Claude Desktop uses Windows roaming data and Claude Code receives its own 
     );
   } finally {
     rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('Antigravity setup uses its global MCP path on macOS, Windows and Linux', async () => {
+  for (const platform of ['darwin', 'win32', 'linux'] as const) {
+    const home = mkdtempSync(join(tmpdir(), 'hyperion-antigravity-'));
+    try {
+      const result = await setupDesktopClient('antigravity', {
+        home,
+        directory: join(home, 'data'),
+        platform,
+      });
+      assert.equal(
+        result.configFile,
+        join(home, '.gemini/config/mcp_config.json'),
+      );
+      const server = JSON.parse(readFileSync(result.configFile, 'utf8'))
+        .mcpServers.hyperion;
+      assert.equal(server.env.HYPERION_AGENT_ID, 'antigravity');
+      assert.equal(server.command, process.execPath);
+      assert.equal(server.type, undefined);
+      assert.match(server.args[0], /mcp-launcher\.js$/);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
   }
 });

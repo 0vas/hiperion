@@ -339,3 +339,101 @@
 [data-theme='dark'] .canvas-workspace .react-flow__controls-button:hover {
   background: #35434d !important;
 }
+
+.step-artifacts {
+  margin-block: 24px;
+  padding-block: 20px;
+  border-top: 1px solid var(--line);
+}
+.step-artifacts h3,
+.artifact-heading,
+.artifact-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.step-artifacts h3 span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.step-artifacts ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.artifact-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  min-width: 0;
+}
+.artifact-heading strong,
+.artifact-card p {
+  overflow-wrap: anywhere;
+}
+.artifact-heading svg {
+  flex-shrink: 0;
+}
+.artifact-actions {
+  flex-wrap: wrap;
+}
+.artifact-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.artifact-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 360px;
+  overflow: auto;
+}
+.artifact-image {
+  display: block;
+  max-width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  margin-top: 16px;
+}
+.run-link-node {
+  width: 280px;
+  background: var(--glass);
+  border: 1px dashed var(--muted);
+  border-radius: 18px;
+}
+.run-link-node button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  width: 100%;
+  padding: 20px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+}
+.run-link-node .eyebrow {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.run-link-node strong {
+  overflow-wrap: anywhere;
+}
+
+.canvas-app .step-artifacts h3,
+.canvas-app .artifact-heading strong {
+  color: var(--ink);
+}
+.canvas-app .artifact-actions .secondary {
+  background: var(--glass);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 9px 12px;
+}
+.canvas-app .artifact-actions .secondary:hover {
+  border-color: var(--gold);
+}

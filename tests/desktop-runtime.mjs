@@ -68,16 +68,18 @@ test(
           '-e',
           `
         const { setupDesktopClient } = await import(${JSON.stringify(pathToFileURL(resolve(root, 'dist/adapters/desktop-setup.js')).href)});
-        for (const id of ['codex', 'cursor', 'claude-desktop'])
+        for (const id of ['codex', 'cursor', 'claude-desktop', 'antigravity'])
           await setupDesktopClient(id, { home: ${JSON.stringify(home)}, directory: ${JSON.stringify(join(home, 'data'))} });
       `,
         ],
         { cwd: home, env: installEnv },
       );
-      for (const id of ['codex', 'cursor', 'claude']) {
+      for (const id of ['codex', 'cursor', 'claude', 'antigravity']) {
         const server = JSON.parse(
           readFileSync(
-            join(home, 'data/connections', `${id}.mcp.json`),
+            id === 'antigravity'
+              ? join(home, '.gemini/config/mcp_config.json')
+              : join(home, 'data/connections', `${id}.mcp.json`),
             'utf8',
           ),
         ).mcpServers.hyperion;

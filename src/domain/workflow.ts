@@ -1,3 +1,5 @@
+import type { Artifact } from './artifacts.js';
+import type { ContinuationState } from './continuation.js';
 import { z } from 'zod';
 import type { AvailableContext } from './context.js';
 import { validateJobs } from './jobs.js';
@@ -100,6 +102,7 @@ export type StepStatus =
   | 'rejected'
   | 'skipped';
 export type Step = Plan['steps'][number] & {
+  artifacts?: Artifact[];
   availableContext?: AvailableContext;
   status: StepStatus;
   selectedBranches?: string[];
@@ -130,8 +133,19 @@ export type PlanChange = {
   removed: string[];
   changed: string[];
 };
+export type RunLink = {
+  id: string;
+  title: string;
+  request?: string;
+  status: Run['status'];
+};
 export type Run = {
+  /** Immutable provenance of a new cycle. The completed parent is never reopened. */
+  origin?: { runId: string; revision: number; title: string };
+  /** Read projection: does not change the parent's revision or execution history. */
+  links?: { previous?: RunLink; next: RunLink[] };
   /** Live transport presence; never persisted as workflow state. */
+  continuation?: ContinuationState;
   agentWaiting?: boolean;
   agentPresenceAt?: number;
   planChanges?: PlanChange[];

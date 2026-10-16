@@ -1,10 +1,14 @@
 #!/usr/bin/env node
+import { artifactUrl, artifactName } from '../domain/artifacts.js';
+import { suspendSchema } from '../domain/continuation.js';
 import { VERSION } from '../version.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { openPresentation } from './desktop.js';
 import { HyperionClient } from './client.js';
+import { withHandoff } from './handoff.js';
+import type { Run } from '../domain/workflow.js';
 import { outputValuesSchema, traceSchema } from '../domain/contracts.js';
 import { planSchema } from '../domain/workflow.js';
 const client = new HyperionClient();
@@ -12,7 +16,7 @@ const server = new McpServer(
   { name: 'hyperion', version: VERSION },
   {
     instructions:
-      'Turn the given request into a specific plan, preserve the original text in plan.request, and show the returned URL. Do not require the human to write JSON or reuse a canned demo. Start only ready agent steps, execute actual work, then report evidence. Human input and approvals must happen in the Hyperion UI. After showing the canvas URL in a progress message, use hyperion_wait to receive human decisions before ending your turn. On a changed revision, continue ready work in the same turn. If you end your turn, explain that an idle chat needs the canvas continuation message. For known choices use string output form.options [{value,label}], never a free-text list. Never impersonate the human or bypass a blocked step. This server does not execute the work for you.',
+      'Turn the given request into a specific plan, preserve the original text in plan.request, and show the returned URL. Do not require the human to write JSON or reuse a canned demo. Start only ready agent steps, execute actual work, then report evidence. Human input and approvals must happen in the Hyperion UI. If an installed resumable connector supplies its session reference, use hyperion_suspend and end the turn. Otherwise, after showing the canvas URL in a progress message, use hyperion_wait to receive human decisions during a bounded waiting period of at most ten minutes. Do not repeat unchanged waiting announcements or renew an expired period indefinitely; re-read state before a final handoff. On a changed revision, continue ready work in the same turn. If you end your turn, explain that an idle chat needs the canvas continuation message. For known choices use string output form.options [{value,label}], never a free-text list. Never impersonate the human or bypass a blocked step. This server does not execute the work for you.',
   },
 );
 const output = (value: unknown) => ({
@@ -20,6 +24,14 @@ const output = (value: unknown) => ({
 });
 const safe = (action: () => Promise<unknown>) =>
   action()
+    .then((value) =>
+      value &&
+      typeof value === 'object' &&
+      'steps' in value &&
+      'revision' in value
+        ? withHandoff(value as Run)
+        : value,
+    )
     .then(output)
     .catch((error: unknown) => ({
       isError: true,
@@ -31,13 +43,56 @@ server.registerTool(
   'hyperion_create_run',
   {
     description:
-      'Create a workflow derived from the user request. Include the original text in plan.request; generate the steps yourself and obtain a URL for the human. Use jobs metadata and step.jobId to group executable steps. Human steps should declare interaction.question/context/next and clear output descriptions. Use typed inputs/outputs on tasks. For process notation set profile=bpmn-lite and use one start/end and structured pairs of parallel, exclusive or inclusive gateways; conditional splits need a defaultTarget. Read the plan schema. Reuse commandId on retries.',
-    inputSchema: { plan: planSchema, commandId: z.string().min(1).max(128) },
+      'Create a workflow derived from the user request. Include the original text in plan.request; generate the steps yourself and obtain a URL for the human. Use jobs metadata and step.jobId to group executable steps. Human steps should declare interaction.question/context/next and clear output descriptions. Use typed inputs/outputs on tasks. For process notation set profile=bpmn-lite and use one start/end and structured pairs of parallel, exclusive or inclusive gateways; conditional splits need a defaultTarget. Read the plan schema. Reuse commandId on retries. If the user explicitly continues a completed conversation, supply parentRunId and the NEW request in plan.request. This creates a linked new cycle without reopening the completed parent; read the parent and carry relevant context into the new plan.',
+    inputSchema: {
+      plan: planSchema,
+      commandId: z.string().min(1).max(128),
+      parentRunId: z.string().uuid().optional(),
+    },
   },
-  ({ plan, commandId }) =>
+  ({ plan, commandId, parentRunId }) =>
     safe(async () => {
-      const run = await client.create(plan, commandId);
+      const run = await client.create(plan, commandId, parentRunId);
       return { ...run, url: client.link(run) };
+    }),
+);
+server.registerTool(
+  'hyperion_add_artifact',
+  {
+    description:
+      'Attach a real generated file, text or HTTP(S) link to its agent step. Supply exactly one absolute filePath, text or url. Files up to 10 MiB are copied into local storage so the canvas can preview/download them later. Use the attempt from start and reuse commandId on retries. Can attach to running or completed steps, including completed runs. Never attach secrets or unrelated files. Does not complete the step or execute the artifact.',
+    inputSchema: {
+      runId: z.string().uuid(),
+      stepId: z.string(),
+      attempt: z.number().int().positive(),
+      commandId: z.string().min(1).max(128),
+      filePath: z.string().max(4000).optional(),
+      text: z.string().max(64000).optional(),
+      url: artifactUrl.optional(),
+      name: artifactName.optional(),
+      mediaType: z.string().max(120).optional(),
+    },
+  },
+  ({ runId, filePath, text, url, name, ...options }) =>
+    safe(async () => {
+      if (
+        [filePath, text, url].filter((value) => value !== undefined).length !==
+        1
+      )
+        throw new Error('Provide exactly one filePath, text or url');
+      if (filePath !== undefined)
+        return client.attachFile(runId, filePath, { ...options, name });
+      if (!name) throw new Error('An artifact name is required');
+      return client.addArtifact(runId, {
+        ...options,
+        name,
+        ...(url !== undefined
+          ? { url }
+          : {
+              contentBase64: Buffer.from(text!, 'utf8').toString('base64'),
+              mediaType: options.mediaType || 'text/plain',
+            }),
+      });
     }),
 );
 server.registerTool(
@@ -140,5 +195,14 @@ server.registerTool(
   },
   ({ runId, afterRevision, timeoutSeconds }) =>
     safe(() => client.wait(runId, afterRevision, timeoutSeconds)),
+);
+server.registerTool(
+  'hyperion_suspend',
+  {
+    description:
+      'Persist a human-input checkpoint and end this turn ONLY when your installed connector can resume this exact session with idempotent delivery. Supply its real ID, session reference and scope. Never invent a connector or session. A saved answer enqueues one delivery; the connector starts a new turn. Without a connector use hyperion_wait. Does not pause the workflow or approve a decision.',
+    inputSchema: { runId: z.string().uuid(), ...suspendSchema.shape },
+  },
+  ({ runId, ...data }) => safe(() => client.suspend(runId, data)),
 );
 await server.connect(new StdioServerTransport());

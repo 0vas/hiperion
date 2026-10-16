@@ -4,6 +4,8 @@
 
 Canvas vertical u horizontal, trabajos y pasos, decisiones humanas, entradas y salidas tipadas, logs enviados por el agente, reintentos y revisión del trabajo futuro. Integraciones locales mediante MCP o skill; Desktop incluye su runtime.
 
+El núcleo 0.5 incluye un contrato de pausa persistente y un worker independiente del harness. Los conectores nativos que reactivan conversaciones aún deben implementarse y certificarse; [consulta su alcance](../guia/reanudacion.md).
+
 El perfil `bpmn-lite` admite inicio, fin y compuertas exclusivas, inclusivas y paralelas con divisiones y reuniones estructuradas.
 
 ## Lo que aún no hace

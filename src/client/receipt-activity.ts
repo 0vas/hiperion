@@ -18,6 +18,8 @@ export function mergeRuns(previous: Run[], incoming: Run[]): Run[] {
           ? {
               ...run,
               agentWaiting: current.agentWaiting,
+              continuation: current.continuation,
+              links: current.links,
               agentPresenceAt: current.agentPresenceAt,
             }
           : run,
@@ -29,6 +31,8 @@ export function mergeRuns(previous: Run[], incoming: Run[]): Run[] {
       next.set(run.id, {
         ...current,
         agentWaiting: run.agentWaiting,
+        continuation: run.continuation,
+        links: run.links,
         agentPresenceAt: run.agentPresenceAt,
       });
     }

@@ -8,5 +8,5 @@
     "rootDir": "src",
     "sourceMap": true
   },
-  "include": ["src/domain", "src/server", "src/adapters"]
+  "include": ["src/domain", "src/server", "src/adapters", "src/i18n"]
 }

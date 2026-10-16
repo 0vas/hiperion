@@ -3,21 +3,14 @@ on:
   push:
     branches: [main]
     paths:
-      [
-        'docs/site/**',
-        'docs/architecture/implemented.svg',
-        '.github/workflows/pages.yml',
-      ]
+      ['docs/site/**', 'docs/architecture/**', '.github/workflows/pages.yml']
   pull_request:
     paths:
-      [
-        'docs/site/**',
-        'docs/architecture/implemented.svg',
-        '.github/workflows/pages.yml',
-      ]
+      ['docs/site/**', 'docs/architecture/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 permissions:
   contents: read
+  pages: read
 concurrency:
   group: docs-pages-${{ github.ref }}
   cancel-in-progress: false
@@ -37,6 +30,7 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npx playwright install --with-deps chromium
+        timeout-minutes: 5
       - run: npm test
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
@@ -44,6 +38,14 @@ jobs:
           name: documentation-checks
           path: test-results/docs
           retention-days: 7
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        id: pages
+      - name: Build with the configured Pages path
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: npm run build && node scripts/check-pages.mjs
+        env:
+          HYPERION_DOCS_BASE: ${{ steps.pages.outputs.base_path }}/
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:

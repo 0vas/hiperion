@@ -1,4 +1,6 @@
-# Hyperion protocol v0.4.1
+# Hyperion protocol v0.4.2
+
+La pausa persistente y el alcance por herramienta se explican en [Reanudación agnóstica](https://github.com/0vas/hyperion/blob/main/docs/continuacion-agnostica.md). La conexión MCP local y la reanudación de un chat cerrado son capacidades distintas.
 
 All requests use the loopback HTTP origin. JSON is validated strictly; unknown fields are rejected. Limits: 100 steps per plan, 128 KiB per request, 8,000 characters per result/log message. Plans are acyclic and contain unique step IDs. Executed/presented steps are immutable; future work can be revised through the guarded command below. Task ports use bounded lists of up to 30 fields.
 
@@ -122,3 +124,42 @@ Read responses include ephemeral `agentWaiting` and `agentPresenceAt` fields for
 Each `start` returns the task's `attempt`. Send this number with `complete`, `fail` and `log`. After the first attempt it is required; missing or older attempts return `STALE_ATTEMPT`, so interrupted work cannot overwrite a recovery. CLI shorthand accepts `--attempt NUMBER`; JSON commands and MCP expose `attempt`. Do not replace an old attempt number with a current one to resubmit stale work.
 
 Runtime 0.4.1 requires its matching local service. Restart an older instance before reconnecting; retain its data directory. Previously released 0.4.0 installers do not include this endpoint.
+
+## Attached guided execution (0.4.2)
+
+The portable skill runs `guide PLAN KEY` (legacy skill `create` invocations map to it). It streams a JSON line containing `event: waiting`, the canvas URL and `agentNext`, only when the revision changes, then keeps the shell tool attached across 30-second event waits, up to ten minutes per invocation. The host should use a short initial shell yield, share the URL in a progress message, and poll the running tool. The final JSON line contains the current run, saved input and `agentNext`. The guide re-reads state at its deadline to catch a concurrent answer. If input is still pending, its final `agentNext.action` is `disconnected`; the invocation is over and does not own a wait. The host executes eligible tasks; the adapter never performs or fabricates that work.
+
+Use `follow RUN_ID` when a later human decision becomes available when explicitly reconnecting a disconnected chat. Do not renew unchanged expired sessions indefinitely. Pause, cancellation, completion, running work or ready agent tasks return control to the host immediately. Timeouts never authorize work. Killing the portable wrapper forwards the signal to its child so it cannot leave a false connected wait. This is an attached host tool, not a background executor or a mechanism for waking closed chats.
+
+Direct CLI `create` remains nonblocking for programmatic clients. CLI and MCP run responses include `agentNext` with the next action and, for human waits, the exact wait arguments. MCP hosts show the URL and call `hyperion_wait`, renewing short timeouts within a bounded waiting period (at most ten minutes), without repeated unchanged reminders. This guidance is not a guarantee that an arbitrary host will follow it.
+
+New plan creation and revised forms reject `CHOICES_REQUIRE_OPTIONS` when a human string field lists options using an imperative comma-separated Spanish/English sentence (for example “Escribe A, B o C”) without `form.options`. Write/enter instructions additionally require a selection title. This is a bounded authoring guard, not general language understanding or a product catalog. It does not infer option values from prose, mutate existing plans or rewrite previous responses. Use structured options; “Otro” / “Necesito ayuda” may lead to an optional text field or a subsequent question.
+
+## Step artifacts
+
+`POST /api/runs/:id/artifacts` registers one real result, using the coordinator's agent credential:
+
+```json
+{
+  "commandId": "attach-report-1",
+  "stepId": "inspect",
+  "attempt": 1,
+  "name": "report.md",
+  "mediaType": "text/markdown",
+  "contentBase64": "IyBSZXBvcnQK"
+}
+```
+
+Supply exactly one `contentBase64` or `url` (HTTP/HTTPS without credentials). `expectedRevision` is optional; `attempt` is required and must match the attempt that produced the file. The agent step must be running or completed and the run active, paused or completed. Registering late evidence on a completed run appends metadata and an event; it does not reopen execution or change its result. Cancelled/rejected runs reject additions. Each step supports 100 artifacts, each uploaded file up to 10 MiB. Only this endpoint accepts a request body up to 14 MiB to accommodate base64; normal endpoints retain 128 KiB.
+
+The response is the updated run. `steps[].artifacts[]` contains immutable `id`, `name`, `mediaType`, `createdAt`, `attempt`, and either `url` or `size`/`sha256`. Bytes are stored separately in SQLite; snapshots, receipts and SSE contain metadata only. Replaying an identical command returns its original receipt; changing the content with the same ID fails. Retry retains prior artifacts and rejects late uploads from a stale attempt.
+
+`GET /api/runs/:id/artifacts/:artifactId` requires the existing human session or agent credential. It returns that run's stored file with its download filename. The endpoint accepts no filesystem path. Raster images support `?preview=1`; HTML, SVG and other active formats are served as attachments with sandbox CSP. The canvas previews small text as escaped text and supported raster images, never executes uploaded HTML. Remote links open separately and are not fetched by the server. An artifact is evidence, not a substitute for a required typed output.
+
+## A completed run can precede a new cycle
+
+An agent creates a linked run with `POST /api/runs` using `{commandId, plan, parentRunId}`. The parent must be completed and `plan.request` must contain the user's new request. Supply a new plan and only the relevant context after reading the parent; context is not silently copied. This operation never resumes or revises the completed run, never infers a new request from a timeout, and does not wake an external chat by itself.
+
+The child records immutable `origin: {runId, revision, title}`. The parent's snapshot, revision and events remain unchanged. SQLite records the relationship atomically with the child and receipt. Each parent supports up to 32 direct continuations. Read responses project `links.previous` and `links.next[]`, each with `id`, `title`, `status` and `request`. SSE refreshes these links without inventing a parent revision. These navigation links sit outside the executable DAG: the canvas connects the prior end to the new start, and both runs retain independent states and coordinators.
+
+Included in Desktop **2026.10.12.1722 UTC · Preview**. Older installers require an update to provide these endpoints.

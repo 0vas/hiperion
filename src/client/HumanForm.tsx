@@ -1,4 +1,6 @@
+import { t, useLocale } from './i18n';
 import { Check, LoaderCircle } from 'lucide-react';
+import type { ContinuationState } from '../domain/continuation';
 import type { Step } from '../domain/workflow';
 import { DecisionFields } from './DecisionFields';
 import { fieldError } from './decision-form';
@@ -11,6 +13,7 @@ export function HumanForm({
   busy,
   online,
   agentWaiting,
+  continuation,
   onSubmit,
   onReject,
 }: {
@@ -22,18 +25,20 @@ export function HumanForm({
   busy: boolean;
   online: boolean;
   agentWaiting: boolean;
+  continuation?: ContinuationState;
   onSubmit: () => void;
   onReject: () => void;
 }) {
+  useLocale();
   const manual = step.kind === 'manual';
   const ports = step.outputs || [];
   const question =
     step.interaction?.question ||
     (manual
       ? ports.length
-        ? 'Completa lo necesario para continuar'
-        : '¿Qué necesitas para este paso?'
-      : '¿Apruebas este resultado?');
+        ? t('Completa lo necesario para continuar')
+        : t('¿Qué necesitas para este paso?')
+      : t('¿Apruebas este resultado?'));
   const context = step.interaction?.context || step.description;
   const invalid =
     ports.some((p) => fieldError(p, values[p.name] || '')) ||
@@ -49,7 +54,7 @@ export function HumanForm({
         e.preventDefault();
         if (!invalid && !busy && online) onSubmit();
       }}
-      aria-label="Tu decisión"
+      aria-label={t('Tu decisión')}
     >
       <h3 className="action-title">{question}</h3>
       {context &&
@@ -57,7 +62,7 @@ export function HumanForm({
           <p className="decision-context">{context}</p>
         ) : (
           <details className="decision-help">
-            <summary>Ver instrucciones</summary>
+            <summary>{t('Ver instrucciones')}</summary>
             <p>{context}</p>
           </details>
         ))}
@@ -71,7 +76,7 @@ export function HumanForm({
       )}
       {manual && !ports.length && (
         <div className="free-answer">
-          <label htmlFor="human-answer">Tu respuesta</label>
+          <label htmlFor="human-answer">{t('Tu respuesta')}</label>
           <textarea
             id="human-answer"
             value={answer}
@@ -79,17 +84,17 @@ export function HumanForm({
             maxLength={8000}
             rows={3}
             required
-            placeholder="Describe lo que necesitas para este paso…"
+            placeholder={t('Describe lo que necesitas para este paso…')}
           />
         </div>
       )}
       {!manual && (
         <details className="optional-fields">
           <summary>
-            Añadir comentario <small>Opcional</small>
+            {t('Añadir comentario')} <small>{t('Opcional')}</small>
           </summary>
           <label htmlFor="human-answer" className="form-sr-only">
-            Comentario (opcional al aprobar)
+            {t('Comentario (opcional al aprobar)')}
           </label>
           <textarea
             id="human-answer"
@@ -97,7 +102,7 @@ export function HumanForm({
             onChange={(e) => onAnswer(e.target.value)}
             maxLength={8000}
             rows={2}
-            placeholder="Añade contexto a tu decisión…"
+            placeholder={t('Añade contexto a tu decisión…')}
           />
         </details>
       )}
@@ -114,19 +119,27 @@ export function HumanForm({
           )}
           {manual
             ? ports.length
-              ? 'Guardar elección'
-              : 'Enviar respuesta'
-            : 'Aprobar paso'}
+              ? t('Guardar elección')
+              : t('Enviar respuesta')
+            : t('Aprobar paso')}
         </button>
         {!online ? (
           <p className="field-error" role="status">
-            Sin conexión. Tus respuestas siguen aquí.
+            {t('Sin conexión. Tus respuestas siguen aquí.')}
           </p>
         ) : (
           <p className="decision-return">
-            {agentWaiting
-              ? 'Agente conectado. Al confirmar, recibirá tu respuesta para continuar.'
-              : 'No hay un agente esperando. Tu respuesta se guardará; si el chat terminó su turno, envíale la continuación.'}
+            {continuation?.status === 'waiting'
+              ? t(
+                  'Pausa guardada. Tu respuesta se enviará al conector para continuar.',
+                )
+              : agentWaiting
+                ? t(
+                    'Agente conectado. Al confirmar, recibirá tu respuesta para continuar.',
+                  )
+                : t(
+                    'No hay un agente esperando. Tu respuesta se guardará; si el chat terminó su turno, envíale la continuación.',
+                  )}
           </p>
         )}
         {!manual && (
@@ -136,13 +149,13 @@ export function HumanForm({
             disabled={busy || !online}
             onClick={onReject}
           >
-            Rechazar y detener este flujo
+            {t('Rechazar y detener este flujo')}
           </button>
         )}
       </div>
       {step.interaction?.next && (
         <details className="decision-help decision-next">
-          <summary>Qué sucede después</summary>
+          <summary>{t('Qué sucede después')}</summary>
           <p>{step.interaction.next}</p>
         </details>
       )}

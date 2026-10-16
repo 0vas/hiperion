@@ -1,3 +1,4 @@
+import { claimSchema } from '../domain/continuation.js';
 import { presentRun } from '../domain/context.js';
 import type { Run } from '../domain/workflow.js';
 import { VERSION } from '../version.js';
@@ -22,7 +23,11 @@ type Options = {
   getAgentTokens?: () => Record<string, string>;
 };
 const createSchema = z
-  .object({ plan: z.unknown(), commandId: z.string().min(1).max(128) })
+  .object({
+    plan: z.unknown(),
+    commandId: z.string().min(1).max(128),
+    parentRunId: z.string().uuid().optional(),
+  })
   .strict();
 const equal = (a: string, b: string) =>
   Buffer.byteLength(a) === Buffer.byteLength(b) &&
@@ -31,15 +36,19 @@ function json(res: ServerResponse, status: number, body: unknown) {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(body));
 }
-async function body(req: IncomingMessage) {
+async function body(req: IncomingMessage, limit = 128 * 1024) {
   if (!req.headers['content-type']?.startsWith('application/json'))
     throw new WorkflowError('CONTENT_TYPE', 'Use application/json', 415);
   const chunks: Buffer[] = [];
   let length = 0;
   for await (const chunk of req) {
     length += chunk.length;
-    if (length > 128 * 1024)
-      throw new WorkflowError('TOO_LARGE', 'Request exceeds 128 KiB', 413);
+    if (length > limit)
+      throw new WorkflowError(
+        'TOO_LARGE',
+        'Request exceeds the allowed size',
+        413,
+      );
     chunks.push(chunk);
   }
   try {
@@ -51,6 +60,7 @@ async function body(req: IncomingMessage) {
 export function createApp(options: Options) {
   let baseUrl = '';
   const streams = new Set<ServerResponse>();
+  const continuationViews = new Map<string, string>();
   const waits = new Map<string, Set<(run: Run) => void>>();
   let presenceAt = Date.now();
   const touchPresence = () => {
@@ -58,7 +68,9 @@ export function createApp(options: Options) {
   };
   const present = (run: Run): Run => ({
     ...presentRun(run),
+    links: options.store.links(run.id),
     agentWaiting: !!waits.get(run.id)?.size,
+    continuation: options.store.continuations.state(run.id),
     agentPresenceAt: presenceAt,
   });
   const send = (res: ServerResponse, event: string, value: unknown) => {
@@ -69,10 +81,31 @@ export function createApp(options: Options) {
     }
   };
   const publish = (run: Run) => {
+    continuationViews.set(
+      run.id,
+      JSON.stringify(options.store.continuations.state(run.id)) || '',
+    );
     for (const res of streams) send(res, 'run', present(run));
+  };
+  const refreshContinuations = (owner?: string) => {
+    for (const run of options.store.list()) {
+      const state = options.store.continuations.state(run.id);
+      if (
+        (!owner || run.coordinator === owner) &&
+        state &&
+        continuationViews.get(run.id) !== JSON.stringify(state)
+      ) {
+        touchPresence();
+        publish(run);
+      }
+    }
   };
   const notify = (run: Run) => {
     publish(run);
+    if (run.origin) {
+      touchPresence();
+      publish(options.store.get(run.origin.runId));
+    }
     for (const listener of [...(waits.get(run.id) || [])]) listener(run);
   };
   const server = createServer(async (req, res) => {
@@ -149,6 +182,7 @@ export function createApp(options: Options) {
           streams.add(res);
           send(res, 'snapshot', options.store.list().map(present));
           const heartbeat = setInterval(() => {
+            refreshContinuations();
             if (!res.write(': heartbeat\n\n')) res.destroy();
           }, 15000);
           heartbeat.unref();
@@ -164,9 +198,122 @@ export function createApp(options: Options) {
         }
         if (url.pathname === '/api/runs' && req.method === 'POST') {
           const data = createSchema.parse(await body(req));
-          const run = options.store.create(data.plan, actor, data.commandId);
+          const run = options.store.create(
+            data.plan,
+            actor,
+            data.commandId,
+            data.parentRunId,
+          );
+          touchPresence();
           publish(run);
+          if (run.origin) publish(options.store.get(run.origin.runId));
           json(res, 201, present(run));
+          return;
+        }
+        const artifactRoute =
+          /^\/api\/runs\/([a-f0-9-]+)\/artifacts(?:\/([a-f0-9-]+))?$/.exec(
+            url.pathname,
+          );
+        if (artifactRoute && !artifactRoute[2] && req.method === 'POST') {
+          if (actor.role !== 'agent')
+            throw new WorkflowError(
+              'FORBIDDEN',
+              'Only the coordinator can register artifacts',
+              403,
+            );
+          const run = options.store.addArtifact(
+            artifactRoute[1]!,
+            await body(req, 14 * 1024 * 1024),
+            actor,
+          );
+          notify(options.store.get(run.id));
+          json(res, 200, present(run));
+          return;
+        }
+        if (artifactRoute?.[2] && req.method === 'GET') {
+          const { artifact, content } = options.store.artifactContent(
+            artifactRoute[1]!,
+            artifactRoute[2],
+          );
+          const image = [
+            'image/png',
+            'image/jpeg',
+            'image/gif',
+            'image/webp',
+          ].includes(artifact.mediaType);
+          // HTML/SVG and other active formats are downloads, never same-origin documents.
+          res.setHeader(
+            'content-security-policy',
+            "sandbox; default-src 'none'; frame-ancestors 'none'",
+          );
+          res.setHeader(
+            'content-type',
+            image ? artifact.mediaType : 'application/octet-stream',
+          );
+          const disposition =
+            image && url.searchParams.get('preview') === '1'
+              ? 'inline'
+              : 'attachment';
+          res.setHeader(
+            'content-disposition',
+            `${disposition}; filename="artifact"; filename*=UTF-8''${encodeURIComponent(artifact.name).replace(/'/g, '%27')}`,
+          );
+          res.setHeader('content-length', content.length);
+          res.end(content);
+          return;
+        }
+        const suspension = /^\/api\/runs\/([a-f0-9-]+)\/suspend$/.exec(
+          url.pathname,
+        );
+        if (suspension && req.method === 'POST') {
+          options.store.continuations.suspend(
+            suspension[1]!,
+            await body(req),
+            actor,
+          );
+          touchPresence();
+          const run = options.store.get(suspension[1]!);
+          notify(run);
+          json(res, 200, present(run));
+          return;
+        }
+        if (
+          url.pathname === '/api/continuations/pending' &&
+          req.method === 'POST'
+        ) {
+          const { connectorId } = claimSchema.parse(await body(req));
+          json(
+            res,
+            200,
+            options.store.continuations.pending(connectorId, actor),
+          );
+          return;
+        }
+        if (
+          url.pathname === '/api/continuations/claim' &&
+          req.method === 'POST'
+        ) {
+          const { connectorId } = claimSchema.parse(await body(req));
+          const delivery = options.store.continuations.claim(
+            connectorId,
+            actor,
+          );
+          refreshContinuations(actor.id);
+          json(res, 200, delivery);
+          return;
+        }
+        const settlement = /^\/api\/continuations\/([a-f0-9-]+)\/settle$/.exec(
+          url.pathname,
+        );
+        if (settlement && req.method === 'POST') {
+          const result = options.store.continuations.settle(
+            settlement[1]!,
+            await body(req),
+            actor,
+          );
+          touchPresence();
+          publish(options.store.get(result.runId));
+          json(res, 200, result.state);
           return;
         }
         const waiting = /^\/api\/runs\/([a-f0-9-]+)\/wait$/.exec(url.pathname);
@@ -187,6 +334,7 @@ export function createApp(options: Options) {
             .parse(Object.fromEntries(url.searchParams));
           const changed = (value: Run) =>
             value.revision > query.afterRevision ||
+            options.store.continuations.state(value.id)?.status === 'waiting' ||
             ['completed', 'cancelled', 'rejected'].includes(value.status);
           if (changed(run) || query.timeoutSeconds === 0) {
             json(res, 200, present(run));

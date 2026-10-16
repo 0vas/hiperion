@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Hyperion · Runtime architecture",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": "docs/site/public/architecture/hyperion-en.html",
+    "repository": {
+      "url": "https://github.com/0vas/hyperion.git",
+      "revision": "83cf85d420b44b3b3a34e08bdfd03c042f0fcc09"
+    }
+  },
+  "components": [
+    {
+      "id": "agent",
+      "type": "external",
+      "label": "AI agent",
+      "sublabel": "External executor",
+      "pos": [40, 80],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/adapters/mcp.ts",
+          "line": 14,
+          "end_line": 19
+        }
+      ]
+    },
+    {
+      "id": "adapters",
+      "type": "frontend",
+      "label": "Adapters",
+      "sublabel": "MCP / CLI",
+      "pos": [370, 80],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/adapters/mcp.ts",
+          "line": 41,
+          "end_line": 52
+        },
+        {
+          "path": "src/adapters/client.ts",
+          "line": 68,
+          "end_line": 94
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Local service",
+      "sublabel": "HTTP · 127.0.0.1",
+      "pos": [700, 80],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/server/app.ts",
+          "line": 98,
+          "end_line": 178
+        },
+        {
+          "path": "src/server/app.ts",
+          "line": 315,
+          "end_line": 334
+        }
+      ]
+    },
+    {
+      "id": "canvas",
+      "type": "frontend",
+      "label": "Canvas",
+      "sublabel": "React · Browser / Desktop",
+      "pos": [700, 340],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/client/App.tsx",
+          "line": 650,
+          "end_line": 724
+        },
+        {
+          "path": "desktop/main.mjs",
+          "line": 46,
+          "end_line": 84
+        },
+        {
+          "path": "src/client/Artifacts.tsx",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "Store + queue",
+      "sublabel": "Snapshots · files · cycle links",
+      "pos": [370, 340],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/server/store.ts",
+          "line": 18,
+          "end_line": 45
+        },
+        {
+          "path": "src/server/store.ts",
+          "line": 93,
+          "end_line": 150
+        },
+        {
+          "path": "src/server/store.ts",
+          "line": 163,
+          "end_line": 230
+        }
+      ]
+    },
+    {
+      "id": "domain",
+      "type": "backend",
+      "label": "Workflow engine",
+      "sublabel": "Gates · I/O · revisions",
+      "pos": [40, 340],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/domain/workflow.ts",
+          "line": 262,
+          "end_line": 300
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "agent",
+      "to": "adapters",
+      "label": "MCP / CLI",
+      "variant": "emphasis"
+    },
+    {
+      "from": "adapters",
+      "to": "api",
+      "label": "HTTP",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "store",
+      "label": "Commands"
+    },
+    {
+      "from": "store",
+      "to": "domain",
+      "label": "Validate"
+    },
+    {
+      "from": "api",
+      "to": "canvas",
+      "label": "SSE",
+      "fromSide": "right",
+      "toSide": "right"
+    },
+    {
+      "from": "canvas",
+      "to": "api",
+      "label": "Decisions",
+      "fromSide": "top",
+      "toSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "One process, different harnesses",
+      "items": [
+        "The external agent plans and performs the work.",
+        "The canvas collects human decisions; the core validates state."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Resume connectors are pending",
+      "items": [
+        "Core 0.5 stores suspension and delivery in SQLite.",
+        "An optional I/O worker requires an installed resume connector.",
+        "MCP alone does not wake a chat that has ended its turn."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Artifacts and conversation history",
+      "items": [
+        "Step metadata and file bytes commit atomically with a receipt.",
+        "Linked runs share navigation, not execution state or coordinator rights."
+      ]
+    }
+  ]
+}

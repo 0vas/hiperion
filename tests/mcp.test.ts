@@ -8,7 +8,15 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { createApp } from '../src/server/app.js';
 import { Store } from '../src/server/store.js';
 
-for (const coordinator of ['codex', 'claude', 'cursor'])
+for (const coordinator of [
+  'codex',
+  'chatgpt',
+  'claude',
+  'claude-code',
+  'cursor',
+  'hermes',
+  'antigravity',
+])
   test(`MCP stdio respects human gates with ${coordinator} identity`, async () => {
     const dir = mkdtempSync(join(tmpdir(), 'hyperion-mcp-'));
     const store = new Store(':memory:');
@@ -48,7 +56,9 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
     try {
       await client.connect(transport);
       const tools = await client.listTools();
-      assert.equal(tools.tools.length, 7);
+      assert.equal(tools.tools.length, 9);
+      assert.ok(tools.tools.some((t) => t.name === 'hyperion_add_artifact'));
+      assert.ok(tools.tools.some((t) => t.name === 'hyperion_suspend'));
       assert.ok(!tools.tools.some((t) => /approve|submit/.test(t.name)));
       const created = await client.callTool({
         name: 'hyperion_create_run',
@@ -72,6 +82,9 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
       const run = JSON.parse((created.content as { text: string }[])[0]!.text);
       assert.match(run.url, /\?run=/);
       assert.equal(run.coordinator, coordinator);
+      assert.equal(run.agentNext.action, 'wait');
+      assert.equal(run.agentNext.tool, 'hyperion_wait');
+      assert.equal(run.agentNext.arguments.runId, run.id);
       const presented = await client.callTool({
         name: 'hyperion_open',
         arguments: { runId: run.id, presentation: 'split' },
@@ -120,6 +133,11 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
       });
       assert.equal(approved.status, 200);
       const changed = await waiting;
+      assert.equal(
+        JSON.parse((changed.content as { text: string }[])[0]!.text).agentNext
+          .action,
+        'execute',
+      );
       assert.equal(
         JSON.parse((changed.content as { text: string }[])[0]!.text).revision,
         2,
@@ -211,6 +229,43 @@ for (const coordinator of ['codex', 'claude', 'cursor'])
       assert.equal(
         JSON.parse((done.content as { text: string }[])[0]!.text).status,
         'completed',
+      );
+      const attached = await client.callTool({
+        name: 'hyperion_add_artifact',
+        arguments: {
+          runId: run.id,
+          stepId: 'work',
+          attempt: 1,
+          commandId: 'report-file',
+          name: 'report.md',
+          text: '# Verified report',
+        },
+      });
+      assert.ok(!attached.isError);
+      const withArtifact = JSON.parse(
+        (attached.content as { text: string }[])[0]!.text,
+      );
+      assert.equal(
+        withArtifact.steps.find((s: { id: string }) => s.id === 'work')
+          .artifacts[0].name,
+        'report.md',
+      );
+      const child = await client.callTool({
+        name: 'hyperion_create_run',
+        arguments: {
+          commandId: 'new-request',
+          parentRunId: run.id,
+          plan: {
+            title: 'Translate report',
+            request: 'Now translate the report',
+            steps: [{ id: 'translate', title: 'Translate', kind: 'agent' }],
+          },
+        },
+      });
+      assert.ok(!child.isError);
+      assert.equal(
+        JSON.parse((child.content as { text: string }[])[0]!.text).origin.runId,
+        run.id,
       );
     } finally {
       await client.close();

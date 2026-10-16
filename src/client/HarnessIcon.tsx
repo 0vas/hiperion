@@ -1,7 +1,9 @@
 import codex from './brands/codex.svg?raw';
 import claude from './brands/claude.svg?raw';
 import cursor from './brands/cursor.svg?raw';
+import antigravity from './brands/antigravity.svg?raw';
 const brands: Record<string, { label: string; svg: string }> = {
+  antigravity: { label: 'Antigravity', svg: antigravity },
   codex: { label: 'Codex', svg: codex },
   claude: { label: 'Claude', svg: claude },
   cursor: { label: 'Cursor', svg: cursor },

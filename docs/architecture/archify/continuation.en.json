@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Hyperion · Pause and resume",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": "docs/site/public/architecture/continuation-en.html",
+    "repository": {
+      "url": "https://github.com/0vas/hyperion.git",
+      "revision": "83cf85d420b44b3b3a34e08bdfd03c042f0fcc09"
+    }
+  },
+  "components": [
+    {
+      "id": "human",
+      "type": "frontend",
+      "label": "Human response",
+      "sublabel": "Canvas · current revision",
+      "pos": [40, 80],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/client/HumanForm.tsx",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "Transaction",
+      "sublabel": "State + receipt + delivery",
+      "pos": [370, 80],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/server/store.ts",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "queue",
+      "type": "messagebus",
+      "label": "Durable queue",
+      "sublabel": "SQLite · stable ID · lease",
+      "pos": [700, 80],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/server/continuations.ts",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "I/O worker",
+      "sublabel": "Claim and reconcile deliveries",
+      "pos": [700, 340],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/adapters/continuation-worker.ts",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "connector",
+      "type": "external",
+      "label": "Connector pending",
+      "sublabel": "Host-specific integration",
+      "pos": [370, 340],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/adapters/continuation-worker.ts",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "agent",
+      "type": "external",
+      "label": "External agent",
+      "sublabel": "Read the run and perform work",
+      "pos": [40, 340],
+      "size": [200, 76],
+      "sources": [
+        {
+          "path": "src/adapters/client.ts",
+          "line": 1,
+          "end_line": 40
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "human",
+      "to": "store",
+      "label": "Save",
+      "variant": "emphasis"
+    },
+    {
+      "from": "store",
+      "to": "queue",
+      "label": "Enqueue",
+      "variant": "emphasis"
+    },
+    {
+      "from": "queue",
+      "to": "worker",
+      "label": "Claim",
+      "variant": "emphasis"
+    },
+    {
+      "from": "worker",
+      "to": "connector",
+      "label": "Resume",
+      "variant": "emphasis"
+    },
+    {
+      "from": "connector",
+      "to": "agent",
+      "label": "Start turn",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Requires a registered suspension",
+      "items": [
+        "The core and worker exist; a real connector must be installed.",
+        "MCP alone cannot wake a closed chat."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Delivery is not execution",
+      "items": [
+        "Acknowledgement confirms dispatch; the agent must report its actions.",
+        "An uncertain delivery requires reconciliation before retry."
+      ]
+    }
+  ]
+}
