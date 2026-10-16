@@ -127,7 +127,29 @@ body:has(.landscape-hero) .VPHome {
   font-weight: 550;
   margin: 0;
 }
-.landscape-hero h1 > .headline-accent {
+.landscape-hero h1.headline-typewriter {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+.landscape-hero .headline-sizer,
+.landscape-hero .headline-active {
+  grid-area: 1 / 1;
+  max-width: 100%;
+}
+.landscape-hero .headline-sizer {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.landscape-hero .headline-caret-slot {
+  display: inline-block;
+  width: 0.06em;
+  height: 0.82em;
+  margin-left: 0.04em;
+  vertical-align: -0.04em;
+}
+.landscape-hero .headline-accent {
   display: inline-block;
   padding-bottom: 0.1em;
   color: var(--vp-c-brand-1);
@@ -562,7 +584,7 @@ body:has(.landscape-hero) .VPHome {
 .VPHome:has(.landscape-hero) .VPHomeContent .demo-stage h3 {
   font-size: 22px;
 }
-.cinema-paused h1 > .headline-accent {
+.cinema-paused .headline-accent {
   animation-play-state: paused;
 }
 @keyframes cinema-shine {
@@ -679,7 +701,7 @@ body:has(.landscape-hero) .VPHome {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .landscape-hero h1 > .headline-accent,
+  .landscape-hero .headline-accent,
   .landscape-copy,
   .landscape-product {
     animation: none;

@@ -22,7 +22,7 @@ Choose an audience, review a sample draft and see how data moves between tasks.
 
 ## What will you do with Hyperion?
 
-One request, different paths. Explore six goals and see how a decision shapes the plan.
+The same request can open different paths. Pick a goal, decide at the gateway and watch the illustrative plan change.
 
 <GoalExplorer />
 
