@@ -690,7 +690,7 @@ test('repository is discoverable with Shields badges and SVG actions in both lan
     await expect(repo).toBeVisible();
     await expect(repo).toHaveAttribute(
       'href',
-      'https://github.com/0vas/hiperion',
+      'https://github.com/0vas/hyperion',
     );
     await expect(repo.locator('svg')).toHaveCount(2);
     for (const theme of ['light', 'dark']) {

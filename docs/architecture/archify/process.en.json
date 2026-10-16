@@ -7,7 +7,7 @@
     "quality_profile": "showcase",
     "output": "docs/site/public/architecture/process-en.html",
     "repository": {
-      "url": "https://github.com/0vas/hiperion.git",
+      "url": "https://github.com/0vas/hyperion.git",
       "revision": "83cf85d420b44b3b3a34e08bdfd03c042f0fcc09"
     }
   },
