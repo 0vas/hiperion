@@ -1,5 +1,9 @@
 /** Keep recovery actions available when the local service cannot start. */
 export async function recoverStartup({
+  t = (message, values = {}) =>
+    message.replace(/\{(\d+)\}/g, (match, key) =>
+      values[key] === undefined ? match : String(values[key]),
+    ),
   start,
   dialog,
   showLogs,
@@ -16,14 +20,17 @@ export async function recoverStartup({
       while (!retry) {
         const { response } = await dialog.showMessageBox({
           type: 'error',
-          title: 'Hyperion no pudo iniciar',
-          message: 'No se pudo abrir el servicio local',
-          detail: `${error.message || error}\n\nTus flujos no se han borrado. Puedes reintentar, revisar el diagnóstico o buscar una actualización.`,
+          title: t('Hyperion no pudo iniciar'),
+          message: t('No se pudo abrir el servicio local'),
+          detail: t(
+            '{0}\n\nTus flujos no se han borrado. Puedes reintentar, revisar el diagnóstico o buscar una actualización.',
+            { 0: error.message || error },
+          ),
           buttons: [
-            'Reintentar',
-            'Ver diagnóstico',
-            'Buscar actualizaciones',
-            'Salir',
+            t('Reintentar'),
+            t('Ver diagnóstico'),
+            t('Buscar actualizaciones'),
+            t('Salir'),
           ],
           cancelId: 3,
           defaultId: 0,

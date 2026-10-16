@@ -6,13 +6,13 @@ Hyperion mantiene el mismo proceso independientemente de la herramienta que real
 
 Instala Desktop y abre **Hyperion → Conectar con mi IA**. El asistente configura:
 
-| Herramienta    | Conexión                                            |
-| -------------- | --------------------------------------------------- |
-| Codex          | Servidor MCP local                                  |
-| Cursor         | Servidor MCP local                                  |
-| Claude Desktop | Servidor MCP local                                  |
-| Claude Code    | Skill administrada con acceso al runtime de Desktop |
-| Antigravity    | Servidor MCP local · Desktop compilado desde `main` |
+| Herramienta    | Conexión                                                 |
+| -------------- | -------------------------------------------------------- |
+| Codex          | Servidor MCP local                                       |
+| Cursor         | Servidor MCP local                                       |
+| Claude Desktop | Servidor MCP local                                       |
+| Claude Code    | Skill administrada con acceso al runtime de Desktop      |
+| Antigravity    | Servidor MCP local · Desktop 0.5.1-preview.1 o posterior |
 
 Después reinicia la herramienta y abre un chat nuevo. Las integraciones existentes no se sobreescriben a ciegas: el asistente informa conflictos y respalda los archivos que modifica.
 
@@ -35,12 +35,12 @@ Sin un conector de reanudación instalado, tu respuesta se guarda localmente. El
 
 ## Antigravity
 
-En Desktop compilado desde `main`, abre **Hyperion → Conectar con mi IA → Antigravity**. El asistente prepara `mcpServers.hyperion` en la configuración global documentada de Antigravity, conserva otros servidores y respalda el archivo anterior. El runtime incluido inicia Hyperion cuando el cliente carga MCP.
+En Desktop 0.5.1-preview.1 o posterior, abre **Hyperion → Conectar con mi IA → Antigravity**. El asistente prepara `mcpServers.hyperion` en la configuración global documentada de Antigravity, conserva otros servidores y respalda el archivo anterior. El runtime incluido inicia Hyperion cuando el cliente carga MCP.
 
 Reinicia Antigravity o recarga sus servidores MCP. Comprueba que aparecen las herramientas de Hyperion y pide: **«Usa Hyperion para preparar una guía de bienvenida a mi proyecto»**.
 
 ::: warning Versión necesaria
-Los instaladores publicados **0.4.0-preview.1** todavía no incluyen este botón. El soporte está implementado en `main`; la [conexión técnica](https://github.com/0vas/hyperion/blob/main/docs/conexion.md#antigravity) ofrece también `setup antigravity` para instalaciones desde fuentes. No necesitas editar JSON con el asistente nuevo.
+El botón está incluido desde **0.5.1-preview.1**. Si todavía tienes **0.4.0-preview.1**, instala la nueva versión; la [conexión técnica](https://github.com/0vas/hyperion/blob/main/docs/conexion.md#antigravity) ofrece también `setup antigravity` para instalaciones desde fuentes. No necesitas editar JSON con el asistente nuevo.
 :::
 
 ::: info Alcance verificado
@@ -55,4 +55,4 @@ Un cliente compatible puede usar el servidor MCP, la CLI o la API local. Debe ap
 
 La edición actual comunica aplicaciones en el mismo equipo. No expongas el servicio local como un servidor remoto para conectar otros equipos.
 
-Para integradores: [conexión técnica](https://github.com/0vas/hiperion/blob/main/docs/conexion.md), [protocolo](https://github.com/0vas/hiperion/blob/main/docs/protocol.md) y [contrato del proceso](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md).
+Para integradores: [conexión técnica](https://github.com/0vas/hyperion/blob/main/docs/conexion.md), [protocolo](https://github.com/0vas/hyperion/blob/main/docs/protocol.md) y [contrato del proceso](https://github.com/0vas/hyperion/blob/main/docs/process-contract.md).

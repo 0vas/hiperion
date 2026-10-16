@@ -7,8 +7,8 @@
     "quality_profile": "showcase",
     "output": "docs/site/public/architecture/hyperion-es.html",
     "repository": {
-      "url": "https://github.com/0vas/hiperion.git",
-      "revision": "8f0e793ef8e9ee572e89d1126a384589b67154e3"
+      "url": "https://github.com/0vas/hyperion.git",
+      "revision": "83cf85d420b44b3b3a34e08bdfd03c042f0fcc09"
     },
     "translations": {
       "page.title": "{title} · Diagrama",
@@ -524,6 +524,11 @@
           "path": "desktop/main.mjs",
           "line": 46,
           "end_line": 84
+        },
+        {
+          "path": "src/client/Artifacts.tsx",
+          "line": 1,
+          "end_line": 40
         }
       ]
     },
@@ -531,14 +536,24 @@
       "id": "store",
       "type": "database",
       "label": "Estado y cola",
-      "sublabel": "SQLite · datos / recibos",
+      "sublabel": "Snapshots · archivos · vínculos",
       "pos": [370, 340],
       "size": [200, 76],
       "sources": [
         {
           "path": "src/server/store.ts",
-          "line": 17,
-          "end_line": 100
+          "line": 18,
+          "end_line": 45
+        },
+        {
+          "path": "src/server/store.ts",
+          "line": 93,
+          "end_line": 150
+        },
+        {
+          "path": "src/server/store.ts",
+          "line": 163,
+          "end_line": 230
         }
       ]
     },
@@ -612,6 +627,14 @@
         "El núcleo 0.5 guarda pausas y entregas en SQLite.",
         "El worker opcional necesita un conector instalado.",
         "MCP por sí solo no reactiva un chat que terminó su turno."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Artefactos e historial",
+      "items": [
+        "Los metadatos y bytes se guardan atómicamente con el recibo.",
+        "Los recorridos enlazados comparten navegación, no estado ni permisos del coordinador."
       ]
     }
   ]

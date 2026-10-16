@@ -1,3 +1,11 @@
+import { useState } from 'react';
+import {
+  t,
+  useLocale,
+  getLanguagePreference,
+  setLanguagePreference,
+  type LanguagePreference,
+} from './i18n';
 import type { Preferences } from './preferences';
 export function Settings({
   value,
@@ -6,14 +14,43 @@ export function Settings({
   value: Preferences;
   onChange: (value: Preferences) => void;
 }) {
+  useLocale();
+  const [languageError, setLanguageError] = useState(false);
   return (
     <div className="settings-panel">
-      <span className="eyebrow">TU ESPACIO</span>
-      <h2 id="popup-title">Ajustes</h2>
-      <p className="muted">Se guardan en este navegador.</p>
+      <span className="eyebrow">{t('TU ESPACIO')}</span>
+      <h2 id="popup-title">{t('Ajustes')}</h2>
+      <p className="muted">{t('Personaliza tu interfaz.')}</p>
       <fieldset>
-        <legend>Apariencia</legend>
-        <label htmlFor="setting-theme">Tema</label>
+        <legend>{t('Idioma')}</legend>
+        <select
+          aria-label={t('Idioma')}
+          value={getLanguagePreference()}
+          onChange={(e) => {
+            setLanguageError(false);
+            void setLanguagePreference(
+              e.target.value as LanguagePreference,
+            ).catch(() => setLanguageError(true));
+          }}
+        >
+          <option value="system">{t('Automático (sistema)')}</option>
+          <option value="es">Español</option>
+          <option value="en">English</option>
+        </select>
+        <p className="muted">
+          {t(
+            'El idioma de la interfaz no cambia tus tareas, respuestas ni logs.',
+          )}
+        </p>
+        {languageError && (
+          <p role="alert">
+            {t('No se pudo guardar el idioma. Inténtalo de nuevo.')}
+          </p>
+        )}
+      </fieldset>
+      <fieldset>
+        <legend>{t('Apariencia')}</legend>
+        <label htmlFor="setting-theme">{t('Tema')}</label>
         <select
           id="setting-theme"
           value={value.theme}
@@ -24,9 +61,9 @@ export function Settings({
             })
           }
         >
-          <option value="system">Sistema</option>
-          <option value="light">Mármol claro</option>
-          <option value="dark">Noche del Egeo</option>
+          <option value="system">{t('Sistema')}</option>
+          <option value="light">{t('Mármol claro')}</option>
+          <option value="dark">{t('Noche del Egeo')}</option>
         </select>
         <label className="setting-toggle">
           <input
@@ -36,15 +73,15 @@ export function Settings({
               onChange({ ...value, reduceMotion: e.target.checked })
             }
           />
-          Reducir movimiento
+          {t('Reducir movimiento')}
         </label>
         <p className="muted">
-          La preferencia de accesibilidad del sistema siempre se respeta.
+          {t('La preferencia de accesibilidad del sistema siempre se respeta.')}
         </p>
       </fieldset>
       <fieldset>
-        <legend>Navegación</legend>
-        <label htmlFor="setting-orientation">Dirección</label>
+        <legend>{t('Navegación')}</legend>
+        <label htmlFor="setting-orientation">{t('Dirección')}</label>
         <select
           id="setting-orientation"
           value={value.orientation}
@@ -55,10 +92,12 @@ export function Settings({
             })
           }
         >
-          <option value="vertical">Vertical · arriba hacia abajo</option>
-          <option value="horizontal">Horizontal · izquierda a derecha</option>
+          <option value="vertical">{t('Vertical · arriba hacia abajo')}</option>
+          <option value="horizontal">
+            {t('Horizontal · izquierda a derecha')}
+          </option>
         </select>
-        <label htmlFor="setting-view">Vista del flujo</label>
+        <label htmlFor="setting-view">{t('Vista del flujo')}</label>
         <select
           id="setting-view"
           value={value.view}
@@ -66,8 +105,8 @@ export function Settings({
             onChange({ ...value, view: e.target.value as Preferences['view'] })
           }
         >
-          <option value="steps">Pasos · detalle de ejecución</option>
-          <option value="jobs">Trabajos · resumen del plan</option>
+          <option value="steps">{t('Pasos · detalle de ejecución')}</option>
+          <option value="jobs">{t('Trabajos · resumen del plan')}</option>
         </select>
         <label className="setting-toggle">
           <input
@@ -75,16 +114,18 @@ export function Settings({
             checked={value.follow}
             onChange={(e) => onChange({ ...value, follow: e.target.checked })}
           />
-          Seguir al abrir un flujo
+          {t('Seguir al abrir un flujo')}
         </label>
         <p className="muted">
-          Centra la tarea que necesita atención. Puedes mover el canvas para
-          explorar.
+          {t(
+            'Centra la tarea que necesita atención. Puedes mover el canvas para explorar.',
+          )}
         </p>
       </fieldset>
       <p className="guide-note">
-        Estos ajustes cambian la vista. Las decisiones del proceso siguen siendo
-        tuyas.
+        {t(
+          'Estos ajustes cambian la vista. Las decisiones del proceso siguen siendo tuyas.',
+        )}
       </p>
     </div>
   );

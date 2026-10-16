@@ -12,6 +12,13 @@ const pages = [
   'contribuir',
   'despliegue',
 ];
+/** EN birth-story slug differs from ES (`the-landscape` vs `el-paisaje`). */
+const localePaths = [
+  ...pages,
+  ...pages.map((path) => `en/${path}`),
+  'guia/el-paisaje',
+  'en/guia/the-landscape',
+];
 test('all guides load under the Pages subpath with working internal links and no local service', async ({
   page,
   request,
@@ -26,7 +33,7 @@ test('all guides load under the Pages subpath with working internal links and no
       failures.push('Documentation accessed the local application');
   });
   const links = new Set();
-  for (const path of [...pages, ...pages.map((path) => `en/${path}`)]) {
+  for (const path of localePaths) {
     const response = await page.goto(
       `/hyperion/${path}${path && !path.endsWith('/') ? '.html' : ''}`,
     );
@@ -61,7 +68,7 @@ test('a new reader can find setup and search for retry', async ({ page }) => {
   await expect(page.locator('h1')).toHaveText('Tu primer flujo');
   await expect(
     page.getByRole('link', { name: 'Descargar Hyperion Desktop', exact: true }),
-  ).toHaveAttribute('href', /releases\/tag\/v0.4.0-preview.1/);
+  ).toHaveAttribute('href', /releases\/tag\/v2026.10.15.2036/);
   await page.getByRole('button', { name: /Buscar/ }).click();
   await page.locator('#localsearch-input').fill('Reintentar');
   await expect(page.locator('.VPLocalSearchBox a').first()).toBeVisible();
@@ -103,7 +110,9 @@ test('mobile navigation and reading remain accessible in both themes', async ({
   await page.goto('/hyperion/guia/primeros-pasos.html');
   await page.getByRole('button', { name: /Navegación móvil/ }).click();
   await page.getByRole('link', { name: 'Guía', exact: true }).click();
-  await expect(page.locator('h1')).toHaveText('Tu primer flujo');
+  await expect(page.locator('h1')).toContainText(
+    'Un paisaje para el trabajo de tu IA',
+  );
 });
 
 test('language switch preserves the page and English search stays in English', async ({
@@ -146,14 +155,13 @@ test('branded pages offer direct installers and a working Archify viewer in both
     ).toBeVisible();
     for (const [name, asset] of [
       ['macOS · Apple Silicon', 'mac-arm64.dmg'],
-      ['macOS · Intel', 'mac-x64.dmg'],
       ['Windows · x64', 'win-x64.exe'],
     ]) {
       await expect(
         page.getByRole('link', { name, exact: true }),
       ).toHaveAttribute(
         'href',
-        `https://github.com/0vas/hyperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-${asset}`,
+        `https://github.com/0vas/hyperion/releases/download/v2026.10.15.2036/Hyperion-2026.10.15.2036-${asset}`,
       );
     }
     await page.goto(`/hyperion/${locale}referencia/arquitectura.html`);
@@ -428,7 +436,14 @@ test('video landing uses a centered headline, wide product view and controllable
     ).toHaveAttribute('aria-pressed', 'true');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await expect(video).not.toHaveAttribute('src');
-    await expect(hero.locator('h1 span')).toHaveCSS('animation-name', 'none');
+    await expect(hero.locator('h1 .headline-accent')).toHaveCSS(
+      'animation-name',
+      'none',
+    );
+    await expect(hero.locator('h1')).toHaveText(
+      en ? 'Your ideas.In motion.' : 'Tus ideas.En movimiento.',
+    );
+    await expect(hero.locator('.headline-caret')).toHaveCount(0);
     expect(
       (
         await new AxeBuilder({ page })
@@ -455,6 +470,124 @@ test('video landing uses a centered headline, wide product view and controllable
   }
 });
 
+test('birth story page and home teaser ship in both languages with static diagrams', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/hyperion/');
+  await expect(page.locator('.landscape-hero')).toBeVisible();
+  const teaser = page.locator('.landscape-teaser');
+  await expect(teaser.getByRole('heading', { level: 2 })).toHaveText(
+    'Del chat que responde al proceso que guías',
+  );
+  await expect(
+    teaser.getByRole('link', { name: 'Leer el paisaje', exact: true }),
+  ).toHaveAttribute('href', '/hyperion/guia/el-paisaje.html');
+  await expect(teaser.locator('.landscape-compare.compact')).toBeVisible();
+  await expect(teaser.locator('.mini-flow li').first()).toHaveCSS(
+    'animation-name',
+    'none',
+  );
+  await teaser
+    .getByRole('link', { name: 'Leer el paisaje', exact: true })
+    .click();
+  await expect(page.locator('h1')).toContainText(
+    'Un paisaje para el trabajo de tu IA',
+  );
+  await expect(
+    page.getByText(
+      'Cuando la IA deja de solo responder y empieza a actuar, necesitas un paisaje — no solo un chat.',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(page.locator('.landscape-compare')).toBeVisible();
+  await expect(page.locator('.landscape-loop')).toBeVisible();
+  await expect(page.locator('.mini-flow li').first()).toHaveCSS(
+    'animation-name',
+    'none',
+  );
+  await expect(
+    page.getByRole('link', {
+      name: 'Empieza con tu primer flujo',
+      exact: true,
+    }),
+  ).toHaveAttribute('href', /primeros-pasos/);
+  await expect(
+    page
+      .locator('.VPSidebar')
+      .getByRole('link', { name: 'El paisaje', exact: true }),
+  ).toBeVisible();
+  await page.goto('/hyperion/en/');
+  await expect(
+    page
+      .locator('.landscape-teaser')
+      .getByRole('link', { name: 'Read the landscape', exact: true }),
+  ).toHaveAttribute('href', '/hyperion/en/guia/the-landscape.html');
+  await page
+    .locator('.landscape-teaser')
+    .getByRole('link', { name: 'Read the landscape', exact: true })
+    .click();
+  await expect(page.locator('h1')).toContainText('A landscape for your AI');
+  await expect(
+    page.getByRole('heading', { name: /You in the loop/ }),
+  ).toBeVisible();
+  await expect(page.locator('.landscape-loop .loop-box').nth(3)).toHaveText(
+    'Your decision',
+  );
+  await expect(
+    page
+      .locator('.VPSidebar')
+      .getByRole('link', { name: 'The landscape', exact: true }),
+  ).toBeVisible();
+});
+
+test('hero headline types through phrase pairs and freezes on pause or reduced motion', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/hyperion/');
+  const title = page.locator('#landscape-title');
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await expect(title).toHaveAttribute(
+    'aria-label',
+    'Tus ideas. En movimiento.',
+  );
+  await expect
+    .poll(async () => (await title.innerText()).replace(/\s+/g, ''), {
+      timeout: 12_000,
+    })
+    .not.toBe('Tusideas.Enmovimiento.');
+  await page.getByRole('button', { name: 'Pausar fondo', exact: true }).click();
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await expect(page.locator('.headline-caret')).toHaveCount(0);
+  await page.waitForTimeout(800);
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await expect(page.locator('.headline-caret')).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/hyperion/en/');
+  await expect(page.locator('#landscape-title')).toHaveText(
+    'Your ideas.In motion.',
+  );
+  await expect(page.locator('#landscape-title')).toHaveAttribute(
+    'aria-label',
+    'Your ideas. In motion.',
+  );
+  await expect
+    .poll(
+      async () =>
+        (await page.locator('#landscape-title').innerText()).replace(
+          /\s+/g,
+          '',
+        ),
+      { timeout: 12_000 },
+    )
+    .not.toBe('Yourideas.Inmotion.');
+});
+
 test('cinematic landing stays readable in split windows and small phones', async ({
   page,
 }) => {
@@ -476,7 +609,9 @@ test('cinematic landing stays readable in split windows and small phones', async
     if (width === 320) {
       await page.getByRole('button', { name: /Navegación móvil/ }).click();
       await page.getByRole('link', { name: 'Guía', exact: true }).click();
-      await expect(page.locator('h1')).toHaveText('Tu primer flujo');
+      await expect(page.locator('h1')).toContainText(
+        'Un paisaje para el trabajo de tu IA',
+      );
     } else {
       await page.screenshot({
         path: `../../test-results/docs/cinema-split-${width}.png`,
@@ -504,7 +639,9 @@ test('video failure keeps the poster, navigation and download actions usable', a
     'poster',
     '/hyperion/brand/cinema-poster.svg',
   );
-  await expect(page.locator('h1')).toHaveText('Tus ideas.En movimiento.');
+  await expect(page.locator('#landscape-title')).toHaveText(
+    'Tus ideas.En movimiento.',
+  );
   await page
     .getByRole('link', { name: 'Descargar Hyperion', exact: true })
     .click();
@@ -553,7 +690,7 @@ test('repository is discoverable with Shields badges and SVG actions in both lan
     await expect(repo).toBeVisible();
     await expect(repo).toHaveAttribute(
       'href',
-      'https://github.com/0vas/hiperion',
+      'https://github.com/0vas/hyperion',
     );
     await expect(repo.locator('svg')).toHaveCount(2);
     for (const theme of ['light', 'dark']) {
@@ -579,7 +716,7 @@ test('downloads identify platforms and illustrated guides reveal contextual anno
     await page.goto(`/hyperion/${locale}`);
     await expect(
       page.locator('.download-card svg[data-platform="macos"]'),
-    ).toHaveCount(2);
+    ).toHaveCount(1);
     await expect(
       page.locator('.download-card svg[data-platform="windows"]'),
     ).toHaveCount(1);
@@ -926,5 +1063,64 @@ test('Antigravity has an SVG identity and an honest MCP setup path in both langu
     await page.goto(`/hyperion/${locale}guia/reanudacion.html`);
     const row = page.getByRole('row').filter({ hasText: 'Antigravity' });
     await expect(row).toContainText(locale ? 'pending' : 'pendiente');
+  }
+});
+
+test('CalVer minute and macOS opening instructions remain visible in both themes, languages and narrow layouts', async ({
+  page,
+}) => {
+  for (const locale of ['', 'en/']) {
+    for (const dark of [false, true]) {
+      for (const width of [390, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({
+          colorScheme: dark ? 'dark' : 'light',
+          reducedMotion: 'reduce',
+        });
+        await page.goto(`/hyperion/${locale}guia/primeros-pasos.html`);
+        const downloads = page.locator('.downloads');
+        await downloads.scrollIntoViewIfNeeded();
+        await expect(downloads.locator('time')).toHaveText('2026.10.15.2036');
+        await expect(downloads.locator('time')).toHaveAttribute(
+          'datetime',
+          '2026-10-15T20:36:00Z',
+        );
+        await expect(downloads.locator('.download-status')).toContainText(
+          locale
+            ? 'notarized with Developer ID'
+            : 'notarizado con Developer ID',
+        );
+        await expect(
+          page.getByRole('link', { name: 'macOS · Intel', exact: true }),
+        ).toHaveCount(0);
+        await downloads
+          .getByRole('link', {
+            name: locale
+              ? 'View installation steps'
+              : 'Ver pasos de instalación',
+          })
+          .click();
+        await expect(page).toHaveURL(
+          locale ? /#macos-blocks-the-app$/ : /#macos-bloquea-la-app$/,
+        );
+        await expect(
+          page.locator(
+            locale ? '#macos-blocks-the-app' : '#macos-bloquea-la-app',
+          ),
+        ).toBeVisible();
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth + 1,
+          ),
+        ).toBe(true);
+        const a11y = await new AxeBuilder({ page })
+          .include('.downloads')
+          .analyze();
+        expect(a11y.violations).toEqual([]);
+        await downloads.screenshot({
+          path: `../../test-results/docs/downloads-${locale ? 'en' : 'es'}-${dark ? 'dark' : 'light'}-${width}.png`,
+        });
+      }
+    }
   }
 });

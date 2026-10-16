@@ -1,5 +1,8 @@
+import { createLanguageStore } from './language.mjs';
+import { VERSION, RELEASE_CHANNEL } from '../dist/version.js';
 import {
   app,
+  ipcMain,
   BrowserWindow,
   dialog,
   session,
@@ -20,12 +23,20 @@ import {
 } from '../dist/adapters/desktop.js';
 import { createUpdateController } from './update-dialog.mjs';
 import { recoverStartup } from './startup.mjs';
+const language = createLanguageStore({
+  file: resolve(app.getPath('userData'), 'language.json'),
+  systemLanguages: () => app.getPreferredSystemLanguages(),
+});
+const t = (message, values) => language.t(message, values);
 let window;
 const updater = createUpdateController({
+  t,
   app,
   dialog,
   shell,
   getWindow: () => window,
+  currentVersion: VERSION,
+  channel: RELEASE_CHANNEL,
 });
 function diagnostics(error) {
   const folder = app.getPath('logs');
@@ -38,6 +49,7 @@ function diagnostics(error) {
 }
 async function startWithRecovery(args) {
   return recoverStartup({
+    t,
     start: () => openRun(args),
     dialog,
     record: async (error) => {
@@ -59,6 +71,7 @@ async function connect() {
   connecting = true;
   try {
     const connected = await connectWithDialog({
+      t,
       window,
       dialog,
       clipboard,
@@ -91,11 +104,21 @@ async function openRun(args) {
     (target.service !== next.service || target.directory !== next.directory)
   )
     throw new Error(
-      'Cierra Hyperion Desktop antes de conectar otra instancia local. Tu flujo actual está protegido.',
+      t(
+        'Cierra Hyperion Desktop antes de conectar otra instancia local. Tu flujo actual está protegido.',
+      ),
     );
-  await ensureServer({ directory: next.directory, url: next.service });
-  target = next;
-  rememberWorkspace(next);
+  const startup = await ensureServer({
+    directory: next.directory,
+    url: next.service,
+  });
+  const service = startup.url || next.service;
+  target = {
+    ...next,
+    service,
+    url: `${service}/${next.run ? `?run=${next.run}` : ''}`,
+  };
+  rememberWorkspace(target);
   if (!window || window.isDestroyed()) {
     window = new BrowserWindow({
       title: 'Hyperion',
@@ -106,6 +129,7 @@ async function openRun(args) {
       backgroundColor: '#171e23',
       show: false,
       webPreferences: {
+        preload: fileURLToPath(new URL('./preload.cjs', import.meta.url)),
         nodeIntegration: false,
         contextIsolation: true,
         sandbox: true,
@@ -116,6 +140,7 @@ async function openRun(args) {
     });
     window.webContents.setWindowOpenHandler(({ url }) => {
       if (isLocal(url)) void window.loadURL(url);
+      else if (/^https?:\/\//i.test(url)) void shell.openExternal(url);
       return { action: 'deny' };
     });
     window.once('ready-to-show', () => window.show());
@@ -155,29 +180,19 @@ if (!app.requestSingleInstanceLock()) {
           permission === 'clipboard-sanitized-write',
         ),
       );
-      Menu.setApplicationMenu(
-        Menu.buildFromTemplate([
-          {
-            label: 'Hyperion',
-            submenu: [
-              {
-                label: 'Conectar con mi IA',
-                click: () => connect(),
-              },
-              {
-                label: 'Buscar actualizaciones…',
-                click: () => updater.check(true),
-              },
-              { label: 'Cancelar descarga', click: () => updater.cancel() },
-              { type: 'separator' },
-              { role: 'quit' },
-            ],
-          },
-          { role: 'editMenu' },
-          { role: 'viewMenu' },
-          { role: 'windowMenu' },
-        ]),
-      );
+      app.setAboutPanelOptions({
+        applicationName: 'Hyperion',
+        applicationVersion: `${VERSION} UTC · ${RELEASE_CHANNEL}`,
+      });
+      ipcMain.handle('hyperion:language:get', (event) => {
+        validateLanguageSender(event);
+        return language.snapshot();
+      });
+      ipcMain.handle('hyperion:language:set', (event, value) => {
+        validateLanguageSender(event);
+        setLanguage(value);
+      });
+      rebuildMenu();
 
       if (!(await startWithRecovery(process.argv))) {
         app.quit();
@@ -210,4 +225,101 @@ if (!app.requestSingleInstanceLock()) {
   });
   app.on('before-quit', () => updater.cancel());
   app.on('window-all-closed', () => app.quit());
+}
+
+function rebuildMenu() {
+  Menu.setApplicationMenu(
+    Menu.buildFromTemplate([
+      {
+        label: 'Hyperion',
+        submenu: [
+          {
+            label: `Hyperion ${VERSION} UTC`,
+            click: () => app.showAboutPanel(),
+          },
+          {
+            label: t('Conectar con mi IA'),
+            click: () => connect(),
+          },
+          {
+            label: t('Buscar actualizaciones…'),
+            click: () => updater.check(true),
+          },
+          { label: t('Cancelar descarga'), click: () => updater.cancel() },
+          {
+            label: t('Idioma'),
+            submenu: [
+              ['system', t('Automático (sistema)')],
+              ['es', 'Español'],
+              ['en', 'English'],
+            ].map(([value, label]) => ({
+              label,
+              type: 'radio',
+              checked: language.get() === value,
+              click: () => {
+                try {
+                  setLanguage(value);
+                } catch (error) {
+                  report(error);
+                }
+              },
+            })),
+          },
+          { type: 'separator' },
+          { label: t('Salir'), role: 'quit' },
+        ],
+      },
+      {
+        label: t('Editar'),
+        submenu: [
+          { label: t('Deshacer'), role: 'undo' },
+          { label: t('Rehacer'), role: 'redo' },
+          { type: 'separator' },
+          { label: t('Cortar'), role: 'cut' },
+          { label: t('Copiar'), role: 'copy' },
+          { label: t('Pegar'), role: 'paste' },
+          { label: t('Pegar sin formato'), role: 'pasteAndMatchStyle' },
+          { label: t('Eliminar'), role: 'delete' },
+          { label: t('Seleccionar todo'), role: 'selectAll' },
+        ],
+      },
+      {
+        label: t('Ver'),
+        submenu: [
+          { label: t('Recargar'), role: 'reload' },
+          { label: t('Forzar recarga'), role: 'forceReload' },
+          { label: t('Herramientas de desarrollo'), role: 'toggleDevTools' },
+          { type: 'separator' },
+          { label: t('Tamaño real'), role: 'resetZoom' },
+          { label: t('Acercar'), role: 'zoomIn' },
+          { label: t('Alejar'), role: 'zoomOut' },
+          { label: t('Pantalla completa'), role: 'togglefullscreen' },
+        ],
+      },
+      {
+        label: t('Ventana'),
+        submenu: [
+          { label: t('Minimizar'), role: 'minimize' },
+          { label: t('Ampliar ventana'), role: 'zoom' },
+          { label: t('Cerrar'), role: 'close' },
+        ],
+      },
+    ]),
+  );
+}
+
+function validateLanguageSender(event) {
+  if (
+    !window ||
+    event.sender !== window.webContents ||
+    event.senderFrame !== window.webContents.mainFrame ||
+    !isLocal(event.senderFrame.url)
+  )
+    throw new Error('Invalid language request');
+}
+function setLanguage(value) {
+  language.set(value);
+  rebuildMenu();
+  if (window && !window.isDestroyed())
+    window.webContents.send('hyperion:language:changed', language.snapshot());
 }

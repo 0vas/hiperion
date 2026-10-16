@@ -1,0 +1,96 @@
+name: Publish verified Desktop artifacts
+on:
+  workflow_dispatch:
+    inputs:
+      build_run:
+        description: Successful Desktop installers run ID (a draft release must already exist)
+        required: true
+        type: string
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: desktop-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BUILD_RUN: ${{ inputs.build_run }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify build provenance and draft release
+        id: verified
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import { execFileSync } from 'node:child_process';
+          import { appendFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          const repository = process.env.GITHUB_REPOSITORY;
+          const api = (path) => JSON.parse(execFileSync('gh', ['api', `repos/${repository}/${path}`], { encoding: 'utf8' }));
+          assert.match(process.env.BUILD_RUN, /^\d+$/);
+          const run = api(`actions/runs/${process.env.BUILD_RUN}`);
+          assert.equal(run.conclusion, 'success');
+          assert.equal(run.path, '.github/workflows/desktop.yml');
+          assert.equal(run.head_repository.full_name, repository);
+          assert.equal(run.head_branch, 'main');
+          const source = api(`contents/src/release.json?ref=${run.head_sha}`);
+          const metadata = JSON.parse(Buffer.from(source.content, 'base64').toString());
+          assert.match(metadata.version, /^20\d{2}\.\d{2}\.\d{2}\.\d{4}$/);
+          const tag = `v${metadata.version}`;
+          const release = api('releases?per_page=100').find(r => r.tag_name === tag);
+          assert.ok(release?.draft, 'Only an existing draft may be published; never replace a public release');
+          assert.equal(release.target_commitish, run.head_sha);
+          assert.ok(release.body?.length > 100, 'Reviewed release notes required');
+          appendFileSync(process.env.GITHUB_OUTPUT, `version=${metadata.version}\ntag=${tag}\nrelease_id=${release.id}\n`);
+          JS
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.build_run }}
+          github-token: ${{ github.token }}
+          path: artifacts
+      - name: Assemble native-tested installers and upload to draft
+        env:
+          VERSION: ${{ steps.verified.outputs.version }}
+          TAG: ${{ steps.verified.outputs.tag }}
+        shell: bash
+        run: |
+          mkdir publish
+          cp "artifacts/Hyperion-macos-latest/Hyperion-${VERSION}-mac-arm64.dmg" publish/
+          cp "artifacts/Hyperion-windows-latest/Hyperion-${VERSION}-win-x64.exe" publish/
+          # Intel DMG is optional (public policy: arm64 + win). Include it when the build produced one.
+          intel="artifacts/Hyperion-macos-15-intel/Hyperion-${VERSION}-mac-x64.dmg"
+          if [ -f "$intel" ]; then
+            cp "$intel" publish/
+          else
+            echo "Intel macOS DMG absent; publishing arm64 + Windows only."
+          fi
+          cd publish
+          test -f "Hyperion-${VERSION}-mac-arm64.dmg"
+          test -f "Hyperion-${VERSION}-win-x64.exe"
+          sha256sum *.dmg *.exe > SHA256SUMS.txt
+          gh release upload "$TAG" *.dmg *.exe SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
+      - name: Verify remote digests before publishing
+        env:
+          TAG: ${{ steps.verified.outputs.tag }}
+          RELEASE_ID: ${{ steps.verified.outputs.release_id }}
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import { execFileSync } from 'node:child_process';
+          import { readFileSync, readdirSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          import assert from 'node:assert/strict';
+          const release = JSON.parse(execFileSync('gh', ['api', `repos/${process.env.GITHUB_REPOSITORY}/releases/${process.env.RELEASE_ID}`], { encoding: 'utf8' }));
+          assert.ok(release.draft);
+          for (const name of readdirSync('publish')) {
+            const bytes = readFileSync(`publish/${name}`);
+            const asset = release.assets.find(a => a.name === name);
+            assert.equal(asset?.state, 'uploaded');
+            assert.equal(asset.size, bytes.length);
+            assert.equal(asset.digest, `sha256:${createHash('sha256').update(bytes).digest('hex')}`);
+          }
+          JS
+          gh release edit "$TAG" --draft=false --repo "$GITHUB_REPOSITORY"

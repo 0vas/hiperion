@@ -7,8 +7,8 @@
     "quality_profile": "showcase",
     "output": "docs/site/public/architecture/hyperion-en.html",
     "repository": {
-      "url": "https://github.com/0vas/hiperion.git",
-      "revision": "8f0e793ef8e9ee572e89d1126a384589b67154e3"
+      "url": "https://github.com/0vas/hyperion.git",
+      "revision": "83cf85d420b44b3b3a34e08bdfd03c042f0fcc09"
     }
   },
   "components": [
@@ -84,6 +84,11 @@
           "path": "desktop/main.mjs",
           "line": 46,
           "end_line": 84
+        },
+        {
+          "path": "src/client/Artifacts.tsx",
+          "line": 1,
+          "end_line": 40
         }
       ]
     },
@@ -91,14 +96,24 @@
       "id": "store",
       "type": "database",
       "label": "Store + queue",
-      "sublabel": "SQLite · snapshots / receipts",
+      "sublabel": "Snapshots · files · cycle links",
       "pos": [370, 340],
       "size": [200, 76],
       "sources": [
         {
           "path": "src/server/store.ts",
-          "line": 17,
-          "end_line": 100
+          "line": 18,
+          "end_line": 45
+        },
+        {
+          "path": "src/server/store.ts",
+          "line": 93,
+          "end_line": 150
+        },
+        {
+          "path": "src/server/store.ts",
+          "line": 163,
+          "end_line": 230
         }
       ]
     },
@@ -172,6 +187,14 @@
         "Core 0.5 stores suspension and delivery in SQLite.",
         "An optional I/O worker requires an installed resume connector.",
         "MCP alone does not wake a chat that has ended its turn."
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Artifacts and conversation history",
+      "items": [
+        "Step metadata and file bytes commit atomically with a receipt.",
+        "Linked runs share navigation, not execution state or coordinator rights."
       ]
     }
   ]

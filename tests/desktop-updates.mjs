@@ -139,3 +139,54 @@ test('downloads stream to a temporary file and require matching size and SHA-256
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('CalVer orders releases by UTC date and minute, preserves channels and never falls back to SemVer', () => {
+  const options = [
+    release('2026.10.12.0640'),
+    release('2026.10.12.0639'),
+    release('2026.10.13.0000', { prerelease: true }),
+  ];
+  assert.equal(
+    selectRelease(options, '2026.10.12.0638', 'darwin', 'arm64').version,
+    '2026.10.12.0640',
+  );
+  assert.equal(
+    selectRelease(options, '2026.10.12.0638', 'darwin', 'arm64', 'preview')
+      .version,
+    '2026.10.13.0000',
+  );
+  assert.equal(
+    selectRelease([release('9999.0.0')], '2026.10.12.0638', 'darwin', 'arm64'),
+    null,
+  );
+  assert.equal(
+    selectRelease(
+      [release('2026.10.12.0638')],
+      '2026.10.12.0638',
+      'darwin',
+      'arm64',
+    ),
+    null,
+  );
+  assert.equal(
+    selectRelease(
+      [release('2026.10.12.0638')],
+      '0.5.1-preview.1',
+      'darwin',
+      'arm64',
+    ).version,
+    '2026.10.12.0638',
+  );
+  for (const value of [
+    '2026.02.29.1200',
+    '2026.13.01.1200',
+    '2026.10.12.2460',
+    '2026.10.12.063',
+    '2026.10.00.0638',
+  ]) {
+    assert.equal(
+      selectRelease([release(value)], '2026.10.12.0638', 'darwin', 'arm64'),
+      null,
+    );
+  }
+});

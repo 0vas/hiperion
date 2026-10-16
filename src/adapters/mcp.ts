@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { artifactUrl, artifactName } from '../domain/artifacts.js';
 import { suspendSchema } from '../domain/continuation.js';
 import { VERSION } from '../version.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -42,13 +43,56 @@ server.registerTool(
   'hyperion_create_run',
   {
     description:
-      'Create a workflow derived from the user request. Include the original text in plan.request; generate the steps yourself and obtain a URL for the human. Use jobs metadata and step.jobId to group executable steps. Human steps should declare interaction.question/context/next and clear output descriptions. Use typed inputs/outputs on tasks. For process notation set profile=bpmn-lite and use one start/end and structured pairs of parallel, exclusive or inclusive gateways; conditional splits need a defaultTarget. Read the plan schema. Reuse commandId on retries.',
-    inputSchema: { plan: planSchema, commandId: z.string().min(1).max(128) },
+      'Create a workflow derived from the user request. Include the original text in plan.request; generate the steps yourself and obtain a URL for the human. Use jobs metadata and step.jobId to group executable steps. Human steps should declare interaction.question/context/next and clear output descriptions. Use typed inputs/outputs on tasks. For process notation set profile=bpmn-lite and use one start/end and structured pairs of parallel, exclusive or inclusive gateways; conditional splits need a defaultTarget. Read the plan schema. Reuse commandId on retries. If the user explicitly continues a completed conversation, supply parentRunId and the NEW request in plan.request. This creates a linked new cycle without reopening the completed parent; read the parent and carry relevant context into the new plan.',
+    inputSchema: {
+      plan: planSchema,
+      commandId: z.string().min(1).max(128),
+      parentRunId: z.string().uuid().optional(),
+    },
   },
-  ({ plan, commandId }) =>
+  ({ plan, commandId, parentRunId }) =>
     safe(async () => {
-      const run = await client.create(plan, commandId);
+      const run = await client.create(plan, commandId, parentRunId);
       return { ...run, url: client.link(run) };
+    }),
+);
+server.registerTool(
+  'hyperion_add_artifact',
+  {
+    description:
+      'Attach a real generated file, text or HTTP(S) link to its agent step. Supply exactly one absolute filePath, text or url. Files up to 10 MiB are copied into local storage so the canvas can preview/download them later. Use the attempt from start and reuse commandId on retries. Can attach to running or completed steps, including completed runs. Never attach secrets or unrelated files. Does not complete the step or execute the artifact.',
+    inputSchema: {
+      runId: z.string().uuid(),
+      stepId: z.string(),
+      attempt: z.number().int().positive(),
+      commandId: z.string().min(1).max(128),
+      filePath: z.string().max(4000).optional(),
+      text: z.string().max(64000).optional(),
+      url: artifactUrl.optional(),
+      name: artifactName.optional(),
+      mediaType: z.string().max(120).optional(),
+    },
+  },
+  ({ runId, filePath, text, url, name, ...options }) =>
+    safe(async () => {
+      if (
+        [filePath, text, url].filter((value) => value !== undefined).length !==
+        1
+      )
+        throw new Error('Provide exactly one filePath, text or url');
+      if (filePath !== undefined)
+        return client.attachFile(runId, filePath, { ...options, name });
+      if (!name) throw new Error('An artifact name is required');
+      return client.addArtifact(runId, {
+        ...options,
+        name,
+        ...(url !== undefined
+          ? { url }
+          : {
+              contentBase64: Buffer.from(text!, 'utf8').toString('base64'),
+              mediaType: options.mediaType || 'text/plain',
+            }),
+      });
     }),
 );
 server.registerTool(

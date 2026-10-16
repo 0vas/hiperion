@@ -1,3 +1,4 @@
+import { t, useLocale } from './i18n';
 import {
   BaseEdge,
   Position,
@@ -16,6 +17,7 @@ type Current = Edge<
 
 /** Reached routes carry the wave; unreached routes keep their direction marker. */
 export function CurrentEdge(props: EdgeProps<Current>) {
+  useLocale();
   const [path, labelX, labelY] = getSmoothStepPath({
     ...props,
     borderRadius: 20,
@@ -79,12 +81,12 @@ export function CurrentEdge(props: EdgeProps<Current>) {
           data-decision={props.data.decision ? 'yes' : 'no'}
           transform={`translate(${labelX},${labelY})`}
           role="img"
-          aria-label={props.data.decision ? 'Sí' : 'No'}
+          aria-label={props.data.decision ? t('Sí') : 'No'}
         >
           <title>
             {props.data.decision
-              ? 'Sí · Se cumple la condición'
-              : 'No · No se cumple la condición'}
+              ? t('Sí · Se cumple la condición')
+              : t('No · No se cumple la condición')}
           </title>
           <rect x={-11} y={-11} width={22} height={22} rx={7} />
           {props.data.decision ? (

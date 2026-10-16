@@ -2,7 +2,7 @@
 
 ## Product and scope
 
-Hyperion turns a natural-language request into a visible, human-guided workflow. The external AI agent plans and performs work; Hyperion owns the recorded process state, validates transitions, collects human decisions and shows evidence. Preserve the MIT license and the provider-independent domain model. Product name: **Hyperion**; repository: `0vas/hiperion`.
+Hyperion turns a natural-language request into a visible, human-guided workflow. The external AI agent plans and performs work; Hyperion owns the recorded process state, validates transitions, collects human decisions and shows evidence. Preserve the MIT license and the provider-independent domain model. Product name: **Hyperion**; repository: `0vas/hyperion`.
 
 The same process can be viewed in a browser, a split window or Electron. Olimpo is a possible consumer, not a privileged dependency. Codex, ChatGPT, Claude, Claude Code, Cursor, Hermes and Google Antigravity are integration targets, not proof of equivalent installed capabilities.
 
@@ -55,7 +55,7 @@ Execute real work through the available harness. Start only eligible tasks, repo
 3. Run `npm run check` (types, unit tests, build, production smoke and formatting). Run the relevant Playwright scenarios for user-facing changes.
 4. For public docs, run `npm --prefix docs/site test`. Inspect desktop and narrow layouts, ES/EN, light/dark and reduced motion. Verify internal links, forms, keyboard use and contrast.
 5. For architecture changes, regenerate Archify with the pinned renderer using `docs/architecture/archify/README.md`; inspect each view. Keep source links on a verified immutable revision. Never edit generated HTML manually.
-6. Record what passed and any remaining limitation. A mocked connector test does not certify a real provider integration. A built installer is not automatically signed or published.
+6. Record what passed and any remaining limitation. A mocked connector test does not certify a real provider integration. A built installer is not automatically signed or published. macOS previews must pass `codesign --verify --deep --strict`; ad-hoc integrity is not Developer ID/notarization. Desktop updates run in the main process and require consent, an official release asset and digest verification; never silently execute installers.
 
 Use the repository's actual package scripts; Node must satisfy `package.json` engines. Keep changes scoped and preserve unrelated work. Do not install new infrastructure solely to test a small documentation edit.
 
@@ -81,3 +81,17 @@ Maintain source JSON and generated Archify HTML together. Archify is the interac
 Keep the canvas primary, tasks compact, forms explicit and details progressively disclosed. Use SVG UI icons, meaningful state colors with text/symbols, and motion that communicates state. Background motion must loop without a visible reset and honor pause, hidden tabs and reduced motion. Never let decorative animation imply runtime progress.
 
 Do not publish, deploy, push or send messages externally without user authorization. Existing explicit authorization in the current conversation applies; do not ask again for an already authorized action. Follow the user's chosen branch/PR workflow and verify deployment before claiming the public site is updated.
+
+## Interface localization
+
+The app currently supports Spanish and English. Use `src/client/i18n.ts` for canvas copy and the shared `src/i18n/en.json` catalog for Desktop dialogs. Keep interpolation placeholders aligned. New labels must work in both locales and remain reactive when the user changes language. Never translate user/agent workflow content, answers or recorded evidence. Verify that changing language preserves drafts and does not mutate the process. Document installer availability accurately; code in `main` is not evidence that an older binary includes it.
+
+## Release identity
+
+Use public UTC CalVer `YYYY.MM.DD.HHmm` from `src/release.json`, with a separate preview/stable channel. Run `npm run release:sync` when changing it; package/native versions are compatibility encodings, not product SemVer. Keep artifact names, runtime, web and release notes aligned. Never overwrite an already published minute. The old 0.5.1 updater needs one manual migration to CalVer. A request for notarized distribution must fail if credentials are absent; do not quietly ship ad-hoc as an equivalent.
+
+## Artifacts and linked conversation cycles
+
+Register generated deliverables with `hyperion_add_artifact`, CLI `artifact`, or the authenticated artifact endpoint. Include the actual producing attempt; preserve immutable files and earlier attempts. Keep metadata in snapshots, binary content in SQLite, previews inert, and downloads authenticated. Artifacts do not replace typed I/O or fabricate successful work.
+
+For a new user request after completion, create a fresh plan with `parentRunId` and explicit relevant context. Preserve the completed parent's snapshot. `origin` and projected `links` are conversation lineage outside the executable DAG. Never infer the next request or treat this navigation as automatic harness resumption. Update protocol, portable integration, ES/EN guides, architecture and tests together when either contract changes.

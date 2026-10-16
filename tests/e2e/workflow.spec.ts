@@ -70,7 +70,9 @@ test('an agent creates a workflow; the human supplies input and approves; the ag
     .click();
   await page.getByRole('button', { name: 'Aprobar paso' }).click();
   await expect(
-    page.locator('.canvas-next strong').filter({ hasText: 'Espera al agente' }),
+    page
+      .locator('.canvas-next strong')
+      .filter({ hasText: 'Continuar desde el chat' }),
   ).toBeVisible();
   await page.reload();
   await page
@@ -477,6 +479,10 @@ test('BPMN nodes expose typed inputs/outputs and public traces through their own
   await expect(page.getByRole('dialog')).toContainText('Lectura de README');
   await page.screenshot({ path: 'test-results/process-traces.png' });
   await page.keyboard.press('Escape');
+  // A readable camera no longer shrinks a long flow to fit every future step.
+  await page
+    .getByRole('button', { name: 'Enfocar paso actual', exact: true })
+    .click();
   await page
     .getByRole('button', {
       name: 'Ver datos: Aprobar la revisión',

@@ -79,7 +79,14 @@ test('desktop and split share one real service, decisions and agent progress', a
         ],
       },
     });
+    const profile = join(home, 'profile');
+    mkdirSync(profile);
+    writeFileSync(
+      join(profile, 'language.json'),
+      JSON.stringify({ language: 'es' }),
+    );
     const args = [
+      `--user-data-dir=${profile}`,
       `--hyperion-run=${run.id}`,
       `--hyperion-url=${env.HYPERION_URL}`,
       `--hyperion-directory=${directory}`,
@@ -109,6 +116,38 @@ test('desktop and split share one real service, decisions and agent progress', a
         ),
       ),
     );
+    await page
+      .getByRole('button', { name: 'Ver paso: Elegir audiencia', exact: true })
+      .click();
+    await page.getByRole('radio', { name: 'No', exact: true }).check();
+    await app.evaluate(({ Menu }) => {
+      const language = Menu.getApplicationMenu().items[0].submenu.items.find(
+        (item) => item.label === 'Idioma',
+      );
+      language.submenu.items.find((item) => item.label === 'English').click();
+    });
+    await page
+      .getByRole('button', { name: 'Save choice', exact: true })
+      .waitFor();
+    assert.equal(
+      await page.getByRole('radio', { name: 'No', exact: true }).isChecked(),
+      true,
+    );
+    assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+    assert.equal(
+      JSON.parse(readFileSync(join(profile, 'language.json'), 'utf8')).language,
+      'en',
+    );
+    await page.evaluate(() => window.hyperionDesktop.setLanguage('es'));
+    await page
+      .getByRole('button', { name: 'Guardar elección', exact: true })
+      .waitFor();
+    await assert.rejects(
+      page.evaluate(() => window.hyperionDesktop.setLanguage('xx')),
+    );
+    await page
+      .getByRole('button', { name: 'Cerrar popup', exact: true })
+      .click();
     await app.evaluate(async ({ Menu, dialog }) => {
       const original = dialog.showMessageBox;
       let count = 0;
@@ -142,6 +181,7 @@ test('desktop and split share one real service, decisions and agent progress', a
     assert.match(connected.mcpServers.hyperion.args[0], /mcp-launcher\.js$/);
     browser = await chromium.launch();
     const split = await browser.newPage({
+      locale: 'es-ES',
       viewport: { width: 540, height: 720 },
     });
     await split.goto(`${env.HYPERION_URL}/?run=${run.id}`);
@@ -168,6 +208,62 @@ test('desktop and split share one real service, decisions and agent progress', a
       .locator('[data-testid="run-status"]')
       .filter({ hasText: 'Completado' })
       .waitFor();
+    await api(`/api/runs/${run.id}/artifacts`, {
+      commandId: 'desktop-artifact',
+      stepId: 'work',
+      attempt: 1,
+      name: 'guia.md',
+      mediaType: 'text/markdown',
+      contentBase64: Buffer.from('# Guía preparada').toString('base64'),
+    });
+    await page
+      .getByRole('button', {
+        name: 'Ver artefactos: Preparar guía',
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole('button', { name: 'Ver artefacto', exact: true })
+      .click();
+    await page
+      .locator('.artifact-text')
+      .filter({ hasText: '# Guía preparada' })
+      .waitFor();
+    // Native download uses the same authenticated session, with no navigation away.
+    const download = app.evaluate(
+      ({ BrowserWindow }, savePath) =>
+        new Promise((resolve, reject) => {
+          const timeout = setTimeout(
+            () => reject(new Error('Native download timed out')),
+            10000,
+          );
+          BrowserWindow.getAllWindows()[0].webContents.session.once(
+            'will-download',
+            (_event, item) => {
+              item.setSavePath(savePath);
+              item.once('done', (_event, state) => {
+                clearTimeout(timeout);
+                resolve({ state, name: item.getFilename() });
+              });
+            },
+          );
+        }),
+      join(home, 'guia.md'),
+    );
+    await page.getByRole('link', { name: 'Descargar', exact: true }).click();
+    assert.deepEqual(await download, { state: 'completed', name: 'guia.md' });
+    assert.equal(
+      readFileSync(join(home, 'guia.md'), 'utf8'),
+      '# Guía preparada',
+    );
+    await page
+      .getByRole('button', { name: 'Cerrar popup', exact: true })
+      .click();
+    // Keep the relaunch inside this test's isolated Electron profile.
+    const installationFile = join(home, '.hyperion/desktop.json');
+    const installation = JSON.parse(readFileSync(installationFile, 'utf8'));
+    installation.args.push(`--user-data-dir=${profile}`);
+    writeFileSync(installationFile, JSON.stringify(installation));
     const navigation = page.waitForEvent('load');
     const opened = await promisify(execFile)(
       process.execPath,
