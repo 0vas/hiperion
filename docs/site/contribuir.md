@@ -9,8 +9,8 @@ Hyperion es independiente y está disponible bajo [licencia MIT](https://github.
 Estas instrucciones son para desarrollo. Para usar Hyperion, empieza por la [guía de instalación](./guia/primeros-pasos.md).
 
 ```sh
-git clone https://github.com/0vas/hiperion.git
-cd hiperion
+git clone https://github.com/0vas/hyperion.git
+cd hyperion
 npm ci
 npm run check
 ```

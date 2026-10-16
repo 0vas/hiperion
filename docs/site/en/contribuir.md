@@ -9,8 +9,8 @@ Hyperion is independent and [MIT-licensed](https://github.com/0vas/hyperion/blob
 For development, use Node.js 22.13 or newer:
 
 ```sh
-git clone https://github.com/0vas/hiperion.git
-cd hiperion
+git clone https://github.com/0vas/hyperion.git
+cd hyperion
 npm ci
 npm run check
 ```

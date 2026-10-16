@@ -12,7 +12,7 @@ const { lang } = useData();
     "
   >
     <div class="repository-heading">
-      <DocIcon name="repository" /><strong>0vas / hiperion</strong>
+      <DocIcon name="repository" /><strong>0vas / hyperion</strong>
     </div>
     <p>
       {{
@@ -21,7 +21,7 @@ const { lang } = useData();
           : 'Source code, issues and contributions in one place.'
       }}
     </p>
-    <a class="repository-open" href="https://github.com/0vas/hiperion"
+    <a class="repository-open" href="https://github.com/0vas/hyperion"
       ><DocIcon name="repository" />{{
         lang === 'es'
           ? 'Abrir repositorio en GitHub'
@@ -30,10 +30,10 @@ const { lang } = useData();
     /></a>
     <ProjectBadges />
     <div class="repository-links">
-      <a href="https://github.com/0vas/hiperion/issues">{{
+      <a href="https://github.com/0vas/hyperion/issues">{{
         lang === 'es' ? 'Ver incidencias' : 'Browse issues'
       }}</a
-      ><a href="https://github.com/0vas/hiperion/blob/main/CONTRIBUTING.md">{{
+      ><a href="https://github.com/0vas/hyperion/blob/main/CONTRIBUTING.md">{{
         lang === 'es' ? 'Normas de contribución' : 'Contribution rules'
       }}</a>
     </div>

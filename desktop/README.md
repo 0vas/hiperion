@@ -2,7 +2,7 @@
 
 Electron aloja el mismo canvas del navegador y usa el mismo servicio HTTP local autenticado. El proceso del chat conserva la ejecución: Desktop presenta decisiones y resultados. El usuario elige split/escritorio en la conversación; el adaptador `open RUN_ID desktop` lanza la instalación registrada en su primer arranque.
 
-La [preview descargable](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.2204) incluye instaladores para macOS Apple Silicon/Intel y Windows x64.
+La [preview descargable](https://github.com/0vas/hyperion/releases/tag/v2026.10.15.2036) incluye instaladores para macOS Apple Silicon (notarizado) y Windows x64.
 
 ## Desarrollo y distribución
 
@@ -38,7 +38,7 @@ Si el servicio no inicia, Desktop mantiene un diálogo con Reintentar, Ver diagn
 
 **Hyperion → Buscar actualizaciones…** consulta las últimas 30 releases públicas de `0vas/hyperion`, excluye borradores y elige una versión superior con instalador para el sistema y arquitectura actuales. Las versiones preview también reciben previews; una versión estable solo recibe estables. Al abrir Desktop empaquetado se hace una comprobación después del asistente inicial. Fallos de red en esa comprobación automática no interrumpen el trabajo; una comprobación manual muestra el error.
 
-Al aceptar Descargar actualización, el usuario elige dónde guardarla. La app muestra progreso, permite **Cancelar descarga** y valida tamaño y SHA-256 publicados por GitHub antes de reemplazar el archivo de destino. Los archivos parciales se eliminan si falla la descarga. Solo se aceptan assets del repositorio oficial. El digest comprueba integridad, no notarización. Se muestra el instalador en Finder/Explorer; no se ejecuta ni se instala silenciosamente. La versión 0.4.0 no dispone de este menú y necesita la primera actualización manual.
+El diálogo ofrece **Actualizar y reiniciar** (opción principal), **Ahora no** y **Descargar instalador…**. Con consentimiento, **Actualizar y reiniciar** descarga el asset oficial a `userData/updates` (sin diálogo de guardado), muestra progreso, permite **Cancelar descarga** y valida tamaño y SHA-256 de GitHub antes de aplicar. En macOS monta el DMG en solo lectura, comprueba `codesign --verify --deep --strict`, reemplaza este `Hyperion.app` (restaura si falla) y reabre con `open -n`. En Windows lanza el EXE NSIS verificado con `/S --updated` y cierra la app para que los archivos puedan sustituirse. Si la aplicación falla, muestra error y ofrece **Mostrar instalador** sin corromper la app en ejecución. **Descargar instalador…** conserva el flujo de guardar en Disco y revelar el archivo. Solo se aceptan assets del repositorio oficial. El digest comprueba integridad, no notarización. La versión 0.4.0 no dispone de este menú y necesita la primera actualización manual.
 
 La marca canónica es `docs/site/public/brand/hyperion-titan.png`; Desktop y el canvas usan copias idénticas comprobadas por `tests/desktop-brand.test.ts`. Después de cambiar la marca hay que regenerar instaladores; modificar Pages no modifica una release anterior.
 
@@ -74,6 +74,6 @@ Al abrir la nueva app, el lanzador compara la versión del servicio y autentica 
 
 Antes de reemplazar el servicio crea una copia consistente mediante SQLite `VACUUM INTO` en `<datos>/backups/before-upgrade-*.sqlite` y comprueba su integridad. Mantiene la misma base de datos y credenciales: no restaura un snapshot antiguo, reinicia tareas ni cambia decisiones. Dos lanzadores simultáneos se coordinan con un bloqueo local. Un fallo del respaldo impide detener el servicio.
 
-En macOS/Linux usa SIGTERM para el cierre del servidor; Windows termina solo el proceso identificado y SQLite recupera las transacciones confirmadas del WAL. Los clientes pueden reconectar después del breve corte. Una tarea externa en curso permanece en su estado registrado; sus efectos no se reejecutan. La copia previa queda guardada para recuperación y no se elimina automáticamente. Este mecanismo no instala el nuevo binario: el usuario sigue abriendo el instalador descargado.
+En macOS/Linux usa SIGTERM para el cierre del servidor; Windows termina solo el proceso identificado y SQLite recupera las transacciones confirmadas del WAL. Los clientes pueden reconectar después del breve corte. Una tarea externa en curso permanece en su estado registrado; sus efectos no se reejecutan. La copia previa queda guardada para recuperación y no se elimina automáticamente. La sustitución del binario de Desktop es independiente: **Actualizar y reiniciar** aplica el instalador verificado tras el consentimiento.
 
 Validación: `tests/runtime-upgrade.test.ts` cubre rechazos y bloqueo; `tests/desktop-upgrade.mjs` conserva estados, artefactos, vínculos y recibos entre procesos con versiones distintas, también con el runtime empaquetado de cada plataforma.

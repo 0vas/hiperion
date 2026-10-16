@@ -66,14 +66,14 @@ La conversación aporta intención. El run persistido aporta el estado operativo
 
 | Límite           | Responsabilidad                                                                  | Fuente                                                                                                                                                                 |
 | ---------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Harness externo  | Interpretar la petición, proponer pasos, usar herramientas y reportar resultados | [Contrato de integración](https://github.com/0vas/hiperion/blob/main/docs/integration.md)                                                                              |
-| Adaptadores      | CLI y MCP comparten un cliente HTTP; descubrimiento y arranque local             | [src/adapters](https://github.com/0vas/hiperion/tree/main/src/adapters)                                                                                                |
-| API local        | Autenticar identidades, diferenciar roles y exponer comandos/lecturas/SSE        | [app.ts](https://github.com/0vas/hiperion/blob/main/src/server/app.ts)                                                                                                 |
-| Motor de dominio | Transiciones, dependencias, compuertas, contratos y revisiones                   | [src/domain](https://github.com/0vas/hiperion/tree/main/src/domain)                                                                                                    |
-| Store y cola     | Snapshot, recibos idempotentes y entregas persistidas en SQLite                  | [store.ts](https://github.com/0vas/hiperion/blob/main/src/server/store.ts), [continuations.ts](https://github.com/0vas/hiperion/blob/main/src/server/continuations.ts) |
-| Canvas           | Representar el estado, recoger decisiones y mostrar actividad por paso           | [src/client](https://github.com/0vas/hiperion/tree/main/src/client)                                                                                                    |
-| Desktop          | Alojar el canvas, iniciar/reutilizar el servicio y facilitar la conexión         | [desktop](https://github.com/0vas/hiperion/tree/main/desktop)                                                                                                          |
-| Worker opcional  | Recoger entregas y delegar la reanudación en un conector instalado               | [continuation-worker.ts](https://github.com/0vas/hiperion/blob/main/src/adapters/continuation-worker.ts)                                                               |
+| Harness externo  | Interpretar la petición, proponer pasos, usar herramientas y reportar resultados | [Contrato de integración](https://github.com/0vas/hyperion/blob/main/docs/integration.md)                                                                              |
+| Adaptadores      | CLI y MCP comparten un cliente HTTP; descubrimiento y arranque local             | [src/adapters](https://github.com/0vas/hyperion/tree/main/src/adapters)                                                                                                |
+| API local        | Autenticar identidades, diferenciar roles y exponer comandos/lecturas/SSE        | [app.ts](https://github.com/0vas/hyperion/blob/main/src/server/app.ts)                                                                                                 |
+| Motor de dominio | Transiciones, dependencias, compuertas, contratos y revisiones                   | [src/domain](https://github.com/0vas/hyperion/tree/main/src/domain)                                                                                                    |
+| Store y cola     | Snapshot, recibos idempotentes y entregas persistidas en SQLite                  | [store.ts](https://github.com/0vas/hyperion/blob/main/src/server/store.ts), [continuations.ts](https://github.com/0vas/hyperion/blob/main/src/server/continuations.ts) |
+| Canvas           | Representar el estado, recoger decisiones y mostrar actividad por paso           | [src/client](https://github.com/0vas/hyperion/tree/main/src/client)                                                                                                    |
+| Desktop          | Alojar el canvas, iniciar/reutilizar el servicio y facilitar la conexión         | [desktop](https://github.com/0vas/hyperion/tree/main/desktop)                                                                                                          |
+| Worker opcional  | Recoger entregas y delegar la reanudación en un conector instalado               | [continuation-worker.ts](https://github.com/0vas/hyperion/blob/main/src/adapters/continuation-worker.ts)                                                               |
 
 Son límites de responsabilidad; no son ocho microservicios desplegados por separado.
 
@@ -133,7 +133,7 @@ Archify permite explorar las vistas. ArchiMate conserva los modelos formales de 
 
 </details>
 
-[Modelos XML y vistas SVG](https://github.com/0vas/hiperion/tree/main/docs/architecture) · [Decisiones de arquitectura](https://github.com/0vas/hiperion/tree/main/docs/decisions). Los modelos tienen referencias XML comprobables; no se afirma una validación XSD o importación formal que no se haya realizado.
+[Modelos XML y vistas SVG](https://github.com/0vas/hyperion/tree/main/docs/architecture) · [Decisiones de arquitectura](https://github.com/0vas/hyperion/tree/main/docs/decisions). Los modelos tienen referencias XML comprobables; no se afirma una validación XSD o importación formal que no se haya realizado.
 
 ## Cómo se mantiene verificable
 
@@ -142,7 +142,7 @@ Archify permite explorar las vistas. ArchiMate conserva los modelos formales de 
 - **Experiencia:** Playwright comprueba decisiones, navegación y simulaciones. Un conector de prueba no certifica un harness real.
 - **Documentación:** cada cambio de contrato, conexión o componente debe actualizar sus guías ES/EN, diagramas y ejemplos en el mismo cambio.
 
-[AGENTS.md](https://github.com/0vas/hiperion/blob/main/AGENTS.md) recoge el mapa del proyecto, las invariantes y la matriz de actualización documental. [Contrato de procesos](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md) detalla el formato ejecutable.
+[AGENTS.md](https://github.com/0vas/hyperion/blob/main/AGENTS.md) recoge el mapa del proyecto, las invariantes y la matriz de actualización documental. [Contrato de procesos](https://github.com/0vas/hyperion/blob/main/docs/process-contract.md) detalla el formato ejecutable.
 
 </details>
 

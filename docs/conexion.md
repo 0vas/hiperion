@@ -11,7 +11,7 @@ La pausa persistente y el alcance por herramienta se explican en [Reanudación a
 
 No necesitas instalar Node, escribir comandos ni editar archivos. Hyperion Desktop incluye el runtime. La conexión sirve para otros proyectos y chats sin contexto previo. La IA pide solo los datos que falten y genera el proceso; no debes explicarle cómo dibujar el canvas ni cómo registrar los pasos.
 
-**[Descargar Hyperion Desktop](https://github.com/0vas/hiperion/releases/tag/v2026.10.12.2204)**: elige el `.dmg` de Apple Silicon o Intel, o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. Los instaladores no tienen firma de distribución/notarización y pueden mostrar avisos del sistema. La release estable firmada sigue pendiente.
+**[Descargar Hyperion Desktop](https://github.com/0vas/hyperion/releases/tag/v2026.10.15.2036)**: elige el `.dmg` de Apple Silicon o el `.exe` de Windows x64. No necesitas una cuenta de GitHub para descargar la versión preliminar. El instalador de Apple Silicon está firmado con Developer ID y notarizado por Apple; Windows no tiene firma de editor. Intel macOS no se publica en esta release. La release estable sigue pendiente.
 
 | Aplicación     | Qué prepara el asistente                                                             |
 | -------------- | ------------------------------------------------------------------------------------ |
@@ -23,7 +23,7 @@ No necesitas instalar Node, escribir comandos ni editar archivos. Hyperion Deskt
 
 La conexión usa rutas absolutas al runtime incluido y al almacenamiento local; no escribe tokens en la configuración del cliente. Guarda copia del archivo anterior, conserva otros servidores y rechaza una entrada Hyperion diferente. «Conexión configurada» confirma la instalación; el cliente debe reiniciarse y cargar las herramientas para usarla. Puedes repetir el asistente para conectar otra aplicación.
 
-Para actualizar, conserva Hyperion en la misma ubicación. Si lo mueves y aparece un conflicto, retira la antigua entrada Hyperion desde la configuración del cliente y vuelve a conectarlo. Para desconectarlo, elimina solo esa entrada (o la skill Hyperion en Claude Code). Tus flujos se conservan.
+Para actualizar Desktop, usa **Hyperion → Buscar actualizaciones…** y **Actualizar y reiniciar** (descarga oficial con comprobación de tamaño y SHA-256, luego aplica y reinicia). Conserva Hyperion en la misma ubicación. Si lo mueves y aparece un conflicto, retira la antigua entrada Hyperion desde la configuración del cliente y vuelve a conectarlo. Para desconectarlo, elimina solo esa entrada (o la skill Hyperion en Claude Code). Tus flujos se conservan.
 
 La edición actual requiere herramientas en el mismo ordenador. Claude en el navegador y los agentes que ejecutan en la nube no acceden a este servicio local. La primera conexión es necesaria: mencionar el nombre en una aplicación sin integración no instala Hyperion por sí solo.
 
