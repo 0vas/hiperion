@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useData } from 'vitepress';
 const { lang } = useData();
-const repo = 'https://github.com/0vas/hiperion';
+const repo = 'https://github.com/0vas/hyperion';
 </script>
 <template>
   <div
@@ -12,8 +12,8 @@ const repo = 'https://github.com/0vas/hiperion';
       ><img
         loading="lazy"
         decoding="async"
-        src="https://img.shields.io/badge/GitHub-0vas%2Fhiperion-755922?style=flat&amp;logo=github&amp;logoColor=white&amp;labelColor=273139"
-        alt="GitHub: 0vas/hiperion"
+        src="https://img.shields.io/badge/GitHub-0vas%2Fhyperion-755922?style=flat&amp;logo=github&amp;logoColor=white&amp;labelColor=273139"
+        alt="GitHub: 0vas/hyperion"
         width="149"
         height="20"
     /></a>
@@ -30,7 +30,7 @@ const repo = 'https://github.com/0vas/hiperion';
       ><img
         loading="lazy"
         decoding="async"
-        src="https://img.shields.io/github/actions/workflow/status/0vas/hiperion/pages.yml?branch=main&amp;label=Docs&amp;style=flat&amp;labelColor=273139"
+        src="https://img.shields.io/github/actions/workflow/status/0vas/hyperion/pages.yml?branch=main&amp;label=Docs&amp;style=flat&amp;labelColor=273139"
         :alt="
           lang === 'es'
             ? 'Estado de la documentación'

@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-755922?labelColor=273139)](LICENSE)
 [![Documentation build](https://img.shields.io/github/actions/workflow/status/0vas/hyperion/pages.yml?branch=main&label=Docs&labelColor=273139)](https://github.com/0vas/hyperion/actions/workflows/pages.yml)
-[![GitHub repository](https://img.shields.io/badge/GitHub-0vas%2Fhiperion-755922?logo=github&logoColor=white&labelColor=273139)](https://github.com/0vas/hiperion)
+[![GitHub repository](https://img.shields.io/badge/GitHub-0vas%2Fhyperion-755922?logo=github&logoColor=white&labelColor=273139)](https://github.com/0vas/hyperion)
 
 [Reanudación agnóstica: contrato y alcance por herramienta](docs/continuacion-agnostica.md). El núcleo 0.5 guarda pausas y solicitudes de continuación; los conectores nativos para reactivar chats todavía deben integrarse.
 

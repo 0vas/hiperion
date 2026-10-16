@@ -53,10 +53,10 @@ Manual alternative: build and start the HTTP server first. Run `npm run hyperion
     "hyperion": {
       "type": "stdio",
       "command": "node",
-      "args": ["/absolute/path/to/hiperion/dist/adapters/mcp.js"],
+      "args": ["/absolute/path/to/hyperion/dist/adapters/mcp.js"],
       "env": {
         "HYPERION_AGENT_ID": "codex",
-        "HYPERION_DATA_DIR": "/absolute/path/to/hiperion/.hyperion",
+        "HYPERION_DATA_DIR": "/absolute/path/to/hyperion/.hyperion",
         "HYPERION_URL": "http://127.0.0.1:4317"
       }
     }
@@ -71,9 +71,9 @@ For Codex, the CLI supports registering stdio servers:
 ```sh
 codex mcp add hyperion \
   --env HYPERION_AGENT_ID=codex \
-  --env HYPERION_DATA_DIR=/absolute/path/to/hiperion/.hyperion \
+  --env HYPERION_DATA_DIR=/absolute/path/to/hyperion/.hyperion \
   --env HYPERION_URL=http://127.0.0.1:4317 \
-  -- node /absolute/path/to/hiperion/dist/adapters/mcp.js
+  -- node /absolute/path/to/hyperion/dist/adapters/mcp.js
 ```
 
 Verify with `codex mcp get hyperion` and use a session in which the tools are loaded. This command changes your local Codex MCP configuration; it is an optional setup step, not part of the server startup. Documentation: [official OpenAI MCP guidance](https://developers.openai.com/codex/mcp).
