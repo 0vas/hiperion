@@ -10,9 +10,9 @@ The published artifact is `docs/site/.vitepress/dist`. It excludes local state, 
 
 ## Languages and paths
 
-Spanish remains at [the site root](https://0vas.github.io/hiperion/); English lives at [/en/](https://0vas.github.io/hiperion/en/). Matching page paths let the language selector retain your location. Both languages ship together.
+Spanish remains at [the site root](https://0vas.github.io/hyperion/); English lives at [/en/](https://0vas.github.io/hyperion/en/). Matching page paths let the language selector retain your location. Both languages ship together.
 
-The `base: '/hiperion/'` setting keeps links and assets working on Pages. For a differently named fork, also update favicon paths and test expectations.
+The local default path is `/hyperion/`. Production uses the configured GitHub Pages path; generated resources and the favicon use that same prefix.
 
 ## Verify before publishing
 
@@ -22,8 +22,10 @@ npm --prefix docs/site exec -- playwright install chromium
 npm --prefix docs/site test
 ```
 
-Use `npm --prefix docs/site run preview` and open `http://127.0.0.1:4175/hiperion/` to inspect the output. If deployment fails, inspect **Documentation Pages** in Actions. Revert incorrect content and let the workflow republish.
+Use `npm --prefix docs/site run preview` and open `http://127.0.0.1:4175/hyperion/` to inspect the output. If deployment fails, inspect **Documentation Pages** in Actions. Revert incorrect content and let the workflow republish.
 
 References: [VitePress deployment](https://vitepress.dev/guide/deploy), [GitHub Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
-The workflow rebuilds the site with the path returned by GitHub Pages (`HYPERION_DOCS_BASE`). Renaming the repository therefore does not leave assets pointing to the old path. Local tests retain `/hiperion/` as their reference path.
+The workflow rebuilds the site with the path returned by GitHub Pages (`HYPERION_DOCS_BASE`). Renaming the repository therefore does not leave assets pointing to the old path. Local tests retain `/hyperion/` as their reference path.
+
+Before uploading the artifact, `scripts/check-pages.mjs` checks that generated resources exist and use the configured Pages path. Browser dependency installation has a five-minute timeout so a stalled runner cannot hold deployment indefinitely.

@@ -8,6 +8,17 @@ La pausa persistente y el alcance por herramienta se explican en [Reanudación a
 
 Instala Hyperion Desktop y elige **Codex**, **Cursor**, **Claude Desktop** o **Claude Code** en el asistente inicial. Reinicia esa aplicación y abre una conversación nueva. No necesitas terminal ni instalar Node. Para conectar otra aplicación: **Hyperion → Conectar con mi IA**. [Descarga, instalación y ayuda](conexion.md).
 
+## Idioma de la aplicación
+
+Hyperion incluye **español e inglés** en el canvas y en los menús y diálogos de Desktop. Abre **Ajustes → Idioma** para elegir **Automático (sistema)**, **Español** o **English**. En Desktop también puedes cambiarlo desde **Hyperion → Idioma**.
+
+El modo automático toma el idioma del sistema o del navegador; si no está soportado, usa inglés. La selección manual se conserva al volver a abrir la app. En Desktop, el menú y el canvas comparten la preferencia; en el navegador se guarda por separado.
+
+**Tu contenido conserva su idioma.**
+Cambiar la interfaz no traduce nombres de tareas, preguntas del agente, respuestas, resultados ni logs. Tampoco reinicia el flujo ni descarta un formulario sin enviar. Los diagnósticos originales de herramientas y del servicio mantienen su texto para poder investigarlos.
+
+Incluido en el instalador **2026.10.12.1722 UTC · Preview**, junto con los artefactos por paso y los recorridos enlazados.
+
 ## Invocarlo desde una conversación
 
 Escribe, por ejemplo:
@@ -172,3 +183,27 @@ Esta capacidad corresponde al runtime 0.4.1 del repositorio; el instalador previ
 Desde un chat nuevo, pide **«Usa Hyperion para [tu actividad]»**. Si falta una decisión, el agente comparte el canvas y mantiene su herramienta esperando. Abre el enlace sin detener la ejecución del chat. Para una elección conocida debe aparecer un desplegable vacío, con opciones concretas y «Otro» o ayuda cuando corresponda. Al guardar, la respuesta se devuelve al agente y continúa la tarea; no necesitas avisarle otra vez.
 
 Esta espera adjunta corresponde al runtime **0.4.2** y a su skill actualizada. La distribución anterior y las integraciones que solo crean un plan por HTTP no incorporan ese ciclo. Una conversación ya cerrada no se reactiva retroactivamente. Los flujos anteriores conservan sus formularios y respuestas, incluso si fueron creados como texto libre.
+
+## Artefactos dentro del paso
+
+Abre el paso y su sección **Artefactos**, o pulsa el icono de paquete del nodo cuando tenga resultados. Allí puedes ver el nombre, fecha y tipo de cada archivo, abrir enlaces y descargar archivos. Los textos pequeños e imágenes compatibles tienen vista previa. HTML y SVG se muestran como texto, y los demás formatos se descargan. La lista se actualiza cuando el agente registra el resultado; no explora automáticamente tu disco.
+
+Si se reintenta una tarea, los artefactos anteriores permanecen identificados por intento. I/O sigue mostrando los datos del contrato y Logs la actividad: un artefacto es el entregable que puedes abrir.
+
+## Un final puede ser otro inicio
+
+Después de completar el flujo puedes continuar la conversación, por ejemplo: «Ahora traduce esta guía al inglés». El agente crea un nuevo recorrido enlazado al anterior, con tu nueva petición y el contexto relevante. El canvas dibuja **Fin anterior → nuevo inicio** y permite navegar entre ambos. El trabajo completado conserva su historial.
+
+También puedes usar **Continuar desde aquí** al final del gráfico para preparar la nueva petición y copiarla al chat conectado. Ese botón no inicia un agente por sí mismo. Una continuación nueva no sirve para saltar una aprobación pendiente ni para recuperar una tarea atascada; esas situaciones usan los controles existentes.
+
+Estas funciones están incluidas en el instalador **2026.10.15.2036 UTC · Preview**. Actualiza desde [la página de descarga](conexion.md) o desde **Hyperion → Buscar actualizaciones…** en Desktop (**Actualizar y reiniciar** aplica el instalador verificado y reinicia; también puedes solo descargarlo).
+
+## Organizar el canvas
+
+La vista inicial mantiene las tarjetas legibles; un flujo largo puede quedar parcialmente fuera del encuadre. Usa **Vista general** para ver todo el recorrido o **Enfocar paso actual** para revisar una tarea. Un paso marcado **Completado** ya terminó: abre su icono de paquete para consultar **Artefactos**, o **Logs** para revisar lo que ocurrió.
+
+Arrastra el asa de puntos de cualquier tarea, evento, compuerta, trabajo o enlace de continuación. También puedes enfocar el nodo, pulsar Intro y moverlo con las flechas. Los botones de la tarjeta siguen abriendo sus detalles. **Ordenar flujo** restaura la distribución automática de la vista actual.
+
+Las posiciones se guardan localmente por flujo, orientación y vista de pasos/trabajos. Las actualizaciones del agente no las borran. Mover un nodo no cambia dependencias, ejecución, decisiones ni historial; tampoco mueve el mismo flujo en otro navegador o dispositivo.
+
+Disponible en los instaladores **2026.10.15.2036 UTC · Preview**.

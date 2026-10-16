@@ -2,7 +2,7 @@
 
 Hyperion guarda el proceso aunque el chat termine su turno. Para retomarlo al recibir una respuesta necesita un **conector de reanudación** de la herramienta elegida.
 
-La versión 0.5 del código incluye el protocolo, la cola persistente y un worker común. Los conectores nativos para reactivar sesiones de cada proveedor todavía no se incluyen. Los instaladores de la release preliminar tampoco contienen estos cambios de `main`.
+La versión 0.5 del código incluye el protocolo, la cola persistente y un worker común. Los conectores nativos para reactivar sesiones de cada proveedor todavía no se incluyen. La preview 0.5.1 incluye el protocolo, pero no conectores nativos de reanudación.
 
 <GuideLens kind="resume" />
 
@@ -18,15 +18,15 @@ El canvas distingue **Reanudación pendiente**, **Conector retomando** y **Solic
 
 ## Qué necesita cada herramienta
 
-| Herramienta    | Situación actual                                                                                    |
-| -------------- | --------------------------------------------------------------------------------------------------- |
-| Codex          | MCP/skill local disponible. Conector de reanudación vía App Server pendiente.                       |
-| ChatGPT        | Requiere integración remota autenticada y eventos; pendiente. No conecta al MCP stdio de tu equipo. |
-| Claude Desktop | MCP local disponible. Sin wakeup del mismo chat verificado.                                         |
-| Claude Code    | MCP/skill disponible. Conector de sesión Agent SDK pendiente.                                       |
-| Cursor         | MCP/skill disponible. Conector de sesión CLI pendiente.                                             |
-| Hermes Agent   | MCP stdio configurable. Conector de sesión persistida pendiente.                                    |
-| Antigravity    | MCP local configurable. Sin validación en cliente real; conector de reanudación pendiente.          |
+| Herramienta    | Situación actual                                                                                                  |
+| -------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Codex          | MCP/skill local disponible. Conector de reanudación vía App Server pendiente.                                     |
+| ChatGPT        | Requiere integración remota autenticada y eventos; pendiente. No conecta al MCP stdio de tu equipo.               |
+| Claude Desktop | MCP local disponible. Sin wakeup del mismo chat verificado.                                                       |
+| Claude Code    | MCP/skill disponible. Conector de sesión Agent SDK pendiente.                                                     |
+| Cursor         | MCP/skill disponible. Conector de sesión CLI pendiente.                                                           |
+| Hermes Agent   | MCP stdio configurable. Conector de sesión persistida pendiente.                                                  |
+| Antigravity    | MCP y asistente Desktop desde 0.5.1-preview.1. Sin validación en cliente real; conector de reanudación pendiente. |
 
 Si ves **Continuar desde el chat**, la respuesta ya está guardada pero no hay un conector de reanudación asignado. Reintentar no crea un agente ni abre un chat por sí solo.
 
@@ -36,4 +36,4 @@ La identidad del harness no altera las reglas del workflow. La referencia de ses
 
 ![Reanudación independiente del harness en ArchiMate](../../architecture/continuation.svg)
 
-[Contrato, fuentes oficiales y pruebas del protocolo](https://github.com/0vas/hiperion/blob/main/docs/continuacion-agnostica.md).
+[Contrato, fuentes oficiales y pruebas del protocolo](https://github.com/0vas/hyperion/blob/main/docs/continuacion-agnostica.md).

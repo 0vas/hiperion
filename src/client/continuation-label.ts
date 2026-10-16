@@ -1,19 +1,20 @@
+import { t } from './i18n';
 import type { ContinuationState } from '../domain/continuation';
 export function continuationLabel(state: ContinuationState) {
   switch (state.status) {
     case 'waiting':
-      return 'Pausa guardada';
+      return t('Pausa guardada');
     case 'queued':
-      return 'Reanudación pendiente';
+      return t('Reanudación pendiente');
     case 'leased':
-      return 'Conector retomando';
+      return t('Conector retomando');
     case 'delivered':
-      return 'Solicitud entregada al agente';
+      return t('Solicitud entregada al agente');
     case 'failed':
-      return 'No se pudo reanudar';
+      return t('No se pudo reanudar');
     case 'uncertain':
-      return 'Comprobar la reanudación';
+      return t('Comprobar la reanudación');
     case 'cancelled':
-      return 'Reanudación cancelada';
+      return t('Reanudación cancelada');
   }
 }

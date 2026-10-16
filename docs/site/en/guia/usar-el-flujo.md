@@ -54,3 +54,35 @@ Multiple ready tasks do not guarantee concurrent execution; that depends on the 
 ## Runtime versions
 
 The 0.4.1 runtime added active-agent presence and event delivery. The 0.4.2 skill added bounded guided waiting and validation of detected free-text choice lists. Core 0.5 adds durable continuation infrastructure; native resume connectors remain pending. These changes are not in the 0.4.0 preview installer. [Read about pause and resume](./reanudacion.md).
+
+## Open step artifacts
+
+**Artifacts** lists files and links registered by the agent. The node's package icon opens the list directly. Preview small text files and supported images, download files, or open a document link. Results from earlier attempts remain labeled.
+
+::: tip Deliverables within reach
+For example, “Prepare guide” can contain `welcome.md`, an illustration and a shared document link. **I/O** retains its data, **Logs** explains the actions, and **Artifacts** provides access to the result.
+:::
+
+The agent must register the file; Hyperion does not scan your disk or publish documents automatically. HTML and SVG previews display escaped text. Uploaded files are limited to 10 MiB.
+
+## Continue after the end
+
+Say in the same chat: “Now translate this guide into English.” The agent creates another linked run, and the graph shows **Previous end → new beginning**. Select a run card to navigate between them. The completed run keeps its decisions, files and history.
+
+**Continue from here**, at the end of the graph, helps you draft that request and copy it to the connected chat. It does not execute an agent by itself. Use plan revision for changes to unfinished work, or retry for a failed task.
+
+::: info Availability
+The **2026.10.12.1722 UTC · Preview** installers include artifacts and linked runs. [Download the new version](primeros-pasos.md) if you are using an older one.
+:::
+
+## Move and arrange nodes
+
+The canvas opens at a readable scale. For a long workflow, use **Overview** to fit the entire graph or **Focus current step** to inspect a task. **Completed** means that step has finished; open its package icon to inspect artifacts.
+
+Drag the dotted grip above a card or symbol. With a keyboard, focus the node, press Enter and use the arrow keys. **Arrange flow** restores the automatic layout for the current view.
+
+::: tip Your arrangement, the same process
+Positions are saved in this browser per workflow, orientation and steps/jobs view, including when agent activity arrives. They do not change dependencies or history, and do not sync across devices.
+:::
+
+Available in **2026.10.15.2036 UTC · Preview** installers. [Download](primeros-pasos.md).

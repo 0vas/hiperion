@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitepress';
-const base = process.env.HYPERION_DOCS_BASE || '/hiperion/';
+const base = process.env.HYPERION_DOCS_BASE || '/hyperion/';
 export default defineConfig({
   lang: 'es',
   title: 'Hyperion',
@@ -16,7 +16,7 @@ export default defineConfig({
         nav: [
           {
             text: 'Guía',
-            link: '/guia/primeros-pasos',
+            link: '/guia/el-paisaje',
             activeMatch: '^/guia/',
           },
           {
@@ -35,6 +35,7 @@ export default defineConfig({
           {
             text: 'Empieza aquí',
             items: [
+              { text: 'El paisaje', link: '/guia/el-paisaje' },
               { text: 'Tu primer flujo', link: '/guia/primeros-pasos' },
               { text: 'Usar el canvas', link: '/guia/usar-el-flujo' },
               { text: 'Conectar tu IA', link: '/guia/integraciones' },
@@ -66,7 +67,7 @@ export default defineConfig({
         skipToContentLabel: 'Saltar al contenido',
         docFooter: { prev: 'Anterior', next: 'Siguiente' },
         editLink: {
-          pattern: 'https://github.com/0vas/hiperion/edit/main/docs/site/:path',
+          pattern: 'https://github.com/0vas/hyperion/edit/main/docs/site/:path',
           text: 'Mejorar esta página',
         },
         footer: {
@@ -85,7 +86,7 @@ export default defineConfig({
         nav: [
           {
             text: 'Guide',
-            link: '/en/guia/primeros-pasos',
+            link: '/en/guia/the-landscape',
             activeMatch: '^/en/guia/',
           },
           {
@@ -104,6 +105,7 @@ export default defineConfig({
           {
             text: 'Get started',
             items: [
+              { text: 'The landscape', link: '/en/guia/the-landscape' },
               { text: 'Your first workflow', link: '/en/guia/primeros-pasos' },
               { text: 'Use the canvas', link: '/en/guia/usar-el-flujo' },
               { text: 'Connect your AI', link: '/en/guia/integraciones' },
@@ -127,7 +129,7 @@ export default defineConfig({
         ],
         outline: { label: 'On this page' },
         editLink: {
-          pattern: 'https://github.com/0vas/hiperion/edit/main/docs/site/:path',
+          pattern: 'https://github.com/0vas/hyperion/edit/main/docs/site/:path',
           text: 'Improve this page',
         },
         footer: {
@@ -150,7 +152,7 @@ export default defineConfig({
   themeConfig: {
     logo: '/brand/hyperion-titan.png',
     siteTitle: 'Hyperion',
-    socialLinks: [{ icon: 'github', link: 'https://github.com/0vas/hiperion' }],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/0vas/hyperion' }],
     search: {
       provider: 'local',
       options: {

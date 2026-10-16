@@ -30,6 +30,7 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npx playwright install --with-deps chromium
+        timeout-minutes: 5
       - run: npm test
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
@@ -42,7 +43,7 @@ jobs:
         id: pages
       - name: Build with the configured Pages path
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        run: npm run build
+        run: npm run build && node scripts/check-pages.mjs
         env:
           HYPERION_DOCS_BASE: ${{ steps.pages.outputs.base_path }}/
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3

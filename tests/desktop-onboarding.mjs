@@ -8,6 +8,7 @@ test('connection picker configures only the chosen client and gives a plain-lang
     'cursor',
     'claude-desktop',
     'claude-code',
+    'antigravity',
   ].entries()) {
     const calls = [],
       dialogs = [],
@@ -25,6 +26,8 @@ test('connection picker configures only the chosen client and gives a plain-lang
       },
       options: { directory: '/isolated' },
     });
+    assert.equal(dialogs[0].buttons[4], 'Antigravity');
+    assert.equal(dialogs[0].buttons[dialogs[0].cancelId], 'Ahora no');
     assert.equal(result, true);
     assert.deepEqual(calls, [client]);
     assert.match(dialogs[1].detail, /Reinicia|nueva conversación/);
@@ -37,7 +40,7 @@ test('connection picker configures only the chosen client and gives a plain-lang
 test('cancel and setup failures never claim success or copy a prompt', async () => {
   let calls = 0;
   const cancelled = await connectWithDialog({
-    dialog: { showMessageBox: async () => ({ response: 4 }) },
+    dialog: { showMessageBox: async () => ({ response: 5 }) },
     setup: async () => {
       calls++;
     },

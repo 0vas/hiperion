@@ -2,15 +2,15 @@
 
 <RepositoryCard />
 
-Hyperion is independent and [MIT-licensed](https://github.com/0vas/hiperion/blob/main/LICENSE). Improvements must work without depending on a single AI provider.
+Hyperion is independent and [MIT-licensed](https://github.com/0vas/hyperion/blob/main/LICENSE). Improvements must work without depending on a single AI provider.
 
 ## Prepare the project
 
 For development, use Node.js 22.13 or newer:
 
 ```sh
-git clone https://github.com/0vas/hiperion.git
-cd hiperion
+git clone https://github.com/0vas/hyperion.git
+cd hyperion
 npm ci
 npm run check
 ```
@@ -40,8 +40,8 @@ Spanish pages remain at `docs/site/`; English pages live under `en/` with matchi
 
 To add another language, create matching pages and register its locale and navigation in `.vitepress/config.mts`. Extend the page/link and accessibility tests. Keep limitations and installer versions consistent across translations.
 
-Archify source and regeneration instructions live in [docs/architecture/archify](https://github.com/0vas/hiperion/tree/main/docs/architecture/archify). The viewer is generated from pinned source evidence. Brand assets live in `docs/site/public/brand/`.
+Archify source and regeneration instructions live in [docs/architecture/archify](https://github.com/0vas/hyperion/tree/main/docs/architecture/archify). The viewer is generated from pinned source evidence. Brand assets live in `docs/site/public/brand/`.
 
-VitePress is pinned in the lockfile. The site uses the version 2 preview and is checked separately from the application under the `/hiperion/` base path.
+VitePress is pinned in the lockfile. The site uses the version 2 preview and is checked separately from the application under the `/hyperion/` base path.
 
-[Contribution rules](https://github.com/0vas/hiperion/blob/main/CONTRIBUTING.md) · [Security](https://github.com/0vas/hiperion/blob/main/SECURITY.md)
+[Contribution rules](https://github.com/0vas/hyperion/blob/main/CONTRIBUTING.md) · [Security](https://github.com/0vas/hyperion/blob/main/SECURITY.md)

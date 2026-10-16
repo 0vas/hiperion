@@ -565,3 +565,41 @@
     padding: 14px;
   }
 }
+
+.download-version {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  margin-bottom: 16px;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+}
+.download-version time {
+  color: var(--vp-c-text-1);
+  font-family: var(--vp-font-family-mono);
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.download-status {
+  margin-top: 18px;
+  padding: 18px 20px;
+  border-left: 3px solid var(--vp-c-brand-1);
+  border-radius: 6px;
+  background: var(--vp-c-bg-soft);
+  color: var(--vp-c-text-1);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.download-status p {
+  margin: 8px 0;
+  color: var(--vp-c-text-2);
+}
+.download-status a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--vp-c-text-1);
+  text-decoration: underline;
+}

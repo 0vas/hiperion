@@ -1,3 +1,6 @@
+import { artifactLimit, type ArtifactInput } from '../domain/artifacts.js';
+import { open } from 'node:fs/promises';
+import { basename, isAbsolute } from 'node:path';
 import type {
   Suspension,
   Settlement,
@@ -89,8 +92,78 @@ export class HyperionClient {
   get(id: string) {
     return this.request<Run>(`/api/runs/${encodeURIComponent(id)}`);
   }
-  create(plan: unknown, commandId: string = crypto.randomUUID()) {
-    return this.request<Run>('/api/runs', { plan, commandId });
+  create(
+    plan: unknown,
+    commandId: string = crypto.randomUUID(),
+    parentRunId?: string,
+  ) {
+    return this.request<Run>('/api/runs', {
+      plan,
+      commandId,
+      ...(parentRunId ? { parentRunId } : {}),
+    });
+  }
+  addArtifact(id: string, artifact: ArtifactInput) {
+    return this.request<Run>(
+      `/api/runs/${encodeURIComponent(id)}/artifacts`,
+      artifact,
+      30000,
+    );
+  }
+  async attachFile(
+    id: string,
+    filePath: string,
+    options: Omit<ArtifactInput, 'contentBase64' | 'url' | 'name'> & {
+      name?: string;
+    },
+  ) {
+    if (!isAbsolute(filePath))
+      throw new Error('Provide an absolute artifact file path');
+    const file = await open(filePath, 'r');
+    let bytes: Buffer;
+    try {
+      const stat = await file.stat();
+      if (!stat.isFile() || stat.size > artifactLimit)
+        throw new Error('Artifact must be a file up to 10 MiB');
+      const buffer = Buffer.alloc(artifactLimit + 1);
+      let length = 0;
+      while (length < buffer.length) {
+        const { bytesRead } = await file.read(
+          buffer,
+          length,
+          buffer.length - length,
+          null,
+        );
+        if (!bytesRead) break;
+        length += bytesRead;
+      }
+      if (length > artifactLimit) throw new Error('Artifact exceeds 10 MiB');
+      bytes = buffer.subarray(0, length);
+    } finally {
+      await file.close();
+    }
+    const extension = filePath.toLowerCase().split('.').at(-1) || '';
+    const media: Record<string, string> = {
+      md: 'text/markdown',
+      txt: 'text/plain',
+      json: 'application/json',
+      csv: 'text/csv',
+      png: 'image/png',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      webp: 'image/webp',
+      gif: 'image/gif',
+      pdf: 'application/pdf',
+      svg: 'image/svg+xml',
+      html: 'text/html',
+    };
+    return this.addArtifact(id, {
+      ...options,
+      name: options.name || basename(filePath),
+      mediaType:
+        options.mediaType || media[extension] || 'application/octet-stream',
+      contentBase64: bytes.toString('base64'),
+    });
   }
   command(id: string, command: Command) {
     return this.request<Run>(`/api/runs/${encodeURIComponent(id)}/commands`, {

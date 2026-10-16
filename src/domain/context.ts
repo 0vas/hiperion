@@ -1,5 +1,6 @@
 import type { Run, Step } from './workflow.js';
 export type AvailableContext = {
+  origin?: Run['origin'];
   request?: string;
   general: Record<string, unknown>;
   previous: {
@@ -7,6 +8,7 @@ export type AvailableContext = {
     title: string;
     result?: string;
     outputs: Record<string, unknown>;
+    artifacts?: Step['artifacts'];
   }[];
 };
 /** Read projection only. Contracts still control required data and readiness. */
@@ -19,6 +21,7 @@ export function contextForStep(run: Run, step: Step): AvailableContext {
   };
   step.dependencies.forEach(visit);
   return {
+    ...(run.origin ? { origin: run.origin } : {}),
     ...(run.request ? { request: run.request } : {}),
     general: run.context || {},
     previous: run.steps
@@ -33,6 +36,7 @@ export function contextForStep(run: Run, step: Step): AvailableContext {
         title: s.title,
         ...(s.result ? { result: s.result } : {}),
         outputs: s.outputValues || {},
+        ...(s.artifacts?.length ? { artifacts: s.artifacts } : {}),
       })),
   };
 }
@@ -49,6 +53,7 @@ export function routeLabel(
   run: Run,
   source: Step | undefined,
   target: string,
+  labels = { yes: 'Sí', no: 'No', other: 'Otra opción', next: 'Continuar' },
 ): string | undefined {
   const gate = source?.gateway;
   const route = gate?.routes?.find((r) => r.target === target);
@@ -71,10 +76,10 @@ export function routeLabel(
     const yes = invert ? !when.equals : when.equals;
     return (
       (yes ? port?.form?.trueLabel : port?.form?.falseLabel) ||
-      (yes ? 'Sí' : 'No')
+      (yes ? labels.yes : labels.no)
     );
   }
-  if (gate?.defaultTarget === target) return 'Otra opción';
-  if (when) return run.steps.find((s) => s.id === target)?.title || 'Continuar';
+  if (gate?.defaultTarget === target) return labels.other;
+  if (when) return run.steps.find((s) => s.id === target)?.title || labels.next;
   return undefined;
 }

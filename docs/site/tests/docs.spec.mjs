@@ -12,6 +12,13 @@ const pages = [
   'contribuir',
   'despliegue',
 ];
+/** EN birth-story slug differs from ES (`the-landscape` vs `el-paisaje`). */
+const localePaths = [
+  ...pages,
+  ...pages.map((path) => `en/${path}`),
+  'guia/el-paisaje',
+  'en/guia/the-landscape',
+];
 test('all guides load under the Pages subpath with working internal links and no local service', async ({
   page,
   request,
@@ -26,9 +33,9 @@ test('all guides load under the Pages subpath with working internal links and no
       failures.push('Documentation accessed the local application');
   });
   const links = new Set();
-  for (const path of [...pages, ...pages.map((path) => `en/${path}`)]) {
+  for (const path of localePaths) {
     const response = await page.goto(
-      `/hiperion/${path}${path && !path.endsWith('/') ? '.html' : ''}`,
+      `/hyperion/${path}${path && !path.endsWith('/') ? '.html' : ''}`,
     );
     expect(response.status()).toBe(200);
     await expect(page.locator('h1')).toBeVisible();
@@ -37,7 +44,7 @@ test('all guides load under the Pages subpath with working internal links and no
       .evaluateAll((anchors) => anchors.map((a) => a.href))) {
       const url = new URL(href);
       if (url.origin !== 'http://127.0.0.1:4175') continue;
-      expect(url.pathname).toMatch(/^\/hiperion\//);
+      expect(url.pathname).toMatch(/^\/hyperion\//);
       if (url.pathname === new URL(page.url()).pathname && url.hash)
         expect(
           await page
@@ -56,12 +63,12 @@ test('all guides load under the Pages subpath with working internal links and no
 });
 
 test('a new reader can find setup and search for retry', async ({ page }) => {
-  await page.goto('/hiperion/');
+  await page.goto('/hyperion/');
   await page.getByRole('link', { name: 'Empezar', exact: true }).click();
   await expect(page.locator('h1')).toHaveText('Tu primer flujo');
   await expect(
     page.getByRole('link', { name: 'Descargar Hyperion Desktop', exact: true }),
-  ).toHaveAttribute('href', /releases\/tag\/v0.4.0-preview.1/);
+  ).toHaveAttribute('href', /releases\/tag\/v2026.10.15.2036/);
   await page.getByRole('button', { name: /Buscar/ }).click();
   await page.locator('#localsearch-input').fill('Reintentar');
   await expect(page.locator('.VPLocalSearchBox a').first()).toBeVisible();
@@ -81,7 +88,7 @@ test('mobile navigation and reading remain accessible in both themes', async ({
       'en/',
       'en/guia/primeros-pasos.html',
     ]) {
-      await page.goto(`/hiperion/${path}`);
+      await page.goto(`/hyperion/${path}`);
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -100,16 +107,18 @@ test('mobile navigation and reading remain accessible in both themes', async ({
       });
     }
   }
-  await page.goto('/hiperion/guia/primeros-pasos.html');
+  await page.goto('/hyperion/guia/primeros-pasos.html');
   await page.getByRole('button', { name: /Navegación móvil/ }).click();
   await page.getByRole('link', { name: 'Guía', exact: true }).click();
-  await expect(page.locator('h1')).toHaveText('Tu primer flujo');
+  await expect(page.locator('h1')).toContainText(
+    'Un paisaje para el trabajo de tu IA',
+  );
 });
 
 test('language switch preserves the page and English search stays in English', async ({
   page,
 }) => {
-  await page.goto('/hiperion/referencia/arquitectura.html');
+  await page.goto('/hyperion/referencia/arquitectura.html');
   await page.getByRole('button', { name: /Cambiar idioma/ }).click();
   await page.getByRole('link', { name: 'English', exact: true }).click();
   await expect(page).toHaveURL(/\/en\/referencia\/arquitectura.html/);
@@ -127,7 +136,7 @@ test('language switch preserves the page and English search stays in English', a
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: /Change language/ }).click();
   await page.getByRole('link', { name: 'Español', exact: true }).click();
-  await expect(page).toHaveURL('/hiperion/referencia/arquitectura.html');
+  await expect(page).toHaveURL('/hyperion/referencia/arquitectura.html');
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
 });
 
@@ -136,7 +145,7 @@ test('branded pages offer direct installers and a working Archify viewer in both
 }) => {
   for (const locale of ['', 'en/']) {
     await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.goto(`/hiperion/${locale}`);
+    await page.goto(`/hyperion/${locale}`);
     await page.screenshot({
       path: `../../test-results/docs/home-${locale ? 'en' : 'es'}-desktop.png`,
       fullPage: true,
@@ -146,17 +155,16 @@ test('branded pages offer direct installers and a working Archify viewer in both
     ).toBeVisible();
     for (const [name, asset] of [
       ['macOS · Apple Silicon', 'mac-arm64.dmg'],
-      ['macOS · Intel', 'mac-x64.dmg'],
       ['Windows · x64', 'win-x64.exe'],
     ]) {
       await expect(
         page.getByRole('link', { name, exact: true }),
       ).toHaveAttribute(
         'href',
-        `https://github.com/0vas/hiperion/releases/download/v0.4.0-preview.1/Hyperion-0.4.0-${asset}`,
+        `https://github.com/0vas/hyperion/releases/download/v2026.10.15.2036/Hyperion-2026.10.15.2036-${asset}`,
       );
     }
-    await page.goto(`/hiperion/${locale}referencia/arquitectura.html`);
+    await page.goto(`/hyperion/${locale}referencia/arquitectura.html`);
     await expect(
       page.frameLocator('iframe').locator('svg').first(),
     ).toBeVisible();
@@ -191,7 +199,7 @@ test('interactive quickstart teaches a human decision and review without a live 
     if (request.url().includes('/api/')) requests.push(request.url());
   });
   for (const en of [false, true]) {
-    await page.goto(`/hiperion/${en ? 'en/' : ''}guia/primeros-pasos.html`);
+    await page.goto(`/hyperion/${en ? 'en/' : ''}guia/primeros-pasos.html`);
     const demo = page.getByRole('region', {
       name: en ? 'Interactive example' : 'Ejemplo interactivo',
       exact: true,
@@ -253,7 +261,7 @@ test('home motion can be paused and respects reduced motion', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.goto('/hiperion/');
+  await page.goto('/hyperion/');
   const motion = page.locator('.home-motion .link-current').first();
   await expect(motion).toHaveCSS('animation-play-state', 'running');
   await page
@@ -271,7 +279,7 @@ test('demo forms, evidence and review stay accessible in narrow layouts', async 
   for (const theme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
     for (const en of [false, true]) {
-      await page.goto(`/hiperion/${en ? 'en/' : ''}guia/primeros-pasos.html`);
+      await page.goto(`/hyperion/${en ? 'en/' : ''}guia/primeros-pasos.html`);
       const demo = page.getByRole('region', {
         name: en ? 'Interactive example' : 'Ejemplo interactivo',
         exact: true,
@@ -325,7 +333,7 @@ test('demo forms, evidence and review stay accessible in narrow layouts', async 
 test('the demo uses the Hyperion canvas and keeps SVG task states in sync', async ({
   page,
 }) => {
-  await page.goto('/hiperion/guia/primeros-pasos.html');
+  await page.goto('/hyperion/guia/primeros-pasos.html');
   const demo = page.getByRole('region', {
     name: 'Ejemplo interactivo',
     exact: true,
@@ -365,7 +373,7 @@ test('quickstart offers specific use cases, copyable prompts and source commands
 }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   for (const en of [false, true]) {
-    await page.goto(`/hiperion/${en ? 'en/' : ''}guia/primeros-pasos.html`);
+    await page.goto(`/hyperion/${en ? 'en/' : ''}guia/primeros-pasos.html`);
     await page
       .getByRole('button', {
         name: en ? 'Code review' : 'Revisión de código',
@@ -398,7 +406,7 @@ test('video landing uses a centered headline, wide product view and controllable
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   for (const en of [false, true]) {
-    await page.goto(`/hiperion/${en ? 'en/' : ''}`);
+    await page.goto(`/hyperion/${en ? 'en/' : ''}`);
     const hero = page.locator('.landscape-hero');
     await expect(hero.locator('.cinema-menu')).toHaveCount(0);
     await expect(hero.locator('.landscape-copy .landscape-motion')).toHaveCount(
@@ -428,7 +436,14 @@ test('video landing uses a centered headline, wide product view and controllable
     ).toHaveAttribute('aria-pressed', 'true');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await expect(video).not.toHaveAttribute('src');
-    await expect(hero.locator('h1 span')).toHaveCSS('animation-name', 'none');
+    await expect(hero.locator('h1 .headline-accent')).toHaveCSS(
+      'animation-name',
+      'none',
+    );
+    await expect(hero.locator('h1')).toHaveText(
+      en ? 'Your ideas.In motion.' : 'Tus ideas.En movimiento.',
+    );
+    await expect(hero.locator('.headline-caret')).toHaveCount(0);
     expect(
       (
         await new AxeBuilder({ page })
@@ -455,13 +470,131 @@ test('video landing uses a centered headline, wide product view and controllable
   }
 });
 
+test('birth story page and home teaser ship in both languages with static diagrams', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/hyperion/');
+  await expect(page.locator('.landscape-hero')).toBeVisible();
+  const teaser = page.locator('.landscape-teaser');
+  await expect(teaser.getByRole('heading', { level: 2 })).toHaveText(
+    'Del chat que responde al proceso que guías',
+  );
+  await expect(
+    teaser.getByRole('link', { name: 'Leer el paisaje', exact: true }),
+  ).toHaveAttribute('href', '/hyperion/guia/el-paisaje.html');
+  await expect(teaser.locator('.landscape-compare.compact')).toBeVisible();
+  await expect(teaser.locator('.mini-flow li').first()).toHaveCSS(
+    'animation-name',
+    'none',
+  );
+  await teaser
+    .getByRole('link', { name: 'Leer el paisaje', exact: true })
+    .click();
+  await expect(page.locator('h1')).toContainText(
+    'Un paisaje para el trabajo de tu IA',
+  );
+  await expect(
+    page.getByText(
+      'Cuando la IA deja de solo responder y empieza a actuar, necesitas un paisaje — no solo un chat.',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(page.locator('.landscape-compare')).toBeVisible();
+  await expect(page.locator('.landscape-loop')).toBeVisible();
+  await expect(page.locator('.mini-flow li').first()).toHaveCSS(
+    'animation-name',
+    'none',
+  );
+  await expect(
+    page.getByRole('link', {
+      name: 'Empieza con tu primer flujo',
+      exact: true,
+    }),
+  ).toHaveAttribute('href', /primeros-pasos/);
+  await expect(
+    page
+      .locator('.VPSidebar')
+      .getByRole('link', { name: 'El paisaje', exact: true }),
+  ).toBeVisible();
+  await page.goto('/hyperion/en/');
+  await expect(
+    page
+      .locator('.landscape-teaser')
+      .getByRole('link', { name: 'Read the landscape', exact: true }),
+  ).toHaveAttribute('href', '/hyperion/en/guia/the-landscape.html');
+  await page
+    .locator('.landscape-teaser')
+    .getByRole('link', { name: 'Read the landscape', exact: true })
+    .click();
+  await expect(page.locator('h1')).toContainText('A landscape for your AI');
+  await expect(
+    page.getByRole('heading', { name: /You in the loop/ }),
+  ).toBeVisible();
+  await expect(page.locator('.landscape-loop .loop-box').nth(3)).toHaveText(
+    'Your decision',
+  );
+  await expect(
+    page
+      .locator('.VPSidebar')
+      .getByRole('link', { name: 'The landscape', exact: true }),
+  ).toBeVisible();
+});
+
+test('hero headline types through phrase pairs and freezes on pause or reduced motion', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/hyperion/');
+  const title = page.locator('#landscape-title');
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await expect(title).toHaveAttribute(
+    'aria-label',
+    'Tus ideas. En movimiento.',
+  );
+  await expect
+    .poll(async () => (await title.innerText()).replace(/\s+/g, ''), {
+      timeout: 12_000,
+    })
+    .not.toBe('Tusideas.Enmovimiento.');
+  await page.getByRole('button', { name: 'Pausar fondo', exact: true }).click();
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await expect(page.locator('.headline-caret')).toHaveCount(0);
+  await page.waitForTimeout(800);
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await expect(page.locator('.headline-caret')).toHaveCount(0);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/hyperion/en/');
+  await expect(page.locator('#landscape-title')).toHaveText(
+    'Your ideas.In motion.',
+  );
+  await expect(page.locator('#landscape-title')).toHaveAttribute(
+    'aria-label',
+    'Your ideas. In motion.',
+  );
+  await expect
+    .poll(
+      async () =>
+        (await page.locator('#landscape-title').innerText()).replace(
+          /\s+/g,
+          '',
+        ),
+      { timeout: 12_000 },
+    )
+    .not.toBe('Yourideas.Inmotion.');
+});
+
 test('cinematic landing stays readable in split windows and small phones', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const width of [320, 820, 1024]) {
     await page.setViewportSize({ width, height: 768 });
-    await page.goto('/hiperion/');
+    await page.goto('/hyperion/');
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -476,7 +609,9 @@ test('cinematic landing stays readable in split windows and small phones', async
     if (width === 320) {
       await page.getByRole('button', { name: /Navegación móvil/ }).click();
       await page.getByRole('link', { name: 'Guía', exact: true }).click();
-      await expect(page.locator('h1')).toHaveText('Tu primer flujo');
+      await expect(page.locator('h1')).toContainText(
+        'Un paisaje para el trabajo de tu IA',
+      );
     } else {
       await page.screenshot({
         path: `../../test-results/docs/cinema-split-${width}.png`,
@@ -495,16 +630,18 @@ test('video failure keeps the poster, navigation and download actions usable', a
   const failure = page.waitForEvent('requestfailed', (request) =>
     request.url().includes('cloudfront.net'),
   );
-  await page.goto('/hiperion/');
+  await page.goto('/hyperion/');
   await failure;
   const video = page.locator('.cinema-video').first();
   await expect(page.locator('.cinema-video')).toHaveCount(2);
   await expect(video).not.toHaveAttribute('src');
   await expect(video).toHaveAttribute(
     'poster',
-    '/hiperion/brand/cinema-poster.svg',
+    '/hyperion/brand/cinema-poster.svg',
   );
-  await expect(page.locator('h1')).toHaveText('Tus ideas.En movimiento.');
+  await expect(page.locator('#landscape-title')).toHaveText(
+    'Tus ideas.En movimiento.',
+  );
   await page
     .getByRole('link', { name: 'Descargar Hyperion', exact: true })
     .click();
@@ -518,7 +655,7 @@ test('home theme switch changes the actual page and preserves it across navigati
 }) => {
   await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto('/hiperion/');
+  await page.goto('/hyperion/');
   await expect(page.locator('.cinema-guides')).toHaveCount(0);
   const title = page.locator('#landscape-title');
   const lightColor = await title.evaluate((el) => getComputedStyle(el).color);
@@ -539,13 +676,13 @@ test('repository is discoverable with Shields badges and SVG actions in both lan
   page,
 }) => {
   for (const en of [false, true]) {
-    await page.goto(`/hiperion/${en ? 'en/' : ''}`);
+    await page.goto(`/hyperion/${en ? 'en/' : ''}`);
     const badges = page.locator('.project-badges img');
     await expect(badges).toHaveCount(3);
     for (const badge of await badges.all())
       await expect(badge).toHaveAttribute('src', /^https:\/\/img.shields.io\//);
     await expect(page.locator('.landscape-primary svg')).toHaveCount(2);
-    await page.goto(`/hiperion/${en ? 'en/' : ''}contribuir.html`);
+    await page.goto(`/hyperion/${en ? 'en/' : ''}contribuir.html`);
     const repo = page.getByRole('link', {
       name: en ? 'Open repository on GitHub' : 'Abrir repositorio en GitHub',
       exact: true,
@@ -553,7 +690,7 @@ test('repository is discoverable with Shields badges and SVG actions in both lan
     await expect(repo).toBeVisible();
     await expect(repo).toHaveAttribute(
       'href',
-      'https://github.com/0vas/hiperion',
+      'https://github.com/0vas/hyperion',
     );
     await expect(repo.locator('svg')).toHaveCount(2);
     for (const theme of ['light', 'dark']) {
@@ -576,15 +713,15 @@ test('downloads identify platforms and illustrated guides reveal contextual anno
   page,
 }) => {
   for (const locale of ['', 'en/']) {
-    await page.goto(`/hiperion/${locale}`);
+    await page.goto(`/hyperion/${locale}`);
     await expect(
       page.locator('.download-card svg[data-platform="macos"]'),
-    ).toHaveCount(2);
+    ).toHaveCount(1);
     await expect(
       page.locator('.download-card svg[data-platform="windows"]'),
     ).toHaveCount(1);
     for (const guide of ['guia/usar-el-flujo', 'guia/reanudacion']) {
-      await page.goto(`/hiperion/${locale}${guide}.html`);
+      await page.goto(`/hyperion/${locale}${guide}.html`);
       const lens = page.locator('.guide-lens');
       await expect(lens).toBeVisible();
       const buttons = lens.getByRole('button');
@@ -622,7 +759,7 @@ test('slow external badges do not block the landing page', async ({ page }) => {
   const pending = [];
   await page.route('https://img.shields.io/**', (route) => pending.push(route));
   try {
-    await page.goto('/hiperion/', { waitUntil: 'load', timeout: 5000 });
+    await page.goto('/hyperion/', { waitUntil: 'load', timeout: 5000 });
     await expect(page.locator('h1')).toBeVisible();
     await expect(
       page.getByRole('link', { name: 'Descargar Hyperion', exact: true }),
@@ -638,7 +775,7 @@ test('home explores six goals with isolated decisions and copyable requests', as
 }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   for (const en of [false, true]) {
-    await page.goto(`/hiperion/${en ? 'en/' : ''}`);
+    await page.goto(`/hyperion/${en ? 'en/' : ''}`);
     const explorer = page.getByRole('region', {
       name: en ? 'Explore use cases' : 'Explora los casos de uso',
       exact: true,
@@ -708,7 +845,7 @@ test('floating navigation keeps a generated brand and working actions across lay
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const en of [false, true]) {
-    await page.goto(`/hiperion/${en ? 'en/' : ''}`);
+    await page.goto(`/hyperion/${en ? 'en/' : ''}`);
     const nav = page.locator('.VPNavBar');
     await expect(nav.locator('.logo')).toHaveAttribute(
       'src',
@@ -751,13 +888,13 @@ test('floating navigation keeps a generated brand and working actions across lay
           .analyze()
       ).violations,
     ).toEqual([]);
-    await page.goto(`/hiperion/${en ? 'en/' : ''}guia/reanudacion.html`);
+    await page.goto(`/hyperion/${en ? 'en/' : ''}guia/reanudacion.html`);
     await expect(
       nav.getByRole('link', { name: en ? 'Guide' : 'Guía', exact: true }),
     ).toHaveClass(/active/);
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/hiperion/');
+  await page.goto('/hyperion/');
   await page.getByRole('button', { name: /Navegación móvil/ }).click();
   await page
     .locator('.VPNavScreen')
@@ -772,7 +909,7 @@ test('architecture views explain execution, data and resumption in both language
   page,
 }) => {
   for (const en of [false, true]) {
-    await page.goto(`/hiperion/${en ? 'en/' : ''}referencia/arquitectura.html`);
+    await page.goto(`/hyperion/${en ? 'en/' : ''}referencia/arquitectura.html`);
     const explorer = page.getByRole('region', {
       name: en ? 'Architecture explorer' : 'Explorador de arquitectura',
     });
@@ -795,7 +932,7 @@ test('architecture views explain execution, data and resumption in both language
         }),
       ).toHaveAttribute(
         'href',
-        `/hiperion/architecture/${file}-${en ? 'en' : 'es'}.html`,
+        `/hyperion/architecture/${file}-${en ? 'en' : 'es'}.html`,
       );
       await expect(
         page
@@ -847,7 +984,7 @@ test('architecture leads with an interactive visual journey and hides reference 
 }) => {
   for (const en of [false, true]) {
     await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.goto(`/hiperion/${en ? 'en/' : ''}referencia/arquitectura.html`);
+    await page.goto(`/hyperion/${en ? 'en/' : ''}referencia/arquitectura.html`);
     const journey = page.getByRole('region', {
       name: en ? 'From request to result' : 'De la petición al resultado',
       exact: true,
@@ -907,7 +1044,7 @@ test('Antigravity has an SVG identity and an honest MCP setup path in both langu
   page,
 }) => {
   for (const locale of ['', 'en/']) {
-    await page.goto(`/hiperion/${locale}`);
+    await page.goto(`/hyperion/${locale}`);
     const mark = page
       .locator('.harness-marks a')
       .filter({ hasText: 'Antigravity' });
@@ -916,11 +1053,74 @@ test('Antigravity has an SVG identity and an honest MCP setup path in both langu
     await mark.click();
     await expect(page.locator('#antigravity')).toBeVisible();
     await expect(
+      page.getByRole('row').filter({ hasText: 'Antigravity' }),
+    ).toContainText('MCP');
+    await expect(page.locator('.vp-doc')).toContainText('0.4.0-preview.1');
+    await expect(
       page.getByRole('link', { name: /MCP.*Antigravity|Antigravity.*MCP/ }),
     ).toHaveAttribute('href', 'https://antigravity.google/docs/mcp');
     await expect(page.locator('.vp-doc')).toContainText('mcpServers.hyperion');
-    await page.goto(`/hiperion/${locale}guia/reanudacion.html`);
+    await page.goto(`/hyperion/${locale}guia/reanudacion.html`);
     const row = page.getByRole('row').filter({ hasText: 'Antigravity' });
     await expect(row).toContainText(locale ? 'pending' : 'pendiente');
+  }
+});
+
+test('CalVer minute and macOS opening instructions remain visible in both themes, languages and narrow layouts', async ({
+  page,
+}) => {
+  for (const locale of ['', 'en/']) {
+    for (const dark of [false, true]) {
+      for (const width of [390, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({
+          colorScheme: dark ? 'dark' : 'light',
+          reducedMotion: 'reduce',
+        });
+        await page.goto(`/hyperion/${locale}guia/primeros-pasos.html`);
+        const downloads = page.locator('.downloads');
+        await downloads.scrollIntoViewIfNeeded();
+        await expect(downloads.locator('time')).toHaveText('2026.10.15.2036');
+        await expect(downloads.locator('time')).toHaveAttribute(
+          'datetime',
+          '2026-10-15T20:36:00Z',
+        );
+        await expect(downloads.locator('.download-status')).toContainText(
+          locale
+            ? 'notarized with Developer ID'
+            : 'notarizado con Developer ID',
+        );
+        await expect(
+          page.getByRole('link', { name: 'macOS · Intel', exact: true }),
+        ).toHaveCount(0);
+        await downloads
+          .getByRole('link', {
+            name: locale
+              ? 'View installation steps'
+              : 'Ver pasos de instalación',
+          })
+          .click();
+        await expect(page).toHaveURL(
+          locale ? /#macos-blocks-the-app$/ : /#macos-bloquea-la-app$/,
+        );
+        await expect(
+          page.locator(
+            locale ? '#macos-blocks-the-app' : '#macos-bloquea-la-app',
+          ),
+        ).toBeVisible();
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth + 1,
+          ),
+        ).toBe(true);
+        const a11y = await new AxeBuilder({ page })
+          .include('.downloads')
+          .analyze();
+        expect(a11y.violations).toEqual([]);
+        await downloads.screenshot({
+          path: `../../test-results/docs/downloads-${locale ? 'en' : 'es'}-${dark ? 'dark' : 'light'}-${width}.png`,
+        });
+      }
+    }
   }
 });

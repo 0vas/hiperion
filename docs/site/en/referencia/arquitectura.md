@@ -22,6 +22,10 @@ Three views of the same system. Select one and open Archify to explore the compo
 
 <ArchitectureAtlas kind="deployment" />
 
+The shared launcher can replace an older authenticated service from the same installation after verifying its process identity and creating an integrity-checked SQLite backup. This preserves workflow state and external tasks; it adds no shutdown endpoint or chat wakeup. [Runtime upgrade lifecycle](https://github.com/0vas/hyperion/blob/main/docs/decisions/0034-runtime-replacement-on-upgrade.md).
+
+Desktop also checks GitHub releases and downloads installers after confirmation, validating size and SHA-256. macOS ad-hoc integrity is not notarization. [Distribution and update decision](https://github.com/0vas/hyperion/blob/main/docs/decisions/0031-desktop-integrity-and-updates.md).
+
 ::: info What is available
 Engine, canvas, persistence and continuation queue are implemented. Resuming a closed chat requires a real installed connector; native connectors remain pending.
 :::
@@ -62,14 +66,14 @@ The conversation provides intent. The persisted run provides operational state. 
 
 | Boundary         | Responsibility                                                           | Source                                                                                                                                                                 |
 | ---------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| External harness | Interpret the request, propose steps, use tools and report results       | [Integration contract](https://github.com/0vas/hiperion/blob/main/docs/integration.md)                                                                                 |
-| Adapters         | CLI and MCP share an HTTP client; discovery and local bootstrap          | [src/adapters](https://github.com/0vas/hiperion/tree/main/src/adapters)                                                                                                |
-| Local API        | Authenticate identities, distinguish roles and expose commands/reads/SSE | [app.ts](https://github.com/0vas/hiperion/blob/main/src/server/app.ts)                                                                                                 |
-| Domain engine    | Transitions, dependencies, gateways, contracts and revisions             | [src/domain](https://github.com/0vas/hiperion/tree/main/src/domain)                                                                                                    |
-| Store and queue  | SQLite snapshots, idempotent receipts and durable deliveries             | [store.ts](https://github.com/0vas/hiperion/blob/main/src/server/store.ts), [continuations.ts](https://github.com/0vas/hiperion/blob/main/src/server/continuations.ts) |
-| Canvas           | Present state, collect decisions and display step activity               | [src/client](https://github.com/0vas/hiperion/tree/main/src/client)                                                                                                    |
-| Desktop          | Host the canvas, start/reuse the service and assist connection setup     | [desktop](https://github.com/0vas/hiperion/tree/main/desktop)                                                                                                          |
-| Optional worker  | Claim deliveries and delegate resumption to an installed connector       | [continuation-worker.ts](https://github.com/0vas/hiperion/blob/main/src/adapters/continuation-worker.ts)                                                               |
+| External harness | Interpret the request, propose steps, use tools and report results       | [Integration contract](https://github.com/0vas/hyperion/blob/main/docs/integration.md)                                                                                 |
+| Adapters         | CLI and MCP share an HTTP client; discovery and local bootstrap          | [src/adapters](https://github.com/0vas/hyperion/tree/main/src/adapters)                                                                                                |
+| Local API        | Authenticate identities, distinguish roles and expose commands/reads/SSE | [app.ts](https://github.com/0vas/hyperion/blob/main/src/server/app.ts)                                                                                                 |
+| Domain engine    | Transitions, dependencies, gateways, contracts and revisions             | [src/domain](https://github.com/0vas/hyperion/tree/main/src/domain)                                                                                                    |
+| Store and queue  | SQLite snapshots, idempotent receipts and durable deliveries             | [store.ts](https://github.com/0vas/hyperion/blob/main/src/server/store.ts), [continuations.ts](https://github.com/0vas/hyperion/blob/main/src/server/continuations.ts) |
+| Canvas           | Present state, collect decisions and display step activity               | [src/client](https://github.com/0vas/hyperion/tree/main/src/client)                                                                                                    |
+| Desktop          | Host the canvas, start/reuse the service and assist connection setup     | [desktop](https://github.com/0vas/hyperion/tree/main/desktop)                                                                                                          |
+| Optional worker  | Claim deliveries and delegate resumption to an installed connector       | [continuation-worker.ts](https://github.com/0vas/hyperion/blob/main/src/adapters/continuation-worker.ts)                                                               |
 
 These are responsibility boundaries, not eight independently deployed microservices.
 
@@ -129,7 +133,7 @@ Archify provides interactive exploration. ArchiMate retains formal component and
 
 </details>
 
-[XML models and SVG views](https://github.com/0vas/hiperion/tree/main/docs/architecture) · [Architecture decisions](https://github.com/0vas/hiperion/tree/main/docs/decisions). XML references can be checked; no unperformed XSD validation or formal import is claimed.
+[XML models and SVG views](https://github.com/0vas/hyperion/tree/main/docs/architecture) · [Architecture decisions](https://github.com/0vas/hyperion/tree/main/docs/decisions). XML references can be checked; no unperformed XSD validation or formal import is claimed.
 
 ## Keeping the architecture verifiable
 
@@ -138,6 +142,14 @@ Archify provides interactive exploration. ArchiMate retains formal component and
 - **Experience:** Playwright checks decisions, navigation and simulations. A test connector does not certify a real harness.
 - **Documentation:** contract, integration or component changes must update ES/EN guides, diagrams and examples in the same change.
 
-[AGENTS.md](https://github.com/0vas/hiperion/blob/main/AGENTS.md) records the repository map, invariants and documentation update matrix. The [process contract](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md) details the executable format.
+[AGENTS.md](https://github.com/0vas/hyperion/blob/main/AGENTS.md) records the repository map, invariants and documentation update matrix. The [process contract](https://github.com/0vas/hyperion/blob/main/docs/process-contract.md) details the executable format.
 
 </details>
+
+## From deliverable to the next run
+
+In the Archify explorer, open **Data and decisions** to follow a step result into a new cycle.
+
+Artifact registration, its event and receipt commit in one transaction. The coordinator registers the result; the canvas reads it with its session. Bytes remain separate from the snapshot and active formats never execute in previews. The API and domain enforce limits and ownership.
+
+The conversation relationship is stored in `run_links` and projected into both runs. The parent retains its snapshot; the child receives an origin reference and relevant context supplied explicitly by the agent. The visual connection sits outside the executable DAG and neither activates a connector nor reopens finished work. [ADR 0033](https://github.com/0vas/hyperion/blob/main/docs/decisions/0033-artifacts-and-linked-cycles.md).

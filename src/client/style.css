@@ -1457,3 +1457,27 @@ select:focus-visible {
     gap: 4px;
   }
 }
+
+/* A dedicated grip keeps dragging separate from opening tasks and artifacts. */
+.node-drag-handle {
+  position: absolute;
+  z-index: 2;
+  top: -15px;
+  left: calc(50% - 24px);
+  width: 48px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--glass);
+  color: var(--muted);
+  cursor: grab;
+  touch-action: none;
+}
+.node-drag-handle:hover {
+  color: var(--ink);
+}
+.react-flow__node.dragging .node-drag-handle {
+  cursor: grabbing;
+}

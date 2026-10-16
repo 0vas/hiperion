@@ -15,6 +15,7 @@ for (const coordinator of [
   'claude-code',
   'cursor',
   'hermes',
+  'antigravity',
 ])
   test(`MCP stdio respects human gates with ${coordinator} identity`, async () => {
     const dir = mkdtempSync(join(tmpdir(), 'hyperion-mcp-'));
@@ -55,7 +56,8 @@ for (const coordinator of [
     try {
       await client.connect(transport);
       const tools = await client.listTools();
-      assert.equal(tools.tools.length, 8);
+      assert.equal(tools.tools.length, 9);
+      assert.ok(tools.tools.some((t) => t.name === 'hyperion_add_artifact'));
       assert.ok(tools.tools.some((t) => t.name === 'hyperion_suspend'));
       assert.ok(!tools.tools.some((t) => /approve|submit/.test(t.name)));
       const created = await client.callTool({
@@ -227,6 +229,43 @@ for (const coordinator of [
       assert.equal(
         JSON.parse((done.content as { text: string }[])[0]!.text).status,
         'completed',
+      );
+      const attached = await client.callTool({
+        name: 'hyperion_add_artifact',
+        arguments: {
+          runId: run.id,
+          stepId: 'work',
+          attempt: 1,
+          commandId: 'report-file',
+          name: 'report.md',
+          text: '# Verified report',
+        },
+      });
+      assert.ok(!attached.isError);
+      const withArtifact = JSON.parse(
+        (attached.content as { text: string }[])[0]!.text,
+      );
+      assert.equal(
+        withArtifact.steps.find((s: { id: string }) => s.id === 'work')
+          .artifacts[0].name,
+        'report.md',
+      );
+      const child = await client.callTool({
+        name: 'hyperion_create_run',
+        arguments: {
+          commandId: 'new-request',
+          parentRunId: run.id,
+          plan: {
+            title: 'Translate report',
+            request: 'Now translate the report',
+            steps: [{ id: 'translate', title: 'Translate', kind: 'agent' }],
+          },
+        },
+      });
+      assert.ok(!child.isError);
+      assert.equal(
+        JSON.parse((child.content as { text: string }[])[0]!.text).origin.runId,
+        run.id,
       );
     } finally {
       await client.close();

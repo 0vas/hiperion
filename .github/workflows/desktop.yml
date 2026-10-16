@@ -1,6 +1,11 @@
 name: Desktop installers
 on:
   workflow_dispatch:
+    inputs:
+      notarized:
+        description: Require Apple-notarized macOS distribution (fails without credentials)
+        type: boolean
+        default: false
   push:
     paths:
       - 'desktop/**'
@@ -9,6 +14,10 @@ on:
       - 'package*.json'
       - '.github/workflows/desktop.yml'
       - '.gitattributes'
+      - 'src/client/brands/hyperion.png'
+      - 'src/release.json'
+      - 'src/version.ts'
+      - 'scripts/sync-release.mjs'
 permissions:
   contents: read
 concurrency:
@@ -26,10 +35,13 @@ jobs:
           - os: macos-15-intel
             target: --mac --x64
             executable: release/mac/Hyperion.app/Contents/MacOS/Hyperion
+            # Intel stapler/CloudKit flakiness must not block arm64+win publication.
+            optional: true
           - os: windows-latest
             target: --win --x64
             executable: release/win-unpacked/Hyperion.exe
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.optional == true }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -42,9 +54,30 @@ jobs:
       - run: npm run test:desktop
       - run: npm run desktop:dist -- ${{ matrix.target }}
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          HYPERION_REQUIRE_NOTARIZATION: ${{ runner.os == 'macOS' && inputs.notarized && '1' || '0' }}
+          CSC_LINK: ${{ runner.os == 'macOS' && secrets.CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ runner.os == 'macOS' && secrets.CSC_KEY_PASSWORD || '' }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      - name: Verify macOS bundle integrity
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          HYPERION_EXECUTABLE: ${{ github.workspace }}/${{ matrix.executable }}
+          HYPERION_SIGNED: ${{ secrets.CSC_LINK != '' }}
+        run: |
+          HYPERION_BUNDLE="$(dirname "$(dirname "$(dirname "$HYPERION_EXECUTABLE")")")"
+          codesign --verify --deep --strict --verbose=2 "$HYPERION_BUNDLE"
+          if [ "$HYPERION_SIGNED" = "true" ]; then
+            xcrun stapler validate "$HYPERION_BUNDLE"
+            spctl --assess --type execute --verbose=2 "$HYPERION_BUNDLE"
+          else
+            echo "### macOS preview is NOT Apple-notarized; Gatekeeper can block it." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - run: npm run test:desktop
         env:
+          HYPERION_DISABLE_UPDATE_CHECK: '1'
           HYPERION_DESKTOP_EXECUTABLE: ${{ github.workspace }}/${{ matrix.executable }}
       - uses: actions/upload-artifact@v4
         with:

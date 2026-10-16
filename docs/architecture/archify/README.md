@@ -1,13 +1,13 @@
 # Interactive runtime architecture
 
-The Spanish and English JSON sources describe the implemented core at `8f0e793ef8e9ee572e89d1126a384589b67154e3`. Component links point to that immutable revision. Sources, relationships and limitations must be reviewed when the runtime changes. Native resume connectors are **pending**, not inferred from MCP compatibility.
+The Spanish and English JSON sources describe the implemented core at `83cf85d420b44b3b3a34e08bdfd03c042f0fcc09`. Component links point to that immutable revision. Sources, relationships and limitations must be reviewed when the runtime changes. Native resume connectors are **pending**, not inferred from MCP compatibility.
 
 [Archify](https://github.com/tt-a1i/archify) 3.0.1 generates the standalone HTML/SVG viewers published from `docs/site/public/architecture/`. Its MIT license is included beside the output. ArchiMate XML/SVG in the parent directory remains the formal architecture model.
 
 ## Views
 
 - `hyperion.{es,en}.json`: execution ownership, adapters, local API, store, engine and canvas.
-- `process.{es,en}.json`: typed context/input handoff, human response, validation and successor readiness. This is a responsibility view, not a BPMN execution trace.
+- `process.{es,en}.json`: typed context/input handoff, human response, validation, successor readiness, immutable step artifacts and a linked cycle after a new user request. This is a responsibility view, not a BPMN execution trace.
 - `continuation.{es,en}.json`: persisted response, queue, worker and the external connector boundary. The connector is explicitly pending.
 
 The architecture page selects one viewer at a time; its full-screen and source links follow the selection. Every view has code references and a short explanatory annotation. Generate all six viewers together after changing sources. Formal implemented/continuation ArchiMate models remain linked from both locales.

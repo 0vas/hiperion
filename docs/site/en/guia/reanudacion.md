@@ -2,7 +2,7 @@
 
 Hyperion saves the process even when the chat ends its turn. Resuming after a canvas response requires a **resume connector** for the chosen tool.
 
-Core 0.5 includes the protocol, durable queue and shared I/O worker. Native connectors for resuming provider sessions are not yet included. The preview installers also do not include these changes from `main`.
+Core 0.5 includes the protocol, durable queue and shared I/O worker. Native connectors for resuming provider sessions are not yet included. Preview 0.5.1 includes the protocol but no native resume connectors.
 
 <GuideLens kind="resume" />
 
@@ -26,7 +26,7 @@ The canvas distinguishes pending resumption, connector dispatch and delivery to 
 | Claude Code    | MCP/skill available. Agent SDK session connector pending.                                                |
 | Cursor         | MCP/skill available. CLI session connector pending.                                                      |
 | Hermes Agent   | Configurable stdio MCP. Persisted-session connector pending.                                             |
-| Antigravity    | Configurable local MCP. Not validated in the real client; resume connector pending.                      |
+| Antigravity    | MCP and Desktop setup from 0.5.1-preview.1. Not validated in the real client; resume connector pending.  |
 
 **Continuar desde el chat** (Continue from the chat) means your response is saved but no resume connector is assigned. Retry does not create an agent or open a chat.
 
@@ -34,4 +34,4 @@ Without a connector, cooperative execution can continue while the host keeps its
 
 Harness identity does not change workflow rules. Session references, permissions and duplicate-turn prevention belong to the connector.
 
-[Explore the architecture](../referencia/arquitectura.md) · [Contract, official sources and protocol tests](https://github.com/0vas/hiperion/blob/main/docs/continuacion-agnostica.md)
+[Explore the architecture](../referencia/arquitectura.md) · [Contract, official sources and protocol tests](https://github.com/0vas/hyperion/blob/main/docs/continuacion-agnostica.md)

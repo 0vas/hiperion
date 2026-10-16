@@ -6,12 +6,13 @@ Hyperion mantiene el mismo proceso independientemente de la herramienta que real
 
 Instala Desktop y abre **Hyperion → Conectar con mi IA**. El asistente configura:
 
-| Herramienta    | Conexión                                            |
-| -------------- | --------------------------------------------------- |
-| Codex          | Servidor MCP local                                  |
-| Cursor         | Servidor MCP local                                  |
-| Claude Desktop | Servidor MCP local                                  |
-| Claude Code    | Skill administrada con acceso al runtime de Desktop |
+| Herramienta    | Conexión                                                 |
+| -------------- | -------------------------------------------------------- |
+| Codex          | Servidor MCP local                                       |
+| Cursor         | Servidor MCP local                                       |
+| Claude Desktop | Servidor MCP local                                       |
+| Claude Code    | Skill administrada con acceso al runtime de Desktop      |
+| Antigravity    | Servidor MCP local · Desktop 0.5.1-preview.1 o posterior |
 
 Después reinicia la herramienta y abre un chat nuevo. Las integraciones existentes no se sobreescriben a ciegas: el asistente informa conflictos y respalda los archivos que modifica.
 
@@ -34,14 +35,16 @@ Sin un conector de reanudación instalado, tu respuesta se guarda localmente. El
 
 ## Antigravity
 
-Google Antigravity puede conectar el servidor MCP local de Hyperion. Esta conexión se configura manualmente; el asistente Desktop todavía no tiene un botón para Antigravity.
+En Desktop 0.5.1-preview.1 o posterior, abre **Hyperion → Conectar con mi IA → Antigravity**. El asistente prepara `mcpServers.hyperion` en la configuración global documentada de Antigravity, conserva otros servidores y respalda el archivo anterior. El runtime incluido inicia Hyperion cuando el cliente carga MCP.
 
-1. Pide a tu agente preparar la [conexión técnica de Antigravity](https://github.com/0vas/hiperion/blob/main/docs/conexion.md#antigravity) en el equipo donde corre Hyperion.
-2. En Antigravity IDE, abre **MCP Servers → Manage MCP Servers → View raw config**. Añade la entrada `mcpServers.hyperion` generada, conservando los demás servidores.
-3. Recarga los servidores y comprueba que aparecen las herramientas de Hyperion. Abre un chat y pide: **«Usa Hyperion para preparar una guía de bienvenida a mi proyecto»**.
+Reinicia Antigravity o recarga sus servidores MCP. Comprueba que aparecen las herramientas de Hyperion y pide: **«Usa Hyperion para preparar una guía de bienvenida a mi proyecto»**.
 
-::: info Alcance actual
-La compatibilidad se basa en el transporte MCP documentado; falta validar una sesión real de Antigravity. MCP no reactiva por sí solo un chat terminado. El conector de reanudación sigue pendiente.
+::: warning Versión necesaria
+El botón está incluido desde **0.5.1-preview.1**. Si todavía tienes **0.4.0-preview.1**, instala la nueva versión; la [conexión técnica](https://github.com/0vas/hyperion/blob/main/docs/conexion.md#antigravity) ofrece también `setup antigravity` para instalaciones desde fuentes. No necesitas editar JSON con el asistente nuevo.
+:::
+
+::: info Alcance verificado
+Las pruebas cubren configuración, respaldo, conflictos y el protocolo MCP con identidad Antigravity. Falta validar una conversación en la aplicación de Google. El conector para reactivar automáticamente un chat terminado sigue pendiente.
 :::
 
 [Documentación MCP de Antigravity](https://antigravity.google/docs/mcp).
@@ -52,4 +55,4 @@ Un cliente compatible puede usar el servidor MCP, la CLI o la API local. Debe ap
 
 La edición actual comunica aplicaciones en el mismo equipo. No expongas el servicio local como un servidor remoto para conectar otros equipos.
 
-Para integradores: [conexión técnica](https://github.com/0vas/hiperion/blob/main/docs/conexion.md), [protocolo](https://github.com/0vas/hiperion/blob/main/docs/protocol.md) y [contrato del proceso](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md).
+Para integradores: [conexión técnica](https://github.com/0vas/hyperion/blob/main/docs/conexion.md), [protocolo](https://github.com/0vas/hyperion/blob/main/docs/protocol.md) y [contrato del proceso](https://github.com/0vas/hyperion/blob/main/docs/process-contract.md).

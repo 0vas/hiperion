@@ -28,18 +28,23 @@ process.env.HYPERION_DATA_DIR ||= defaultDirectory();
 const attemptIndex = args.indexOf('--attempt');
 const attempt = attemptIndex >= 0 ? Number(args[attemptIndex + 1]) : undefined;
 if (attemptIndex >= 0) args.splice(attemptIndex, 2);
+const parentIndex = args.indexOf('--from');
+const parentRunId = parentIndex >= 0 ? args[parentIndex + 1] : undefined;
+if (parentIndex >= 0) args.splice(parentIndex, 2);
 const [operation, first, second, ...rest] = args;
 const help = `Hyperion — cooperative workflow adapter
   install [skills-directory]  # portable skill, no vendor CLI or MCP required
   open <run-id> <split|desktop> # user chooses presentation in chat
   up                         # start/reuse local Hyperion, return URL
-  setup <codex|claude|cursor>  # configure the client; local server starts on demand
+  setup <codex|claude|cursor|antigravity>  # configure the client; local server starts on demand
   connect <client-id>  # codex, claude, cursor, or your own ID
   guide <plan.json> [idempotency-key] # stream URL and keep waiting for canvas input
   suspend <run-id> <connector.json> # persist checkpoint for a real resumable connector
   bridge <trusted-connector.mjs> # run an installed connector; no LLM during human input
   follow <run-id>             # keep the host tool open until work is ready
   create <plan.json> [idempotency-key] # nonblocking API-style result
+  artifact <run-id> <step-id> <absolute-file> --attempt NUMBER [idempotency-key]
+  create|guide <plan.json> [idempotency-key] --from <completed-run-id> # linked new cycle
   command <run-id> <command.json>  # typed outputs or structured traces
   list
   get <run-id>
@@ -54,11 +59,16 @@ try {
     attemptIndex >= 0 &&
     (!Number.isInteger(attempt) ||
       attempt! < 1 ||
-      !['complete', 'fail', 'log'].includes(operation || ''))
+      !['complete', 'fail', 'log', 'artifact'].includes(operation || ''))
   )
     throw new Error(
-      '--attempt requires a positive execution attempt for complete/fail/log',
+      '--attempt requires a positive execution attempt for complete/fail/log/artifact',
     );
+  if (
+    parentIndex >= 0 &&
+    (!parentRunId || !['create', 'guide'].includes(operation || ''))
+  )
+    throw new Error('--from requires a parent run for create/guide');
   if (!operation || operation === '--help') console.log(help);
   else if (operation === 'install' || (operation === 'setup' && first)) {
     const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -85,6 +95,7 @@ try {
   else {
     if (
       ![
+        'artifact',
         'suspend',
         'bridge',
         'up',
@@ -110,9 +121,14 @@ try {
         process.env.HYPERION_DATA_DIR,
       );
     const startup = await ensureServer();
-    const client = new HyperionClient();
+    const service =
+      startup.url || process.env.HYPERION_URL || 'http://127.0.0.1:4317';
+    const client = new HyperionClient({
+      url: service,
+      directory: process.env.HYPERION_DATA_DIR,
+    });
     rememberWorkspace({
-      service: client.url,
+      service,
       directory: process.env.HYPERION_DATA_DIR!,
     });
     let result: unknown;
@@ -165,6 +181,7 @@ try {
       const run = await client.create(
         JSON.parse(readFileSync(first, 'utf8')),
         second,
+        parentRunId,
       );
       const current =
         operation === 'guide'
@@ -173,7 +190,19 @@ try {
             })
           : run;
       result = { ...withHandoff(current), url: client.link(current) };
-    } else if (operation === 'command' && first && second)
+    } else if (
+      operation === 'artifact' &&
+      first &&
+      second &&
+      rest[0] &&
+      attempt
+    )
+      result = await client.attachFile(first, resolve(rest[0]), {
+        stepId: second,
+        attempt,
+        commandId: rest[1] || crypto.randomUUID(),
+      });
+    else if (operation === 'command' && first && second)
       result = await client.command(
         first,
         commandSchema.parse(JSON.parse(readFileSync(second, 'utf8'))),

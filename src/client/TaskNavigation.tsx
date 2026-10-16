@@ -1,3 +1,4 @@
+import { t, useLocale, localizedLabels } from './i18n';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Controls,
@@ -10,6 +11,7 @@ import {
 } from '@xyflow/react';
 import {
   Focus,
+  LayoutGrid,
   ArrowRight,
   ArrowDown,
   Scan,
@@ -22,7 +24,7 @@ import type { Run, Step } from '../domain/workflow';
 import { canvasInsets } from './viewport';
 import { motionDuration } from './preferences';
 import { attentionStep } from './attention';
-const statuses: Record<string, string> = {
+const statuses: Record<string, string> = localizedLabels({
   blocked: 'En espera',
   ready: 'Espera al agente',
   running: 'En curso',
@@ -31,10 +33,12 @@ const statuses: Record<string, string> = {
   failed: 'Falló',
   rejected: 'Rechazada',
   skipped: 'Omitida',
-};
+});
 export type FocusRequest = { id: string; nonce: number } | null;
 export function TaskNavigation({
   run,
+  onReset,
+  canReset,
   orientation,
   onOrientation,
   view,
@@ -47,6 +51,8 @@ export function TaskNavigation({
   onFocused,
 }: {
   run: Run;
+  onReset: () => void;
+  canReset: boolean;
   orientation: 'vertical' | 'horizontal';
   onOrientation: () => void;
   view: string;
@@ -58,6 +64,7 @@ export function TaskNavigation({
   onSelect: (id: string, view?: 'step' | 'io' | 'trace') => void;
   onFocused: (id: string) => void;
 }) {
+  useLocale();
   const { getNode, getNodes, getInternalNode, setViewport } =
     useReactFlow<Node<{ step: Step }>>();
   const width = useStore((s) => s.width),
@@ -200,28 +207,39 @@ export function TaskNavigation({
       >
         <ControlButton
           onClick={overview}
-          aria-label="Vista general"
-          title="Vista general"
+          aria-label={t('Vista general')}
+          title={t('Vista general')}
         >
           <Scan style={{ fill: 'none' }} />
         </ControlButton>
         <ControlButton
           onClick={focusCurrent}
-          aria-label="Enfocar paso actual"
-          title="Tarea actual"
+          aria-label={t('Enfocar paso actual')}
+          title={t('Tarea actual')}
         >
           <Focus style={{ fill: 'none' }} />
         </ControlButton>
+        <ControlButton
+          onClick={onReset}
+          disabled={!canReset}
+          aria-label={t('Ordenar flujo')}
+          title={t('Ordenar flujo')}
+        >
+          <LayoutGrid style={{ fill: 'none' }} />
+        </ControlButton>
       </Controls>
-      <section className="task-navigation" aria-label="Navegación de tareas">
+      <section
+        className="task-navigation"
+        aria-label={t('Navegación de tareas')}
+      >
         <div className="task-navigation-heading">
-          <label htmlFor="focus-task">Ir a tarea</label>
+          <label htmlFor="focus-task">{t('Ir a tarea')}</label>
           <span aria-live="polite">
             {following
               ? suspended || !available || run.status === 'paused'
-                ? 'Seguimiento en pausa'
-                : 'Siguiendo actividad'
-              : 'Vista libre'}
+                ? t('Seguimiento en pausa')
+                : t('Siguiendo actividad')
+              : t('Vista libre')}
           </span>
         </div>
         <select
@@ -233,7 +251,7 @@ export function TaskNavigation({
             focus(e.target.value);
           }}
         >
-          {!tasks.length && <option value="">Sin tareas</option>}
+          {!tasks.length && <option value="">{t('Sin tareas')}</option>}
           {tasks.map((s) => (
             <option key={s.id} value={s.id}>
               {s.jobId
@@ -245,8 +263,12 @@ export function TaskNavigation({
         </select>
         <div className="task-navigation-actions">
           <button
-            aria-label={`Ver flujo ${orientation === 'vertical' ? 'horizontal' : 'vertical'}`}
-            title={`Ver flujo ${orientation === 'vertical' ? 'horizontal' : 'vertical'}`}
+            aria-label={t('Ver flujo {0}', {
+              0: orientation === 'vertical' ? 'horizontal' : 'vertical',
+            })}
+            title={t('Ver flujo {0}', {
+              0: orientation === 'vertical' ? 'horizontal' : 'vertical',
+            })}
             onClick={onOrientation}
           >
             {orientation === 'vertical' ? (
@@ -257,8 +279,8 @@ export function TaskNavigation({
           </button>
           <button
             className="follow-toggle"
-            aria-label="Seguir actividad"
-            title="Seguir actividad"
+            aria-label={t('Seguir actividad')}
+            title={t('Seguir actividad')}
             aria-pressed={following}
             disabled={
               (!current && !following) ||
@@ -267,26 +289,26 @@ export function TaskNavigation({
             onClick={() => onFollowing(!following)}
           >
             <LocateFixed size={15} />
-            <span>Seguir actividad</span>
+            <span>{t('Seguir actividad')}</span>
           </button>
           <button
-            aria-label="Abrir tarea enfocada"
-            title="Abrir tarea"
+            aria-label={t('Abrir tarea enfocada')}
+            title={t('Abrir tarea')}
             disabled={!selected}
             onClick={() => selected && onSelect(selected.id)}
           >
             <ArrowUpRight size={17} />
           </button>
           <button
-            aria-label="Datos de la tarea enfocada"
-            title="Datos"
+            aria-label={t('Datos de la tarea enfocada')}
+            title={t('Datos')}
             disabled={!selected}
             onClick={() => selected && onSelect(selected.id, 'io')}
           >
             <ArrowRightLeft size={17} />
           </button>
           <button
-            aria-label="Logs de la tarea enfocada"
+            aria-label={t('Logs de la tarea enfocada')}
             title="Logs"
             disabled={!selected}
             onClick={() => selected && onSelect(selected.id, 'trace')}

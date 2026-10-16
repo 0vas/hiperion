@@ -22,6 +22,10 @@ Tres vistas del mismo sistema. Selecciona una y abre Archify para explorar los c
 
 <ArchitectureAtlas kind="deployment" />
 
+El lanzador compartido puede sustituir el servicio antiguo autenticado de la misma instalación después de verificar su proceso y crear un respaldo consistente de SQLite. Conserva el estado de los flujos y las tareas externas; no añade un endpoint de apagado ni reanudación del chat. [Ciclo de actualización del runtime](https://github.com/0vas/hyperion/blob/main/docs/decisions/0034-runtime-replacement-on-upgrade.md).
+
+Desktop también comprueba releases de GitHub y descarga instaladores tras confirmación, validando tamaño y SHA-256. La integridad ad-hoc de macOS no equivale a notarización. [Decisión de distribución y actualizaciones](https://github.com/0vas/hyperion/blob/main/docs/decisions/0031-desktop-integrity-and-updates.md).
+
 ::: info Lo que está disponible
 Motor, canvas, persistencia y cola de reanudación implementados. Retomar un chat cerrado requiere un conector real instalado; los conectores nativos siguen pendientes.
 :::
@@ -62,14 +66,14 @@ La conversación aporta intención. El run persistido aporta el estado operativo
 
 | Límite           | Responsabilidad                                                                  | Fuente                                                                                                                                                                 |
 | ---------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Harness externo  | Interpretar la petición, proponer pasos, usar herramientas y reportar resultados | [Contrato de integración](https://github.com/0vas/hiperion/blob/main/docs/integration.md)                                                                              |
-| Adaptadores      | CLI y MCP comparten un cliente HTTP; descubrimiento y arranque local             | [src/adapters](https://github.com/0vas/hiperion/tree/main/src/adapters)                                                                                                |
-| API local        | Autenticar identidades, diferenciar roles y exponer comandos/lecturas/SSE        | [app.ts](https://github.com/0vas/hiperion/blob/main/src/server/app.ts)                                                                                                 |
-| Motor de dominio | Transiciones, dependencias, compuertas, contratos y revisiones                   | [src/domain](https://github.com/0vas/hiperion/tree/main/src/domain)                                                                                                    |
-| Store y cola     | Snapshot, recibos idempotentes y entregas persistidas en SQLite                  | [store.ts](https://github.com/0vas/hiperion/blob/main/src/server/store.ts), [continuations.ts](https://github.com/0vas/hiperion/blob/main/src/server/continuations.ts) |
-| Canvas           | Representar el estado, recoger decisiones y mostrar actividad por paso           | [src/client](https://github.com/0vas/hiperion/tree/main/src/client)                                                                                                    |
-| Desktop          | Alojar el canvas, iniciar/reutilizar el servicio y facilitar la conexión         | [desktop](https://github.com/0vas/hiperion/tree/main/desktop)                                                                                                          |
-| Worker opcional  | Recoger entregas y delegar la reanudación en un conector instalado               | [continuation-worker.ts](https://github.com/0vas/hiperion/blob/main/src/adapters/continuation-worker.ts)                                                               |
+| Harness externo  | Interpretar la petición, proponer pasos, usar herramientas y reportar resultados | [Contrato de integración](https://github.com/0vas/hyperion/blob/main/docs/integration.md)                                                                              |
+| Adaptadores      | CLI y MCP comparten un cliente HTTP; descubrimiento y arranque local             | [src/adapters](https://github.com/0vas/hyperion/tree/main/src/adapters)                                                                                                |
+| API local        | Autenticar identidades, diferenciar roles y exponer comandos/lecturas/SSE        | [app.ts](https://github.com/0vas/hyperion/blob/main/src/server/app.ts)                                                                                                 |
+| Motor de dominio | Transiciones, dependencias, compuertas, contratos y revisiones                   | [src/domain](https://github.com/0vas/hyperion/tree/main/src/domain)                                                                                                    |
+| Store y cola     | Snapshot, recibos idempotentes y entregas persistidas en SQLite                  | [store.ts](https://github.com/0vas/hyperion/blob/main/src/server/store.ts), [continuations.ts](https://github.com/0vas/hyperion/blob/main/src/server/continuations.ts) |
+| Canvas           | Representar el estado, recoger decisiones y mostrar actividad por paso           | [src/client](https://github.com/0vas/hyperion/tree/main/src/client)                                                                                                    |
+| Desktop          | Alojar el canvas, iniciar/reutilizar el servicio y facilitar la conexión         | [desktop](https://github.com/0vas/hyperion/tree/main/desktop)                                                                                                          |
+| Worker opcional  | Recoger entregas y delegar la reanudación en un conector instalado               | [continuation-worker.ts](https://github.com/0vas/hyperion/blob/main/src/adapters/continuation-worker.ts)                                                               |
 
 Son límites de responsabilidad; no son ocho microservicios desplegados por separado.
 
@@ -129,7 +133,7 @@ Archify permite explorar las vistas. ArchiMate conserva los modelos formales de 
 
 </details>
 
-[Modelos XML y vistas SVG](https://github.com/0vas/hiperion/tree/main/docs/architecture) · [Decisiones de arquitectura](https://github.com/0vas/hiperion/tree/main/docs/decisions). Los modelos tienen referencias XML comprobables; no se afirma una validación XSD o importación formal que no se haya realizado.
+[Modelos XML y vistas SVG](https://github.com/0vas/hyperion/tree/main/docs/architecture) · [Decisiones de arquitectura](https://github.com/0vas/hyperion/tree/main/docs/decisions). Los modelos tienen referencias XML comprobables; no se afirma una validación XSD o importación formal que no se haya realizado.
 
 ## Cómo se mantiene verificable
 
@@ -138,6 +142,14 @@ Archify permite explorar las vistas. ArchiMate conserva los modelos formales de 
 - **Experiencia:** Playwright comprueba decisiones, navegación y simulaciones. Un conector de prueba no certifica un harness real.
 - **Documentación:** cada cambio de contrato, conexión o componente debe actualizar sus guías ES/EN, diagramas y ejemplos en el mismo cambio.
 
-[AGENTS.md](https://github.com/0vas/hiperion/blob/main/AGENTS.md) recoge el mapa del proyecto, las invariantes y la matriz de actualización documental. [Contrato de procesos](https://github.com/0vas/hiperion/blob/main/docs/process-contract.md) detalla el formato ejecutable.
+[AGENTS.md](https://github.com/0vas/hyperion/blob/main/AGENTS.md) recoge el mapa del proyecto, las invariantes y la matriz de actualización documental. [Contrato de procesos](https://github.com/0vas/hyperion/blob/main/docs/process-contract.md) detalla el formato ejecutable.
 
 </details>
+
+## Del resultado al siguiente recorrido
+
+En el explorador Archify, abre **Datos y decisiones** para seguir el resultado del paso hasta el nuevo ciclo.
+
+El registro del artefacto, su evento y el recibo se guardan en una transacción. El agente coordinador registra el resultado; el canvas lo consulta con su sesión. Los bytes permanecen separados del snapshot y los formatos activos no se ejecutan al previsualizar. Los límites y permisos se aplican en la API y el dominio.
+
+El vínculo de conversación se guarda en `run_links` y se proyecta en ambos recorridos. El padre mantiene su snapshot; el hijo recibe una referencia de origen y contexto relevante declarado por el agente. La conexión visual queda fuera del DAG ejecutable y no activa un conector ni reabre trabajo terminado. [ADR 0033](https://github.com/0vas/hyperion/blob/main/docs/decisions/0033-artifacts-and-linked-cycles.md).

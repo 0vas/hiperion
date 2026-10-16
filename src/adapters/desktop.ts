@@ -136,12 +136,27 @@ export async function openPresentation(
   return { url: client.link(run), presentation, runId: run.id };
 }
 
-/** Discover the default service without copying credentials or selecting another project. */
+/** Persist a working loopback service (including alternate ports) for the next Desktop open. */
 export function rememberWorkspace(
   target: { service: string; directory: string },
   home = process.env.HYPERION_HOME || homedir(),
 ) {
-  if (target.service !== 'http://127.0.0.1:4317') return;
+  let service: URL;
+  try {
+    service = new URL(target.service);
+  } catch {
+    return;
+  }
+  if (
+    service.protocol !== 'http:' ||
+    service.hostname !== '127.0.0.1' ||
+    service.username ||
+    service.password ||
+    service.pathname !== '/' ||
+    service.search ||
+    service.hash
+  )
+    return;
   const folder = resolve(home, '.hyperion');
   mkdirSync(folder, { recursive: true, mode: 0o700 });
   const file = resolve(folder, 'workspace.json');
@@ -149,7 +164,7 @@ export function rememberWorkspace(
   writeFileSync(
     temporary,
     JSON.stringify({
-      service: target.service,
+      service: service.origin,
       directory: resolve(target.directory),
     }),
     { mode: 0o600 },

@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ensureServer } from '../src/adapters/bootstrap.js';
 import { HyperionClient } from '../src/adapters/client.js';
-test('launcher starts one authenticated local server on demand and refuses a mismatched instance', async () => {
+test('launcher starts one authenticated local server on demand and recovers mismatched credentials on another port', async () => {
   const reservation = createServer();
   await new Promise<void>((r) => reservation.listen(0, '127.0.0.1', r));
   const port = (reservation.address() as { port: number }).port;
@@ -16,11 +16,13 @@ test('launcher starts one authenticated local server on demand and refuses a mis
   const dir = mkdtempSync(join(tmpdir(), 'hyperion-launch-'));
   const other = mkdtempSync(join(tmpdir(), 'hyperion-wrong-'));
   let pid: number | undefined;
+  let alternatePid: number | undefined;
   try {
     const options = { url: `http://127.0.0.1:${port}`, directory: dir };
     const first = await ensureServer(options);
     pid = first.pid;
     assert.equal(first.started, true);
+    assert.equal(first.url, options.url);
     assert.ok(pid);
     const client = new HyperionClient(options);
     assert.deepEqual(await client.list(), []);
@@ -75,16 +77,31 @@ test('launcher starts one authenticated local server on demand and refuses a mis
     assert.equal(completed.status, 'completed');
     assert.equal(completed.steps[0].outputValues.report, 'Verified guide');
     assert.equal((await ensureServer(options)).started, false);
-    await assert.rejects(
-      ensureServer({ ...options, directory: other }),
-      /401|UNAUTHORIZED|credential/i,
+    const mismatched = await ensureServer({ ...options, directory: other });
+    assert.equal(mismatched.started, true);
+    assert.ok(mismatched.url);
+    assert.notEqual(mismatched.url, options.url);
+    alternatePid = mismatched.pid;
+    assert.deepEqual(
+      await new HyperionClient({
+        directory: other,
+        url: mismatched.url,
+      }).list(),
+      [],
     );
+    assert.equal((await client.list()).length, 1);
+    assert.equal((await client.get(run.id)).id, run.id);
   } finally {
-    if (pid) {
-      process.kill(pid, 'SIGTERM');
+    for (const child of [alternatePid, pid]) {
+      if (!child) continue;
+      try {
+        process.kill(child, 'SIGTERM');
+      } catch {
+        continue;
+      }
       for (let i = 0; i < 100; i++) {
         try {
-          process.kill(pid, 0);
+          process.kill(child, 0);
         } catch {
           break;
         }
