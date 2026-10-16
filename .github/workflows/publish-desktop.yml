@@ -19,7 +19,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       BUILD_RUN: ${{ inputs.build_run }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Verify build provenance and draft release
         id: verified
         shell: bash
