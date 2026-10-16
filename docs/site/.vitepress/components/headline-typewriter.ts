@@ -75,10 +75,7 @@ export function createHeadlineTypewriter(options: RunnerOptions) {
     return HEADLINE_PAIRS[options.getLocale()];
   }
 
-  function emit(
-    caret: TypewriterView['caret'] = null,
-    blink = false,
-  ) {
+  function emit(caret: TypewriterView['caret'] = null, blink = false) {
     options.onChange({ line1, line2, caret, blink });
   }
 

@@ -469,15 +469,16 @@ test('hero headline types through phrase pairs and freezes on pause or reduced m
   await page.goto('/hyperion/');
   const title = page.locator('#landscape-title');
   await expect(title).toHaveText('Tus ideas.En movimiento.');
-  await expect(title).toHaveAttribute('aria-label', 'Tus ideas. En movimiento.');
+  await expect(title).toHaveAttribute(
+    'aria-label',
+    'Tus ideas. En movimiento.',
+  );
   await expect
     .poll(async () => (await title.innerText()).replace(/\s+/g, ''), {
       timeout: 12_000,
     })
     .not.toBe('Tusideas.Enmovimiento.');
-  await page
-    .getByRole('button', { name: 'Pausar fondo', exact: true })
-    .click();
+  await page.getByRole('button', { name: 'Pausar fondo', exact: true }).click();
   await expect(title).toHaveText('Tus ideas.En movimiento.');
   await expect(page.locator('.headline-caret')).toHaveCount(0);
   await page.waitForTimeout(800);
