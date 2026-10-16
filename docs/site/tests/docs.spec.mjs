@@ -12,6 +12,13 @@ const pages = [
   'contribuir',
   'despliegue',
 ];
+/** EN birth-story slug differs from ES (`the-landscape` vs `el-paisaje`). */
+const localePaths = [
+  ...pages,
+  ...pages.map((path) => `en/${path}`),
+  'guia/el-paisaje',
+  'en/guia/the-landscape',
+];
 test('all guides load under the Pages subpath with working internal links and no local service', async ({
   page,
   request,
@@ -26,7 +33,7 @@ test('all guides load under the Pages subpath with working internal links and no
       failures.push('Documentation accessed the local application');
   });
   const links = new Set();
-  for (const path of [...pages, ...pages.map((path) => `en/${path}`)]) {
+  for (const path of localePaths) {
     const response = await page.goto(
       `/hyperion/${path}${path && !path.endsWith('/') ? '.html' : ''}`,
     );
@@ -103,7 +110,9 @@ test('mobile navigation and reading remain accessible in both themes', async ({
   await page.goto('/hyperion/guia/primeros-pasos.html');
   await page.getByRole('button', { name: /Navegación móvil/ }).click();
   await page.getByRole('link', { name: 'Guía', exact: true }).click();
-  await expect(page.locator('h1')).toHaveText('Tu primer flujo');
+  await expect(page.locator('h1')).toContainText(
+    'Un paisaje para el trabajo de tu IA',
+  );
 });
 
 test('language switch preserves the page and English search stays in English', async ({
@@ -461,6 +470,78 @@ test('video landing uses a centered headline, wide product view and controllable
   }
 });
 
+test('birth story page and home teaser ship in both languages with static diagrams', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/hyperion/');
+  await expect(page.locator('.landscape-hero')).toBeVisible();
+  const teaser = page.locator('.landscape-teaser');
+  await expect(teaser.getByRole('heading', { level: 2 })).toHaveText(
+    'Del chat que responde al proceso que guías',
+  );
+  await expect(
+    teaser.getByRole('link', { name: 'Leer el paisaje', exact: true }),
+  ).toHaveAttribute('href', '/hyperion/guia/el-paisaje.html');
+  await expect(teaser.locator('.landscape-compare.compact')).toBeVisible();
+  await expect(teaser.locator('.mini-flow li').first()).toHaveCSS(
+    'animation-name',
+    'none',
+  );
+  await teaser
+    .getByRole('link', { name: 'Leer el paisaje', exact: true })
+    .click();
+  await expect(page.locator('h1')).toContainText(
+    'Un paisaje para el trabajo de tu IA',
+  );
+  await expect(
+    page.getByText(
+      'Cuando la IA deja de solo responder y empieza a actuar, necesitas un paisaje — no solo un chat.',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(page.locator('.landscape-compare')).toBeVisible();
+  await expect(page.locator('.landscape-loop')).toBeVisible();
+  await expect(page.locator('.mini-flow li').first()).toHaveCSS(
+    'animation-name',
+    'none',
+  );
+  await expect(
+    page.getByRole('link', {
+      name: 'Empieza con tu primer flujo',
+      exact: true,
+    }),
+  ).toHaveAttribute('href', /primeros-pasos/);
+  await expect(
+    page
+      .locator('.VPSidebar')
+      .getByRole('link', { name: 'El paisaje', exact: true }),
+  ).toBeVisible();
+  await page.goto('/hyperion/en/');
+  await expect(
+    page
+      .locator('.landscape-teaser')
+      .getByRole('link', { name: 'Read the landscape', exact: true }),
+  ).toHaveAttribute('href', '/hyperion/en/guia/the-landscape.html');
+  await page
+    .locator('.landscape-teaser')
+    .getByRole('link', { name: 'Read the landscape', exact: true })
+    .click();
+  await expect(page.locator('h1')).toContainText('A landscape for your AI');
+  await expect(
+    page.getByRole('heading', { name: /You in the loop/ }),
+  ).toBeVisible();
+  await expect(page.locator('.landscape-loop .loop-box').nth(3)).toHaveText(
+    'Your decision',
+  );
+  await expect(
+    page
+      .locator('.VPSidebar')
+      .getByRole('link', { name: 'The landscape', exact: true }),
+  ).toBeVisible();
+});
+
 test('hero headline types through phrase pairs and freezes on pause or reduced motion', async ({
   page,
 }) => {
@@ -528,7 +609,9 @@ test('cinematic landing stays readable in split windows and small phones', async
     if (width === 320) {
       await page.getByRole('button', { name: /Navegación móvil/ }).click();
       await page.getByRole('link', { name: 'Guía', exact: true }).click();
-      await expect(page.locator('h1')).toHaveText('Tu primer flujo');
+      await expect(page.locator('h1')).toContainText(
+        'Un paisaje para el trabajo de tu IA',
+      );
     } else {
       await page.screenshot({
         path: `../../test-results/docs/cinema-split-${width}.png`,

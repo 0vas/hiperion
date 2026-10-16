@@ -16,7 +16,7 @@ export default defineConfig({
         nav: [
           {
             text: 'Guía',
-            link: '/guia/primeros-pasos',
+            link: '/guia/el-paisaje',
             activeMatch: '^/guia/',
           },
           {
@@ -35,6 +35,7 @@ export default defineConfig({
           {
             text: 'Empieza aquí',
             items: [
+              { text: 'El paisaje', link: '/guia/el-paisaje' },
               { text: 'Tu primer flujo', link: '/guia/primeros-pasos' },
               { text: 'Usar el canvas', link: '/guia/usar-el-flujo' },
               { text: 'Conectar tu IA', link: '/guia/integraciones' },
@@ -85,7 +86,7 @@ export default defineConfig({
         nav: [
           {
             text: 'Guide',
-            link: '/en/guia/primeros-pasos',
+            link: '/en/guia/the-landscape',
             activeMatch: '^/en/guia/',
           },
           {
@@ -104,6 +105,7 @@ export default defineConfig({
           {
             text: 'Get started',
             items: [
+              { text: 'The landscape', link: '/en/guia/the-landscape' },
               { text: 'Your first workflow', link: '/en/guia/primeros-pasos' },
               { text: 'Use the canvas', link: '/en/guia/usar-el-flujo' },
               { text: 'Connect your AI', link: '/en/guia/integraciones' },
