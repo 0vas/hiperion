@@ -48,7 +48,7 @@ test('inventory reports configured after desktop setup and conflict when entry d
     await setupDesktopClient('cursor', options);
     const configured = inspectDesktopClient('cursor', options);
     assert.equal(configured.status, 'configured');
-    assert.match(configured.path || '', /\.cursor\/mcp\.json$/);
+    assert.match(configured.path || '', /[/\\]\.cursor[/\\]mcp\.json$/);
 
     const conflictFile = join(home, '.codex/config.toml');
     mkdirSync(dirname(conflictFile), { recursive: true });
