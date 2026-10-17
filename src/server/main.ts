@@ -9,6 +9,7 @@ const root = resolve(fileURLToPath(new URL('../../', import.meta.url)));
 const app = createApp({
   store,
   ...config,
+  directory: config.directory,
   getAgentTokens: () => loadCredentials(config.directory).agents,
   publicDir: resolve(root, 'dist/client'),
 });

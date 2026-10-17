@@ -82,6 +82,12 @@ import { canvasInsets } from './viewport';
 import { FlowLegend } from './FlowLegend';
 import { JobNode } from './JobNode';
 import { Settings } from './Settings';
+import {
+  integrationsAriaLabel,
+  integrationsChipLabel,
+  useConnectionInventory,
+  type ConnectionRow,
+} from './Connections';
 import { usePreferences } from './preferences';
 import { layoutSteps } from './layout';
 import type { Run, Step, StepStatus } from '../domain/workflow';
@@ -703,6 +709,66 @@ export function App() {
   const [confirmation, setConfirmation] = useState<
     'cancel' | 'reject' | 'retry' | null
   >(null);
+  const [conflictRow, setConflictRow] = useState<ConnectionRow | null>(null);
+  const [setupNotice, setSetupNotice] = useState('');
+  const connections = useConnectionInventory(loaded && online);
+  const openConnections = () => {
+    setHelp(false);
+    setPopup('settings');
+    window.setTimeout(() => {
+      document
+        .querySelector<HTMLElement>('.connections-fieldset')
+        ?.scrollIntoView({ block: 'nearest' });
+    }, 0);
+  };
+  const setupConnection = async (clientId: string) => {
+    setSetupNotice('');
+    setBusy(true);
+    try {
+      const res = await fetch('/api/connections/setup', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ client: clientId }),
+        signal: AbortSignal.timeout(15000),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        if (body.error === 'CONNECTION_CONFLICT') {
+          const row = connections.inventory?.integrations.find(
+            (item) => item.id === clientId,
+          );
+          setConflictRow(
+            row || {
+              id: clientId,
+              name: clientId,
+              status: 'conflict',
+              detail: body.message,
+            },
+          );
+          await connections.refresh();
+          return;
+        }
+        throw new Error(
+          body.message || t('No se pudo completar la solicitud.'),
+        );
+      }
+      if (body.inventory) connections.setInventory(body.inventory);
+      else await connections.refresh();
+      setSetupNotice(
+        t(
+          'Conexión configurada. Reinicia tu aplicación de IA y abre un chat nuevo.',
+        ),
+      );
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : t('No se pudo completar la solicitud.'),
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
   const run = runId ? runs.find((r) => r.id === runId) : runs[0];
   const activity = useReceiptActivity(run);
   useEffect(() => {
@@ -1390,17 +1456,48 @@ export function App() {
             </button>
             <span
               className={`connection ${online ? 'online' : ''}`}
-              title={
-                streaming ? t('Eventos en directo') : t('Consultando conexión')
-              }
+              title={t(
+                'El servicio local de Hyperion responde en este equipo. No indica que tu aplicación de IA tenga herramientas cargadas.',
+              )}
+              aria-label={`${t('Servicio local')}: ${
+                online
+                  ? t('Conectado')
+                  : loaded
+                    ? t('Sin conexión')
+                    : t('Conectando')
+              }`}
             >
-              <span />
-              {online
-                ? t('Conectado')
-                : loaded
-                  ? t('Sin conexión')
-                  : t('Conectando')}
+              <span className="connection-dot" aria-hidden="true" />
+              <small>{t('Servicio local')}</small>
+              <span className="connection-state">
+                {online
+                  ? t('Conectado')
+                  : loaded
+                    ? t('Sin conexión')
+                    : t('Conectando')}
+              </span>
             </span>
+            <button
+              type="button"
+              className={`integrations-chip${
+                (connections.inventory?.summary.conflicts || 0) > 0
+                  ? ' has-conflict'
+                  : ''
+              }`}
+              aria-label={
+                connections.inventory
+                  ? integrationsAriaLabel(connections.inventory.summary)
+                  : t('Integraciones')
+              }
+              onClick={openConnections}
+            >
+              {t('Integraciones')}
+              <em>
+                {connections.inventory
+                  ? integrationsChipLabel(connections.inventory.summary)
+                  : '…'}
+              </em>
+            </button>
             <button
               className="icon-button"
               aria-label={t('Ayuda de conexión')}
@@ -1437,13 +1534,32 @@ export function App() {
                       'Conecta tu herramienta de IA y transforma una petición en un proceso que puedes ver, guiar y aprobar.',
                     )}
               </p>
-              <button
-                className="primary"
-                onClick={() => (runId ? selectRun('') : setHelp(true))}
-              >
-                {runId ? t('Ver mis flujos') : t('Conectar mi agente')}{' '}
-                <ArrowUpRight size={16} />
-              </button>
+              <div className="empty-actions">
+                <button
+                  className="primary"
+                  onClick={() => {
+                    if (runId) selectRun('');
+                    else if (
+                      (connections.inventory?.summary.configured || 0) > 0
+                    )
+                      openConnections();
+                    else setHelp(true);
+                  }}
+                >
+                  {runId
+                    ? t('Ver mis flujos')
+                    : (connections.inventory?.summary.configured || 0) > 0
+                      ? t('Ver integraciones')
+                      : t('Conectar mi agente')}{' '}
+                  <ArrowUpRight size={16} />
+                </button>
+                {!runId &&
+                  (connections.inventory?.summary.configured || 0) > 0 && (
+                    <button className="secondary" onClick={() => setHelp(true)}>
+                      {t('Conectar otra')}
+                    </button>
+                  )}
+              </div>
               {!online && (
                 <p role="alert">
                   {t(
@@ -2058,7 +2174,25 @@ export function App() {
             )}
             {popup === 'legend' && <FlowLegend />}
             {popup === 'settings' && (
-              <Settings value={preferences} onChange={setPreferences} />
+              <Settings
+                value={preferences}
+                onChange={setPreferences}
+                online={online}
+                inventory={connections.inventory}
+                connectionsError={connections.error || setupNotice}
+                connectionsBusy={connections.busy || busy}
+                onRefreshConnections={() => void connections.refresh()}
+                onSetupConnection={(id) => void setupConnection(id)}
+                onConflict={setConflictRow}
+                onHelp={() => {
+                  setPopup(null);
+                  setHelp(true);
+                }}
+                onConnectAi={() => {
+                  setPopup(null);
+                  setHelp(true);
+                }}
+              />
             )}
             {popup === 'guide' && (
               <div className="usage-guide">
@@ -2202,6 +2336,22 @@ export function App() {
             <span className="empty-symbol">
               <Bot size={27} />
             </span>
+            {connections.inventory && (
+              <div className="help-integrations-strip">
+                <strong>{t('Estado de tus integraciones')}</strong>
+                <p>
+                  {integrationsAriaLabel(connections.inventory.summary)}
+                  {' · '}
+                  <button
+                    type="button"
+                    className="linkish"
+                    onClick={openConnections}
+                  >
+                    {t('Abre Conexiones en Ajustes para el detalle.')}
+                  </button>
+                </p>
+              </div>
+            )}
             <h2 id="help-title">{t('Tu agente, conectado a Hyperion.')}</h2>
             <p>
               {t(
@@ -2244,6 +2394,64 @@ export function App() {
                 ? t('Petición copiada')
                 : t('Copiar petición para mi agente')}
             </button>
+          </section>
+        </Modal>
+      )}
+      {conflictRow && (
+        <Modal
+          returnFocus={popupTrigger.current}
+          onClose={() => setConflictRow(null)}
+        >
+          <section
+            className="modal compact"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="conflict-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="conflict-title">{t('Conflicto de conexión')}</h2>
+            <p>
+              {t(
+                'Ya existe otra conexión Hyperion en {0}. No se sobrescribió.',
+                {
+                  0: conflictRow.name,
+                },
+              )}
+            </p>
+            {conflictRow.path && (
+              <p className="muted">
+                {t('Archivo: {0}', { 0: conflictRow.path })}
+              </p>
+            )}
+            <p>
+              {t(
+                'Retira o alinea la entrada «hyperion» en ese archivo y vuelve a conectar. Tus demás servidores se conservan.',
+              )}
+            </p>
+            <div className="modal-actions">
+              {conflictRow.path && (
+                <button
+                  className="secondary"
+                  onClick={() =>
+                    void navigator.clipboard.writeText(conflictRow.path || '')
+                  }
+                >
+                  {t('Copiar ruta')}
+                </button>
+              )}
+              <button
+                className="secondary"
+                onClick={() => {
+                  setConflictRow(null);
+                  setHelp(true);
+                }}
+              >
+                {t('Abrir guía')}
+              </button>
+              <button className="primary" onClick={() => setConflictRow(null)}>
+                {t('Cerrar')}
+              </button>
+            </div>
           </section>
         </Modal>
       )}

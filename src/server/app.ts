@@ -1,7 +1,7 @@
 import { claimSchema } from '../domain/continuation.js';
 import { presentRun } from '../domain/context.js';
 import type { Run } from '../domain/workflow.js';
-import { VERSION } from '../version.js';
+import { VERSION, RELEASE_CHANNEL } from '../version.js';
 import {
   createServer,
   type IncomingMessage,
@@ -13,12 +13,20 @@ import { resolve, extname, sep } from 'node:path';
 import { z } from 'zod';
 import { WorkflowError, type Principal } from '../domain/workflow.js';
 import type { Store } from './store.js';
+import {
+  DESKTOP_CLIENTS,
+  inspectDesktopConnections,
+  type DesktopClientId,
+} from '../adapters/connection-status.js';
+import { setupDesktopClient } from '../adapters/desktop-setup.js';
+import { defaultDirectory } from '../adapters/install.js';
 
 type Options = {
   store: Store;
   agentToken: string;
   humanToken: string;
   agentId: string;
+  directory?: string;
   publicDir?: string;
   getAgentTokens?: () => Record<string, string>;
 };
@@ -27,6 +35,11 @@ const createSchema = z
     plan: z.unknown(),
     commandId: z.string().min(1).max(128),
     parentRunId: z.string().uuid().optional(),
+  })
+  .strict();
+const setupConnectionSchema = z
+  .object({
+    client: z.enum(DESKTOP_CLIENTS),
   })
   .strict();
 const equal = (a: string, b: string) =>
@@ -190,6 +203,75 @@ export function createApp(options: Options) {
             clearInterval(heartbeat);
             streams.delete(res);
           });
+          return;
+        }
+        if (url.pathname === '/api/connections' && req.method === 'GET') {
+          if (actor.role !== 'human')
+            throw new WorkflowError(
+              'FORBIDDEN',
+              'Only the human can inspect connections',
+              403,
+            );
+          const directory =
+            options.directory ||
+            process.env.HYPERION_DATA_DIR ||
+            defaultDirectory();
+          json(
+            res,
+            200,
+            inspectDesktopConnections({
+              directory,
+              url: baseUrl || process.env.HYPERION_URL,
+              version: VERSION,
+              channel: RELEASE_CHANNEL,
+            }),
+          );
+          return;
+        }
+        if (
+          url.pathname === '/api/connections/setup' &&
+          req.method === 'POST'
+        ) {
+          if (actor.role !== 'human')
+            throw new WorkflowError(
+              'FORBIDDEN',
+              'Only the human can configure connections',
+              403,
+            );
+          const data = setupConnectionSchema.parse(await body(req));
+          const directory =
+            options.directory ||
+            process.env.HYPERION_DATA_DIR ||
+            defaultDirectory();
+          try {
+            const result = await setupDesktopClient(
+              data.client as DesktopClientId,
+              {
+                directory,
+                url: baseUrl || process.env.HYPERION_URL,
+              },
+            );
+            json(res, 200, {
+              ok: true,
+              client: result.client,
+              configFile: result.configFile,
+              inventory: inspectDesktopConnections({
+                directory,
+                url: baseUrl || process.env.HYPERION_URL,
+                version: VERSION,
+                channel: RELEASE_CHANNEL,
+              }),
+            });
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Setup failed';
+            const conflict = /No se sobrescribió/.test(message);
+            throw new WorkflowError(
+              conflict ? 'CONNECTION_CONFLICT' : 'CONNECTION_SETUP',
+              message,
+              conflict ? 409 : 400,
+            );
+          }
           return;
         }
         if (url.pathname === '/api/runs' && req.method === 'GET') {

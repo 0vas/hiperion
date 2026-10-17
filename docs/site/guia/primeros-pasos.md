@@ -97,11 +97,13 @@ npm run hyperion -- setup cursor
 Reinicia esa herramienta, abre un chat nuevo y pega una de las peticiones de arriba. Abre `http://127.0.0.1:4317` para ver el canvas. Este recorrido ejecuta el código de `main`, no el instalador preview anterior.
 :::
 
-## Idioma de la aplicación
+## Idioma, versión y conexiones
 
 Hyperion incluye **español e inglés** en el canvas y en los menús y diálogos de Desktop. Abre **Ajustes → Idioma** para elegir **Automático (sistema)**, **Español** o **English**. En Desktop también puedes cambiarlo desde **Hyperion → Idioma**.
 
 El modo automático toma el idioma del sistema o del navegador; si no está soportado, usa inglés. La selección manual se conserva al volver a abrir la app. En Desktop, el menú y el canvas comparten la preferencia; en el navegador se guarda por separado.
+
+La versión CalVer aparece en **Acerca de** (macOS) y en **Ajustes → Conexiones**. La cabecera muestra el **servicio local** aparte de las **integraciones** (Codex, Cursor, Claude Desktop, Claude Code, Antigravity). «Conectado» no significa que tu IA ya tenga las herramientas cargadas; tras configurar, reinicia el cliente y abre un chat nuevo. Hyperion no sobrescribe una entrada distinta.
 
 ::: tip Tu contenido conserva su idioma
 Cambiar la interfaz no traduce nombres de tareas, preguntas del agente, respuestas, resultados ni logs. Tampoco reinicia el flujo ni descarta un formulario sin enviar. Los diagnósticos originales de herramientas y del servicio mantienen su texto para poder investigarlos.

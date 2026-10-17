@@ -144,8 +144,72 @@ select:focus-visible {
   border-radius: 28px;
 }
 .connection {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
+  color: var(--ink);
+  max-width: 180px;
+}
+.connection-state {
+  color: var(--ink);
+  font-weight: 500;
+}
+.connection small {
+  display: none;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.72;
+}
+@media (min-width: 900px) {
+  .connection small {
+    display: inline;
+  }
+}
+.integrations-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--glass);
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.integrations-chip em {
+  font-style: normal;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.integrations-chip.has-conflict {
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--line));
+  background: color-mix(in srgb, var(--gold) 12%, var(--glass));
+}
+.integrations-chip:hover {
+  border-color: var(--gold);
+}
+@media (max-width: 720px) {
+  .integrations-chip {
+    padding: 0 10px;
+  }
+  .integrations-chip em {
+    max-width: 72px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
 }
 .icon-button {
   min-width: 34px;
@@ -899,6 +963,141 @@ textarea::placeholder {
 }
 .settings-panel .guide-note {
   margin-top: 24px;
+}
+.connections-fieldset {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 24px 0 0;
+  padding: 16px 0 0;
+}
+.connections-fieldset legend {
+  font-weight: 600;
+  padding-right: 12px;
+}
+.connection-service-row,
+.connection-row-main,
+.connection-integrations-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.connection-honesty {
+  margin-top: 6px;
+  max-width: 42ch;
+}
+.connection-list {
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.connection-row {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--glass);
+}
+.connection-row.status-conflict {
+  border-color: color-mix(in srgb, var(--gold) 50%, var(--line));
+  background: color-mix(in srgb, var(--gold) 10%, var(--glass));
+}
+.connection-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: var(--bg-soft, #ece8df);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.connection-status-badge.is-online,
+.connection-status-badge.status-configured {
+  background: color-mix(in srgb, #2f6b4f 18%, var(--glass));
+}
+.connection-status-badge.is-offline,
+.connection-status-badge.status-missing {
+  color: var(--muted);
+}
+.connection-status-badge.status-conflict {
+  background: color-mix(in srgb, var(--gold) 22%, var(--glass));
+}
+.connection-path {
+  margin: 8px 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.connection-path .eyebrow {
+  display: block;
+  margin-bottom: 2px;
+  font-family: inherit;
+}
+.connection-conflict-note {
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+.connection-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.connection-row-actions button,
+.connections-footer-actions button,
+.ghost-button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.connection-row-actions button:hover,
+.ghost-button:hover {
+  border-color: var(--gold);
+}
+.ghost-button {
+  color: var(--muted);
+}
+.connections-footer-actions {
+  margin-top: 12px;
+}
+.connection-version {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.help-integrations-strip {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  text-align: left;
+}
+.help-integrations-strip p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+button.linkish {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gold);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
 }
 .job-node {
   width: 280px;

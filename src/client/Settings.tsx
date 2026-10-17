@@ -7,12 +7,35 @@ import {
   type LanguagePreference,
 } from './i18n';
 import type { Preferences } from './preferences';
+import {
+  ConnectionsPanel,
+  type ConnectionInventory,
+  type ConnectionRow,
+} from './Connections';
 export function Settings({
   value,
   onChange,
+  online,
+  inventory,
+  connectionsError,
+  connectionsBusy,
+  onRefreshConnections,
+  onSetupConnection,
+  onConflict,
+  onHelp,
+  onConnectAi,
 }: {
   value: Preferences;
   onChange: (value: Preferences) => void;
+  online: boolean;
+  inventory: ConnectionInventory | null;
+  connectionsError: string;
+  connectionsBusy: boolean;
+  onRefreshConnections: () => void;
+  onSetupConnection: (clientId: string) => void;
+  onConflict: (row: ConnectionRow) => void;
+  onHelp: () => void;
+  onConnectAi: () => void;
 }) {
   useLocale();
   const [languageError, setLanguageError] = useState(false);
@@ -79,6 +102,21 @@ export function Settings({
           {t('La preferencia de accesibilidad del sistema siempre se respeta.')}
         </p>
       </fieldset>
+      <ConnectionsPanel
+        online={online}
+        inventory={inventory}
+        error={connectionsError}
+        busy={connectionsBusy}
+        onRefresh={onRefreshConnections}
+        onSetup={onSetupConnection}
+        onConflict={onConflict}
+        onHelp={onHelp}
+      />
+      <div className="connections-footer-actions">
+        <button type="button" className="secondary" onClick={onConnectAi}>
+          {t('Conectar con mi IA…')}
+        </button>
+      </div>
       <fieldset>
         <legend>{t('Navegación')}</legend>
         <label htmlFor="setting-orientation">{t('Dirección')}</label>

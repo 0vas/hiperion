@@ -8,9 +8,17 @@ La pausa persistente y el alcance por herramienta se explican en [Reanudación a
 
 Instala Hyperion Desktop y elige **Codex**, **Cursor**, **Claude Desktop** o **Claude Code** en el asistente inicial. Reinicia esa aplicación y abre una conversación nueva. No necesitas terminal ni instalar Node. Para conectar otra aplicación: **Hyperion → Conectar con mi IA**. [Descarga, instalación y ayuda](conexion.md).
 
-## Idioma de la aplicación
+## Idioma y versión
 
 Hyperion incluye **español e inglés** en el canvas y en los menús y diálogos de Desktop. Abre **Ajustes → Idioma** para elegir **Automático (sistema)**, **Español** o **English**. En Desktop también puedes cambiarlo desde **Hyperion → Idioma**.
+
+La versión CalVer (p. ej. `2026.10.15.2036 UTC · preview`) aparece en **Hyperion → Acerca de** (macOS) y en **Ajustes → Conexiones**.
+
+## Conexiones e integraciones
+
+La cabecera separa el **servicio local** Hyperion de las **integraciones** con Codex, Cursor, Claude Desktop, Claude Code y Antigravity. «Conectado» solo dice que el proceso local responde; no afirma que un chat tenga las herramientas cargadas.
+
+En **Ajustes → Conexiones** verás siempre las cinco aplicaciones con estado _Configurada_, _Sin configurar_, _Conflicto · no sobrescrita_ o _No se pudo comprobar_. Hyperion no sobrescribe una entrada distinta: el conflicto se muestra para que la resuelvas en el cliente. Tras configurar, reinicia esa aplicación y abre un chat nuevo.
 
 El modo automático toma el idioma del sistema o del navegador; si no está soportado, usa inglés. La selección manual se conserva al volver a abrir la app. En Desktop, el menú y el canvas comparten la preferencia; en el navegador se guarda por separado.
 
@@ -90,17 +98,19 @@ Los títulos y decisiones se generan para tu actividad; este ejemplo no es una p
 
 ## Controles útiles
 
-| Control                    | Uso                                                          |
-| -------------------------- | ------------------------------------------------------------ |
-| Ver trabajos / Ver pasos   | Alternar resumen y detalle del mismo proceso                 |
-| Ir a tarea / Enfocar tarea | Centrar un paso, incluso si ya terminó                       |
-| Seguir actividad           | Acompañar la tarea que requiere atención                     |
-| Vista general              | Volver al flujo completo                                     |
-| I/O                        | Ver lo que recibe y entrega un paso                          |
-| Logs                       | Consultar acciones y resultados que registró el agente       |
-| Actividad                  | Revisar el historial del proceso                             |
-| Ajustes                    | Elegir tema, reducir movimiento, vista y seguimiento inicial |
-| Pausar                     | Evitar que se inicien nuevas tareas hasta reanudar           |
+| Control                    | Uso                                                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Ver trabajos / Ver pasos   | Alternar resumen y detalle del mismo proceso                                                                        |
+| Ir a tarea / Enfocar tarea | Centrar un paso, incluso si ya terminó                                                                              |
+| Seguir actividad           | Acompañar la tarea que requiere atención                                                                            |
+| Vista general              | Volver al flujo completo                                                                                            |
+| I/O                        | Ver lo que recibe y entrega un paso                                                                                 |
+| Logs                       | Consultar acciones y resultados que registró el agente                                                              |
+| Actividad                  | Revisar el historial del proceso                                                                                    |
+| Ajustes                    | Idioma, apariencia, **Conexiones** (servicio local + integraciones) y navegación                                    |
+| Cabecera · Servicio local  | «Conectado» / «Sin conexión» del proceso Hyperion en este equipo — no implica que tu IA tenga herramientas cargadas |
+| Cabecera · Integraciones   | Resumen N/M o conflictos; abre el detalle en Ajustes → Conexiones                                                   |
+| Pausar                     | Evitar que se inicien nuevas tareas hasta reanudar                                                                  |
 
 Los ajustes se guardan en este navegador. No alteran tus decisiones ni conceden permisos al agente. Escape cierra un popup sin responder.
 

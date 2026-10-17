@@ -121,6 +121,54 @@ test('HTTP enforces auth, origin, human-only approvals, input validation and rev
   }
 });
 
+test('HTTP connection inventory is human-only and lists five clients without claiming live tools', async () => {
+  const { mkdtempSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const home = mkdtempSync(join(tmpdir(), 'hyperion-http-conn-'));
+  const store = new Store(':memory:');
+  const app = createApp({
+    store,
+    agentToken: 'test-agent',
+    humanToken: 'test-human',
+    agentId: 'codex',
+    directory: join(home, 'data'),
+  });
+  const url = await app.listen(0);
+  try {
+    assert.equal((await fetch(url + '/api/connections')).status, 401);
+    assert.equal(
+      (
+        await fetch(url + '/api/connections', {
+          headers: { authorization: 'Bearer test-agent' },
+        })
+      ).status,
+      403,
+    );
+    const response = await fetch(url + '/api/connections', {
+      headers: { authorization: 'Bearer test-human' },
+    });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.integrations.length, 5);
+    assert.equal(body.summary.total, 5);
+    assert.ok(body.version);
+    assert.ok(
+      body.integrations.every(
+        (row: { status: string }) =>
+          row.status === 'missing' ||
+          row.status === 'configured' ||
+          row.status === 'conflict' ||
+          row.status === 'unknown',
+      ),
+    );
+  } finally {
+    await app.close();
+    store.close();
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test('HTTP rejects oversized, malformed and cross-site input without exposing internal details', async () => {
   const store = new Store(':memory:');
   const app = createApp({
