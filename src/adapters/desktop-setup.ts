@@ -20,6 +20,8 @@ type Options = {
   appData?: string;
   codexHome?: string;
   url?: string;
+  /** Explicit confirmed overwrite of a conflicting hyperion entry (never silent). */
+  replace?: boolean;
 };
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -108,7 +110,9 @@ export async function setupDesktopClient(id: string, options: Options = {}) {
     options.url,
   );
   const { type: _type, ...server } = generated.config.mcpServers.hyperion;
-  // Do not replace a different connection or silently re-enable a disabled server.
+  // Do not replace a different connection or silently re-enable a disabled server
+  // unless the human confirmed an explicit replace.
+  let replaceConflict = false;
   if (servers.hyperion !== undefined) {
     const existing = object(servers.hyperion);
     const { type: existingType, ...comparable } = existing;
@@ -117,22 +121,30 @@ export async function setupDesktopClient(id: string, options: Options = {}) {
       isDeepStrictEqual(JSON.parse(JSON.stringify(comparable)), server)
     )
       return { client: id, configFile: file, backupFile: undefined };
-    throw new Error(
-      `Ya existe otra conexión Hyperion en ${id}. No se sobrescribió: ${file}`,
-    );
+    if (!options.replace)
+      throw new Error(
+        `Ya existe otra conexión Hyperion en ${id}. No se sobrescribió: ${file}`,
+      );
+    replaceConflict = true;
   }
   const text =
     id === 'codex'
-      ? (original || '') +
-        '\n# Hyperion: conexión local\n' +
-        stringify({ mcp_servers: { hyperion: server } })
+      ? replaceConflict
+        ? stringify({
+            ...config,
+            mcp_servers: { ...servers, hyperion: server },
+          }) + '\n'
+        : (original || '') +
+          '\n# Hyperion: conexión local\n' +
+          stringify({ mcp_servers: { hyperion: server } })
       : JSON.stringify(
           { ...config, [key]: { ...servers, hyperion: server } },
           null,
           2,
         ) + '\n';
-  // Appending preserves Codex comments and preferences. Inline-table conflicts are rejected.
-  if (id === 'codex') {
+  // Appending preserves Codex comments and preferences. Inline-table conflicts are rejected
+  // unless replace rewrites the parsed object (comments may be lost — confirmed destructive).
+  if (id === 'codex' && !replaceConflict) {
     try {
       parse(text);
     } catch {

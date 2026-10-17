@@ -12,12 +12,14 @@ import { createHash } from 'node:crypto';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const hash = (text: string) => createHash('sha256').update(text).digest('hex');
 export function defaultDirectory(home = homedir()) {
-  return (
-    process.env.HYPERION_DATA_DIR ||
-    (existsSync(resolve(root, '.hyperion/credentials.json'))
-      ? resolve(root, '.hyperion')
-      : resolve(home, '.hyperion'))
-  );
+  if (process.env.HYPERION_DATA_DIR)
+    return resolve(process.env.HYPERION_DATA_DIR);
+  // Desktop (Electron) always uses the user home store. Never a portable checkout
+  // next to the app bundle, a temp dir, or an ephemeral Resources path.
+  if (process.versions.electron) return resolve(home, '.hyperion');
+  return existsSync(resolve(root, '.hyperion/credentials.json'))
+    ? resolve(root, '.hyperion')
+    : resolve(home, '.hyperion');
 }
 export function installSkill(
   options: {

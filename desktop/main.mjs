@@ -20,6 +20,7 @@ import {
   desktopTarget,
   rememberDesktop,
   rememberWorkspace,
+  resolveWorkspaceService,
 } from '../dist/adapters/desktop.js';
 import { createUpdateController } from './update-dialog.mjs';
 import { recoverStartup } from './startup.mjs';
@@ -108,11 +109,12 @@ async function openRun(args) {
         'Cierra Hyperion Desktop antes de conectar otra instancia local. Tu flujo actual está protegido.',
       ),
     );
+  const preferred = await resolveWorkspaceService(next);
   const startup = await ensureServer({
     directory: next.directory,
-    url: next.service,
+    url: preferred,
   });
-  const service = startup.url || next.service;
+  const service = startup.url || preferred;
   target = {
     ...next,
     service,

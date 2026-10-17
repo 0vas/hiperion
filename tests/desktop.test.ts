@@ -8,7 +8,10 @@ import {
   rememberDesktop,
   desktopLaunch,
   rememberWorkspace,
+  resolveWorkspaceService,
 } from '../src/adapters/desktop.js';
+import { DEFAULT_SERVICE } from '../src/adapters/bootstrap.js';
+
 test('desktop targets reuse one local run, reject remote navigation and launch without shell interpolation', () => {
   const directory = join(tmpdir(), 'local data');
   const target = desktopTarget([
@@ -46,6 +49,39 @@ test('desktop targets reuse one local run, reject remote navigation and launch w
       '--hyperion-url=http://127.0.0.1:4317',
       `--hyperion-directory=${directory}`,
     ]);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('workspace reopen prefers :4317 when a remembered alternate is no longer ours', async () => {
+  const home = mkdtempSync(join(tmpdir(), 'hyperion-prefer-4317-'));
+  const directory = join(home, 'data');
+  try {
+    rememberWorkspace({ service: 'http://127.0.0.1:54321', directory }, home);
+    const remembered = desktopTarget([], home);
+    assert.equal(remembered.service, 'http://127.0.0.1:54321');
+    assert.equal(remembered.serviceSource, 'workspace');
+    assert.equal(
+      await resolveWorkspaceService(remembered, async () => 'dead'),
+      DEFAULT_SERVICE,
+    );
+    assert.equal(
+      await resolveWorkspaceService(remembered, async () => 'ours'),
+      'http://127.0.0.1:54321',
+    );
+    const explicit = desktopTarget(
+      [
+        '--hyperion-url=http://127.0.0.1:55555',
+        `--hyperion-directory=${directory}`,
+      ],
+      home,
+    );
+    assert.equal(explicit.serviceSource, 'arg');
+    assert.equal(
+      await resolveWorkspaceService(explicit, async () => 'dead'),
+      'http://127.0.0.1:55555',
+    );
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

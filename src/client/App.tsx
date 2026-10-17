@@ -710,6 +710,9 @@ export function App() {
     'cancel' | 'reject' | 'retry' | null
   >(null);
   const [conflictRow, setConflictRow] = useState<ConnectionRow | null>(null);
+  const [replaceConfirm, setReplaceConfirm] = useState<ConnectionRow | null>(
+    null,
+  );
   const [setupNotice, setSetupNotice] = useState('');
   const connections = useConnectionInventory(loaded && online);
   const openConnections = () => {
@@ -721,14 +724,17 @@ export function App() {
         ?.scrollIntoView({ block: 'nearest' });
     }, 0);
   };
-  const setupConnection = async (clientId: string) => {
+  const setupConnection = async (clientId: string, replace = false) => {
     setSetupNotice('');
     setBusy(true);
     try {
       const res = await fetch('/api/connections/setup', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ client: clientId }),
+        body: JSON.stringify({
+          client: clientId,
+          ...(replace ? { replace: true } : {}),
+        }),
         signal: AbortSignal.timeout(15000),
       });
       const body = await res.json();
@@ -752,12 +758,18 @@ export function App() {
           body.message || t('No se pudo completar la solicitud.'),
         );
       }
+      setConflictRow(null);
+      setReplaceConfirm(null);
       if (body.inventory) connections.setInventory(body.inventory);
       else await connections.refresh();
       setSetupNotice(
-        t(
-          'Conexión configurada. Reinicia tu aplicación de IA y abre un chat nuevo.',
-        ),
+        replace
+          ? t(
+              'Conexión reemplazada. Reinicia tu aplicación de IA y abre un chat nuevo.',
+            )
+          : t(
+              'Conexión configurada. Reinicia tu aplicación de IA y abre un chat nuevo.',
+            ),
       );
     } catch (err) {
       setError(
@@ -2448,8 +2460,54 @@ export function App() {
               >
                 {t('Abrir guía')}
               </button>
+              <button
+                className="secondary"
+                onClick={() => {
+                  setReplaceConfirm(conflictRow);
+                  setConflictRow(null);
+                }}
+              >
+                {t('Reemplazar…')}
+              </button>
               <button className="primary" onClick={() => setConflictRow(null)}>
                 {t('Cerrar')}
+              </button>
+            </div>
+          </section>
+        </Modal>
+      )}
+      {replaceConfirm && (
+        <Modal
+          returnFocus={popupTrigger.current}
+          onClose={() => setReplaceConfirm(null)}
+        >
+          <section
+            className="modal compact"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="replace-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="replace-title">{t('¿Reemplazar la conexión Hyperion?')}</h2>
+            <p>
+              {t(
+                'Se sobrescribirá la entrada «hyperion» en {0}. Se crea un respaldo del archivo. Esta acción no se puede deshacer desde Hyperion.',
+                { 0: replaceConfirm.name },
+              )}
+            </p>
+            <div className="modal-actions">
+              <button
+                className="secondary"
+                onClick={() => setReplaceConfirm(null)}
+              >
+                {t('Cancelar')}
+              </button>
+              <button
+                className="danger"
+                disabled={busy}
+                onClick={() => void setupConnection(replaceConfirm.id, true)}
+              >
+                {t('Reemplazar conexión')}
               </button>
             </div>
           </section>

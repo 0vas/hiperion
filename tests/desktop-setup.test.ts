@@ -146,6 +146,37 @@ test('Claude Desktop uses Windows roaming data and Claude Code receives its own 
   }
 });
 
+test('confirmed replace overwrites a conflicting Cursor entry after backup', async () => {
+  const home = mkdtempSync(join(tmpdir(), 'hyperion-setup-replace-'));
+  try {
+    const file = join(home, '.cursor/mcp.json');
+    mkdirSync(dirname(file), { recursive: true });
+    const original =
+      '{"mcpServers":{"hyperion":{"command":"different"},"other":{"command":"keep-me"}}}';
+    writeFileSync(file, original);
+    const options = {
+      home,
+      directory: join(home, 'data'),
+      platform: 'darwin' as const,
+      url: 'http://127.0.0.1:4341',
+    };
+    await assert.rejects(setupDesktopClient('cursor', options), /sobrescribió/);
+    assert.equal(readFileSync(file, 'utf8'), original);
+    const result = await setupDesktopClient('cursor', {
+      ...options,
+      replace: true,
+    });
+    assert.ok(result.backupFile);
+    assert.equal(readFileSync(result.backupFile!, 'utf8'), original);
+    const next = JSON.parse(readFileSync(file, 'utf8'));
+    assert.equal(next.mcpServers.other.command, 'keep-me');
+    assert.match(next.mcpServers.hyperion.args[0], /mcp-launcher\.js$/);
+    assert.notEqual(next.mcpServers.hyperion.command, 'different');
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test('Antigravity setup uses its global MCP path on macOS, Windows and Linux', async () => {
   for (const platform of ['darwin', 'win32', 'linux'] as const) {
     const home = mkdtempSync(join(tmpdir(), 'hyperion-antigravity-'));
