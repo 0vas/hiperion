@@ -22,7 +22,7 @@ Elige un destinatario, revisa un borrador de muestra y observa cómo los datos p
 
 ## ¿Qué harás con Hyperion?
 
-Una petición, distintos caminos. Explora seis objetivos y prueba cómo una decisión orienta el plan.
+Una misma petición puede abrir caminos distintos. Elige un objetivo, decide en la compuerta y mira cómo cambia el plan ilustrativo.
 
 <GoalExplorer />
 

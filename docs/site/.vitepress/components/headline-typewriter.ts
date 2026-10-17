@@ -31,6 +31,17 @@ export function settledHeadlineLabel(locale: 'es' | 'en') {
   return `${line1} ${line2}`;
 }
 
+/** Longest line1 + line2 for the locale — reserves stable hero height while typing. */
+export function headlineSizerPair(locale: 'es' | 'en'): HeadlinePair {
+  let line1 = HEADLINE_PAIRS[locale][0][0];
+  let line2 = HEADLINE_PAIRS[locale][0][1];
+  for (const [a, b] of HEADLINE_PAIRS[locale]) {
+    if (a.length > line1.length) line1 = a;
+    if (b.length > line2.length) line2 = b;
+  }
+  return [line1, line2];
+}
+
 export type TypewriterView = {
   line1: string;
   line2: string;

@@ -436,14 +436,16 @@ test('video landing uses a centered headline, wide product view and controllable
     ).toHaveAttribute('aria-pressed', 'true');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await expect(video).not.toHaveAttribute('src');
-    await expect(hero.locator('h1 .headline-accent')).toHaveCSS(
+    await expect(hero.locator('.headline-active .headline-accent')).toHaveCSS(
       'animation-name',
       'none',
     );
-    await expect(hero.locator('h1')).toHaveText(
+    await expect(hero.locator('.headline-active')).toHaveText(
       en ? 'Your ideas.In motion.' : 'Tus ideas.En movimiento.',
     );
-    await expect(hero.locator('.headline-caret')).toHaveCount(0);
+    await expect(hero.locator('.headline-active .headline-caret')).toHaveCount(
+      0,
+    );
     expect(
       (
         await new AxeBuilder({ page })
@@ -549,42 +551,56 @@ test('hero headline types through phrase pairs and freezes on pause or reduced m
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/hyperion/');
   const title = page.locator('#landscape-title');
-  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  const active = title.locator('.headline-active');
+  await expect(active).toHaveText('Tus ideas.En movimiento.');
   await expect(title).toHaveAttribute(
     'aria-label',
     'Tus ideas. En movimiento.',
   );
+  const heightBefore = (await title.boundingBox()).height;
   await expect
-    .poll(async () => (await title.innerText()).replace(/\s+/g, ''), {
+    .poll(async () => (await active.innerText()).replace(/\s+/g, ''), {
       timeout: 12_000,
     })
     .not.toBe('Tusideas.Enmovimiento.');
+  const heightAfterChange = (await title.boundingBox()).height;
+  expect(Math.abs(heightAfterChange - heightBefore)).toBeLessThan(2);
+  await expect
+    .poll(
+      async () => {
+        const text = (await active.innerText()).replace(/\s+/g, '');
+        const height = (await title.boundingBox()).height;
+        return { empty: text === '', height };
+      },
+      { timeout: 12_000 },
+    )
+    .toMatchObject({ empty: true });
+  const heightWhileEmpty = (await title.boundingBox()).height;
+  expect(Math.abs(heightWhileEmpty - heightBefore)).toBeLessThan(2);
   await page.getByRole('button', { name: 'Pausar fondo', exact: true }).click();
-  await expect(title).toHaveText('Tus ideas.En movimiento.');
-  await expect(page.locator('.headline-caret')).toHaveCount(0);
+  await expect(active).toHaveText('Tus ideas.En movimiento.');
+  await expect(title.locator('.headline-active .headline-caret')).toHaveCount(
+    0,
+  );
   await page.waitForTimeout(800);
-  await expect(title).toHaveText('Tus ideas.En movimiento.');
+  await expect(active).toHaveText('Tus ideas.En movimiento.');
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(title).toHaveText('Tus ideas.En movimiento.');
-  await expect(page.locator('.headline-caret')).toHaveCount(0);
+  await expect(active).toHaveText('Tus ideas.En movimiento.');
+  await expect(title.locator('.headline-active .headline-caret')).toHaveCount(
+    0,
+  );
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/hyperion/en/');
-  await expect(page.locator('#landscape-title')).toHaveText(
-    'Your ideas.In motion.',
-  );
+  const enActive = page.locator('#landscape-title .headline-active');
+  await expect(enActive).toHaveText('Your ideas.In motion.');
   await expect(page.locator('#landscape-title')).toHaveAttribute(
     'aria-label',
     'Your ideas. In motion.',
   );
   await expect
-    .poll(
-      async () =>
-        (await page.locator('#landscape-title').innerText()).replace(
-          /\s+/g,
-          '',
-        ),
-      { timeout: 12_000 },
-    )
+    .poll(async () => (await enActive.innerText()).replace(/\s+/g, ''), {
+      timeout: 12_000,
+    })
     .not.toBe('Yourideas.Inmotion.');
 });
 
@@ -639,7 +655,7 @@ test('video failure keeps the poster, navigation and download actions usable', a
     'poster',
     '/hyperion/brand/cinema-poster.svg',
   );
-  await expect(page.locator('#landscape-title')).toHaveText(
+  await expect(page.locator('#landscape-title .headline-active')).toHaveText(
     'Tus ideas.En movimiento.',
   );
   await page
@@ -776,28 +792,41 @@ test('home explores six goals with isolated decisions and copyable requests', as
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   for (const en of [false, true]) {
     await page.goto(`/hyperion/${en ? 'en/' : ''}`);
+    await expect(
+      page.getByText(
+        en
+          ? 'The same request can open different paths.'
+          : 'Una misma petición puede abrir caminos distintos.',
+      ),
+    ).toBeVisible();
     const explorer = page.getByRole('region', {
       name: en ? 'Explore use cases' : 'Explora los casos de uso',
       exact: true,
     });
     await expect(explorer).toBeVisible();
+    await expect(explorer.locator('.goal-kicker')).toHaveText(
+      en ? 'ONE REQUEST, DIFFERENT PATHS' : 'UNA PETICIÓN, DISTINTOS CAMINOS',
+    );
+    await expect(
+      explorer.locator('.goal-preview-title span').last(),
+    ).toHaveText(en ? 'Simulation · not running' : 'Simulación · no ejecuta');
     const categories = explorer.locator('.goal-categories button');
     await expect(categories).toHaveCount(6);
     const prompts = new Set();
     for (let i = 0; i < 6; i++) {
       await categories.nth(i).click();
       await expect(explorer.locator('.goal-output')).toHaveCount(0);
+      await expect(explorer.locator('.goal-flow')).toBeVisible();
       prompts.add(await explorer.locator('.goal-prompt').innerText());
-      const originalStep = await explorer
-        .locator('.goal-path li')
-        .nth(2)
-        .innerText();
       await explorer.locator('.goal-choices button').last().focus();
       await page.keyboard.press('Enter');
       await expect(explorer.locator('.goal-output')).toBeVisible();
-      await expect(explorer.locator('.goal-path li').nth(2)).not.toHaveText(
-        originalStep,
-      );
+      await expect(explorer.locator('.goal-flow')).toHaveClass(/is-settled/);
+      await expect(
+        explorer.locator(
+          '.goal-fork-lane.is-active-branch, .goal-node.state-active, .goal-parallel',
+        ),
+      ).not.toHaveCount(0);
       await expect(
         explorer.locator('.goal-choices button').last(),
       ).toHaveAttribute('aria-pressed', 'true');
@@ -812,6 +841,33 @@ test('home explores six goals with isolated decisions and copyable requests', as
       );
     }
     expect(prompts.size).toBe(6);
+    // Operar: asymmetric short vs long end
+    await categories.nth(4).click();
+    await explorer.locator('.goal-choices button').first().click();
+    await expect(
+      explorer.locator('.goal-fork-lane.is-active-branch'),
+    ).toContainText(en ? 'Document hypotheses' : 'Documentar diagnóstico');
+    await expect(
+      explorer.locator('.goal-fork-lane.is-alt-branch'),
+    ).toContainText(en ? 'Prepare a fix' : 'Preparar corrección');
+    // Coordinar: sequence vs parallel join
+    await categories.nth(5).click();
+    await explorer.locator('.goal-choices button').first().click();
+    await expect(explorer.locator('.goal-flow')).toContainText(
+      en ? 'Review code' : 'Revisar código',
+    );
+    await expect(explorer.locator('.goal-parallel')).toHaveCount(0);
+    await explorer
+      .getByRole('button', {
+        name: en ? 'Reset example' : 'Reiniciar ejemplo',
+        exact: true,
+      })
+      .click();
+    await explorer.locator('.goal-choices button').last().click();
+    await expect(explorer.locator('.goal-parallel')).toBeVisible();
+    await expect(
+      explorer.locator('.goal-node.kind-parallelJoin'),
+    ).toBeVisible();
     await explorer
       .getByRole('button', {
         name: en ? 'Reset example' : 'Reiniciar ejemplo',
@@ -820,7 +876,7 @@ test('home explores six goals with isolated decisions and copyable requests', as
       .click();
     await expect(explorer.locator('.goal-output')).toHaveCount(0);
     for (const colorScheme of ['light', 'dark']) {
-      await page.emulateMedia({ colorScheme });
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
       await page.setViewportSize({ width: 390, height: 844 });
       expect(
         await page.evaluate(

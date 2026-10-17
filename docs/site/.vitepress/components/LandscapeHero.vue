@@ -9,6 +9,7 @@ import { createVideoLoop } from './video-loop';
 import {
   createHeadlineTypewriter,
   HEADLINE_PAIRS,
+  headlineSizerPair,
   settledHeadlineLabel,
 } from './headline-typewriter';
 const { lang } = useData();
@@ -27,6 +28,7 @@ const caret = ref<'line1' | 'line2' | null>(null);
 const caretBlink = ref(false);
 const liveAnnouncement = ref('');
 const titleLabel = computed(() => settledHeadlineLabel(locale.value));
+const sizer = computed(() => headlineSizerPair(locale.value));
 let loop: ReturnType<typeof createVideoLoop> | undefined;
 let typewriter: ReturnType<typeof createHeadlineTypewriter> | undefined;
 let frame = 0;
@@ -141,22 +143,31 @@ const route = (path: string) => withBase(`${en.value ? '/en' : ''}/${path}`);
         <span aria-hidden="true"></span
         >{{ en ? 'YOUR AI. A SHARED CANVAS.' : 'TU IA. UN CANVAS COMPARTIDO.' }}
       </p>
-      <h1 id="landscape-title" :aria-label="titleLabel">
-        <span class="headline-line" aria-hidden="true">{{ line1 }}</span
-        ><span
-          v-if="caret === 'line1'"
-          class="headline-caret"
-          :class="{ blink: caretBlink }"
-          aria-hidden="true"
-        ></span
-        ><br /><span class="headline-accent" aria-hidden="true">{{
-          line2
-        }}</span
-        ><span
-          v-if="caret === 'line2'"
-          class="headline-caret"
-          :class="{ blink: caretBlink }"
-          aria-hidden="true"
+      <h1
+        id="landscape-title"
+        class="headline-typewriter"
+        :aria-label="titleLabel"
+      >
+        <span class="headline-sizer" aria-hidden="true"
+          ><span class="headline-line">{{ sizer[0] }}</span
+          ><span class="headline-caret-slot"></span><br /><span
+            class="headline-accent"
+            >{{ sizer[1] }}</span
+          ><span class="headline-caret-slot"></span
+        ></span>
+        <span class="headline-active" aria-hidden="true"
+          ><span class="headline-line">{{ line1 }}</span
+          ><span
+            v-if="caret === 'line1'"
+            class="headline-caret"
+            :class="{ blink: caretBlink }"
+          ></span
+          ><br /><span class="headline-accent">{{ line2 }}</span
+          ><span
+            v-if="caret === 'line2'"
+            class="headline-caret"
+            :class="{ blink: caretBlink }"
+          ></span
         ></span>
       </h1>
       <p class="headline-live" aria-live="polite">{{ liveAnnouncement }}</p>
