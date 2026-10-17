@@ -118,6 +118,7 @@ test('a revised future plan arrives live, shows its diff and requires human resu
   await page.screenshot({ path: 'test-results/plan-revision.png' });
   await page.getByRole('button', { name: 'Cerrar popup' }).click();
   await chooseFromAppMenu(page, 'Reanudar');
+  await expect(page.getByTestId('run-status')).toHaveClass(/active/);
   const after = await (
     await request.get(`/api/runs/${run.id}`, { headers: headers() })
   ).json();

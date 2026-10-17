@@ -103,8 +103,10 @@ export function AppMenu({
       // Preserve focus target after the menu unmounts.
       triggerRef.current.focus();
     }
+    // Close first, then act in the same turn so React batches menu teardown with
+    // the next overlay (single-layer) and pause/resume are not raced by e2e GETs.
     onOpenChange(false);
-    window.setTimeout(() => onAction(action), 0);
+    onAction(action);
   };
 
   const onPanelKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
