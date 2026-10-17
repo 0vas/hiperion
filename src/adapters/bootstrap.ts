@@ -193,8 +193,19 @@ async function bindOrReuse(
       spawnError = error;
     });
     child.unref();
+    const stopOrphan = () => {
+      if (!child.pid) return;
+      try {
+        process.kill(child.pid, 'SIGTERM');
+      } catch {
+        /* Already gone. */
+      }
+    };
     for (let attempt = 0; attempt < 60; attempt++) {
-      if (spawnError) throw spawnError;
+      if (spawnError) {
+        stopOrphan();
+        throw spawnError;
+      }
       if ((await probe()) === VERSION)
         return {
           started: true,
@@ -204,6 +215,7 @@ async function bindOrReuse(
         };
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
+    stopOrphan();
     throw new Error(`Hyperion did not start. Review ${log}`);
   });
 }

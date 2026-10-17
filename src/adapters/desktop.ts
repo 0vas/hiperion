@@ -9,7 +9,11 @@ import {
 } from 'node:fs';
 import { homedir } from 'node:os';
 import { isAbsolute, resolve } from 'node:path';
+import { DEFAULT_SERVICE } from './bootstrap.js';
 import { defaultDirectory } from './install.js';
+
+export type DesktopServiceSource = 'arg' | 'env' | 'workspace' | 'default';
+
 export function desktopTarget(
   args: string[],
   home = process.env.HYPERION_HOME || homedir(),
@@ -32,11 +36,17 @@ export function desktopTarget(
   const run = option('run') || '';
   if (run && !/^[a-zA-Z0-9_-]{1,80}$/.test(run))
     throw new Error('Invalid run ID');
+  const fromArg = option('url');
+  const fromEnv = process.env.HYPERION_URL;
+  const serviceSource: DesktopServiceSource = fromArg
+    ? 'arg'
+    : fromEnv
+      ? 'env'
+      : previous.service
+        ? 'workspace'
+        : 'default';
   const service = new URL(
-    option('url') ||
-      process.env.HYPERION_URL ||
-      previous.service ||
-      'http://127.0.0.1:4317',
+    fromArg || fromEnv || previous.service || DEFAULT_SERVICE,
   );
   if (
     service.protocol !== 'http:' ||
@@ -52,14 +62,49 @@ export function desktopTarget(
     option('directory') ||
       process.env.HYPERION_DATA_DIR ||
       previous.directory ||
-      defaultDirectory(),
+      defaultDirectory(home),
   );
   return {
     run,
     service: service.origin,
+    serviceSource,
     directory,
     url: `${service.origin}/${run ? `?run=${run}` : ''}`,
   };
+}
+
+/** Prefer :4317 when a remembered alternate is no longer ours; keep a live authenticated alternate sticky. */
+export async function resolveWorkspaceService(
+  target: {
+    service: string;
+    directory: string;
+    serviceSource: DesktopServiceSource;
+  },
+  probe: (url: string, directory: string) => Promise<'ours' | 'dead'> = async (
+    url,
+    directory,
+  ) => {
+    try {
+      const health = await fetch(`${url}/api/health`, {
+        signal: AbortSignal.timeout(2000),
+      });
+      if (!health.ok) return 'dead';
+      const body = (await health.json()) as { ok?: boolean };
+      if (body.ok !== true) return 'dead';
+      const { HyperionClient } = await import('./client.js');
+      await new HyperionClient({ url, directory }).list();
+      return 'ours';
+    } catch {
+      return 'dead';
+    }
+  },
+) {
+  if (target.serviceSource === 'arg' || target.serviceSource === 'env')
+    return target.service;
+  if (target.service === DEFAULT_SERVICE) return target.service;
+  if ((await probe(target.service, target.directory)) === 'ours')
+    return target.service;
+  return DEFAULT_SERVICE;
 }
 type Installation = { executable: string; args: string[] };
 export function rememberDesktop(

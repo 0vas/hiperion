@@ -40,6 +40,7 @@ const createSchema = z
 const setupConnectionSchema = z
   .object({
     client: z.enum(DESKTOP_CLIENTS),
+    replace: z.boolean().optional(),
   })
   .strict();
 const equal = (a: string, b: string) =>
@@ -249,6 +250,7 @@ export function createApp(options: Options) {
               {
                 directory,
                 url: baseUrl || process.env.HYPERION_URL,
+                ...(data.replace ? { replace: true } : {}),
               },
             );
             json(res, 200, {
