@@ -728,6 +728,9 @@ export function App() {
   const openFromMenu = (action: AppMenuAction) => {
     setMenuOpen(false);
     setHelp(false);
+    const menuTrigger =
+      document.querySelector<HTMLElement>('.app-menu-trigger');
+    if (menuTrigger) popupTrigger.current = menuTrigger;
     if (action === 'connections') {
       setPopup('connections');
       return;
@@ -747,6 +750,22 @@ export function App() {
     }
     if (action === 'legend') {
       setPopup('legend');
+      return;
+    }
+    if (action === 'request') {
+      setPopup('request');
+      return;
+    }
+    if (action === 'activity') {
+      setPopup('activity');
+      return;
+    }
+    if (action === 'pause') {
+      void act('pause');
+      return;
+    }
+    if (action === 'resume') {
+      void act('resume');
       return;
     }
     if (action === 'window') {
@@ -1514,6 +1533,15 @@ export function App() {
               inventory={connections.inventory}
               reduceMotion={preferences.reduceMotion}
               isElectron={isElectron}
+              run={
+                run
+                  ? {
+                      live,
+                      paused: run.status === 'paused',
+                      canPauseResume: live || run.status === 'paused',
+                    }
+                  : null
+              }
               onAction={openFromMenu}
             />
           </div>

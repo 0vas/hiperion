@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { chooseFromAppMenu } from './app-menu';
 import { readFileSync } from 'node:fs';
 const headers = () => ({
   authorization: `Bearer ${JSON.parse(readFileSync('.hyperion-e2e/credentials.json', 'utf8')).agentToken}`,
@@ -185,7 +186,7 @@ test('a compact decision reveals help and optional detail without losing a negat
   const { default: AxeBuilder } = await import('@axe-core/playwright');
   for (const theme of ['light', 'dark'] as const) {
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+    await chooseFromAppMenu(page, 'Ajustes');
     await page.getByLabel('Tema', { exact: true }).selectOption(theme);
     await page.keyboard.press('Escape');
     await open();

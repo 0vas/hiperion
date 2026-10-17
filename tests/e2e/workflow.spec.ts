@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { appMenuTrigger, chooseFromAppMenu, openAppMenu } from './app-menu';
 import { readFileSync } from 'node:fs';
 const token = () =>
   JSON.parse(readFileSync('.hyperion-e2e/credentials.json', 'utf8'))
@@ -160,15 +161,15 @@ test('connection help supports keyboard dismissal and restores focus', async ({
   page,
 }) => {
   await page.goto('/');
-  const help = page.getByRole('button', { name: 'Ayuda de conexión' });
-  await help.click();
+  const menu = appMenuTrigger(page);
+  await chooseFromAppMenu(page, 'Ayuda de conexión');
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Cerrar ayuda' }),
   ).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).not.toBeVisible();
-  await expect(help).toBeFocused();
+  await expect(menu).toBeFocused();
 });
 
 test('an unknown run URL never silently selects a different workflow', async ({
@@ -636,7 +637,7 @@ test('follow tracks the next task, manual navigation releases it, and any task c
     .getByRole('button', { name: 'Vista general', exact: true })
     .click();
   await expect(follow).toHaveAttribute('aria-pressed', 'false');
-  await page.getByRole('button', { name: 'Guía de uso', exact: true }).click();
+  await chooseFromAppMenu(page, 'Guía de uso');
   await expect(
     page.getByRole('dialog', { name: 'De la conversación al flujo' }),
   ).toContainText('Seguir actividad');
@@ -661,8 +662,7 @@ test('follow tracks the next task, manual navigation releases it, and any task c
         .analyze()
     ).violations,
   ).toEqual([]);
-  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
-  await page.getByRole('button', { name: 'Guía de uso', exact: true }).click();
+  await chooseFromAppMenu(page, 'Guía de uso');
   expect(
     (
       await new AxeBuilder({ page })
@@ -789,7 +789,7 @@ test('jobs, concrete decisions and preferences work from a conversation-generate
   expect(response.status()).toBe(201);
   const run = await response.json();
   await page.goto(`/?run=${run.id}`);
-  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await chooseFromAppMenu(page, 'Ajustes');
   await page.getByLabel('Tema', { exact: true }).selectOption('dark');
   await page.getByLabel('Reducir movimiento').check();
   await page.getByLabel('Seguir al abrir un flujo').check();
@@ -867,7 +867,7 @@ test('jobs, concrete decisions and preferences work from a conversation-generate
     await page.keyboard.press('Escape');
   }
 
-  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await chooseFromAppMenu(page, 'Ajustes');
   await expect(page.getByLabel('Reducir movimiento')).toBeChecked();
   await page.getByLabel('Tema', { exact: true }).selectOption('light');
   await page.setViewportSize({ width: 390, height: 844 });
@@ -880,8 +880,10 @@ test('jobs, concrete decisions and preferences work from a conversation-generate
   ).toEqual([]);
   await page.screenshot({ path: 'test-results/settings-mobile.png' });
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Guía de uso' })).toBeVisible();
+  await openAppMenu(page);
+  await expect(
+    page.getByRole('menuitem', { name: 'Guía de uso' }),
+  ).toBeVisible();
 });
 
 test('route colors and motion follow real execution; compact SVG cards remain accessible', async ({
@@ -977,11 +979,11 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   await expect(incoming).toHaveClass(/route-ready/);
   await command('start');
   await expect(incoming).toHaveClass(/route-active/);
-  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await chooseFromAppMenu(page, 'Ajustes');
   await page.getByLabel('Reducir movimiento').check();
   await page.keyboard.press('Escape');
   await expect(incoming.locator('.flow-ribbon animate')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await chooseFromAppMenu(page, 'Ajustes');
   await page.getByLabel('Reducir movimiento').uncheck();
   await page.keyboard.press('Escape');
   await expect(incoming).toHaveClass(/animated/);
@@ -993,10 +995,7 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   await expect(incoming).toHaveClass(/animated/);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(incoming.locator('.flow-ribbon animate')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
-  await page
-    .getByRole('button', { name: 'Colores del flujo', exact: true })
-    .click();
+  await chooseFromAppMenu(page, 'Colores del flujo');
   await expect(page.getByRole('dialog')).toContainText('Gris · Pendiente');
   const { default: AxeBuilder } = await import('@axe-core/playwright');
   expect(
@@ -1015,7 +1014,7 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
     'attention',
   );
   await page.screenshot({ path: 'test-results/flow-colors-light.png' });
-  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await chooseFromAppMenu(page, 'Ajustes');
   await page.getByLabel('Tema', { exact: true }).selectOption('dark');
   await page.keyboard.press('Escape');
   expect(
@@ -1027,9 +1026,9 @@ test('route colors and motion follow real execution; compact SVG cards remain ac
   ).toEqual([]);
   await page.screenshot({ path: 'test-results/flow-colors-dark.png' });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
+  await openAppMenu(page);
   await expect(
-    page.getByRole('button', { name: 'Colores del flujo', exact: true }),
+    page.getByRole('menuitem', { name: 'Colores del flujo', exact: true }),
   ).toBeVisible();
   await page.screenshot({ path: 'test-results/flow-colors-mobile.png' });
 });
@@ -1100,24 +1099,23 @@ test('split windows reserve the canvas, keep focus clear and expose secondary ac
     await page.screenshot({ path: `test-results/workspace-${size.width}.png` });
   }
   await page.setViewportSize({ width: 540, height: 720 });
-  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
+  await openAppMenu(page);
+  await expect(page.getByRole('menu', { name: /Menú|Menu/ })).toBeVisible();
   await expect(
-    page.getByRole('dialog', { name: 'Más opciones' }),
+    page.getByText(/Hyperion \d{4}\.\d{2}\.\d{2}\.\d{4} UTC/),
   ).toBeVisible();
   await page
-    .getByRole('button', { name: 'Petición original', exact: true })
+    .getByRole('menuitem', { name: 'Petición original', exact: true })
     .click();
   await expect(
     page.getByRole('dialog', { name: 'Petición original' }),
   ).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(
-    page.getByRole('button', { name: 'Más opciones', exact: true }),
-  ).toBeFocused();
-  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
+  await expect(appMenuTrigger(page)).toBeFocused();
+  await openAppMenu(page);
   const popupPromise = page.waitForEvent('popup');
   await page
-    .getByRole('button', { name: 'Abrir en ventana', exact: true })
+    .getByRole('menuitem', { name: 'Abrir en ventana', exact: true })
     .click();
   const popup = await popupPromise;
   await popup.waitForLoadState();
@@ -1329,7 +1327,7 @@ test('liquid current follows reached routes and BPMN symbol colors stay tied to 
       .first()
       .evaluate((el) => getComputedStyle(el).color);
   for (const theme of ['light', 'dark']) {
-    await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+    await chooseFromAppMenu(page, 'Ajustes');
     await page.getByLabel('Tema', { exact: true }).selectOption(theme);
     await page.keyboard.press('Escape');
     expect(await color('start')).not.toBe(await color('end'));

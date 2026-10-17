@@ -18,7 +18,17 @@ export type AppMenuAction =
   | 'legend'
   | 'window'
   | 'updates'
-  | 'about';
+  | 'about'
+  | 'request'
+  | 'activity'
+  | 'pause'
+  | 'resume';
+
+export type AppMenuRunChrome = {
+  live: boolean;
+  paused: boolean;
+  canPauseResume: boolean;
+};
 
 function calVerLabel(inventory: ConnectionInventory | null) {
   const version = inventory?.version || VERSION;
@@ -38,6 +48,7 @@ export function AppMenu({
   inventory,
   reduceMotion,
   isElectron,
+  run,
   onAction,
 }: {
   open: boolean;
@@ -45,6 +56,7 @@ export function AppMenu({
   inventory: ConnectionInventory | null;
   reduceMotion: boolean;
   isElectron: boolean;
+  run?: AppMenuRunChrome | null;
   onAction: (action: AppMenuAction) => void;
 }) {
   useLocale();
@@ -87,8 +99,11 @@ export function AppMenu({
   }, [open, onOpenChange]);
 
   const runAction = (action: AppMenuAction) => {
+    if (triggerRef.current) {
+      // Preserve focus target after the menu unmounts.
+      triggerRef.current.focus();
+    }
     onOpenChange(false);
-    // Replace layer: close menu before opening any panel.
     window.setTimeout(() => onAction(action), 0);
   };
 
@@ -139,6 +154,25 @@ export function AppMenu({
             <span className="form-sr-only">{t('Versión de Hyperion')}: </span>
             {version}
           </div>
+          {run && (
+            <>
+              <div className="app-menu-sep" role="separator" />
+              <p className="app-menu-section">{t('Este flujo')}</p>
+              <MenuRow onSelect={() => runAction('request')}>
+                {t('Petición original')}
+              </MenuRow>
+              <MenuRow onSelect={() => runAction('activity')}>
+                {t('Actividad')}
+              </MenuRow>
+              {run.canPauseResume && (
+                <MenuRow
+                  onSelect={() => runAction(run.live ? 'pause' : 'resume')}
+                >
+                  {run.live ? t('Pausar') : t('Reanudar')}
+                </MenuRow>
+              )}
+            </>
+          )}
           <div className="app-menu-sep" role="separator" />
           <MenuRow onSelect={() => runAction('connections')}>
             {t('Conexiones')}

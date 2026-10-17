@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { chooseFromAppMenu } from './app-menu';
 import { readFileSync } from 'node:fs';
 test.use({ locale: 'en-US' });
 test('system language, saved choice and live switching preserve workflow content and drafts', async ({
@@ -53,7 +54,7 @@ test('system language, saved choice and live switching preserve workflow content
     page.getByRole('button', { name: 'Save choice', exact: true }),
   ).toBeEnabled();
   await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
-  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await chooseFromAppMenu(page, 'Settings');
   await page
     .getByRole('combobox', { name: 'Language', exact: true })
     .selectOption('es');
@@ -73,7 +74,7 @@ test('system language, saved choice and live switching preserve workflow content
   ).toBeEnabled();
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
-  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await chooseFromAppMenu(page, 'Ajustes');
   await page
     .getByRole('combobox', { name: 'Idioma', exact: true })
     .selectOption('en');
@@ -100,7 +101,7 @@ test('system language, saved choice and live switching preserve workflow content
   ]);
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });
-    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await chooseFromAppMenu(page, 'Settings');
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(
       page.getByRole('combobox', { name: 'Language', exact: true }),
