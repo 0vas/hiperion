@@ -148,15 +148,20 @@ select:focus-visible {
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: var(--muted);
-  max-width: 160px;
+  color: var(--ink);
+  max-width: 180px;
+}
+.connection-state {
+  color: var(--ink);
+  font-weight: 500;
 }
 .connection small {
   display: none;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  opacity: 0.8;
+  color: var(--ink);
+  opacity: 0.72;
 }
 @media (min-width: 900px) {
   .connection small {

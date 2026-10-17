@@ -1469,11 +1469,13 @@ export function App() {
             >
               <span />
               <small>{t('Servicio local')}</small>
-              {online
-                ? t('Conectado')
-                : loaded
-                  ? t('Sin conexión')
-                  : t('Conectando')}
+              <span className="connection-state">
+                {online
+                  ? t('Conectado')
+                  : loaded
+                    ? t('Sin conexión')
+                    : t('Conectando')}
+              </span>
             </span>
             <button
               type="button"
