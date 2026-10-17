@@ -89,11 +89,13 @@ npm run hyperion -- setup cursor
 Restart that AI tool, open a new chat and paste a request from above. Visit `http://127.0.0.1:4317` to view the canvas. This runs the code in `main`, not the older preview installer.
 :::
 
-## App language
+## Language, version and connections
 
 Hyperion includes **Spanish and English** in the canvas and Desktop menus and dialogs. Open **Settings → Language** and choose **Automatic (system)**, **Español** or **English**. Desktop also provides **Hyperion → Language**.
 
 Automatic mode follows the system or browser language and falls back to English when unsupported. A manual selection persists when reopening the app. Desktop menus and the canvas share one preference; the browser stores its own choice separately.
+
+CalVer appears in **About** (macOS) and in **Settings → Connections**. The header separates the **local service** from **integrations** (Codex, Cursor, Claude Desktop, Claude Code, Antigravity). “Connected” does not mean your AI app has already loaded tools; after setup, restart the client and open a new chat. Hyperion does not overwrite a different entry.
 
 ::: tip Your content keeps its language
 Switching the interface does not translate task names, agent questions, answers, results or logs. It does not restart the workflow or discard an unsubmitted form. Original tool and service diagnostics retain their text for troubleshooting.
