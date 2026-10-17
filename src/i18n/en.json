@@ -17,7 +17,6 @@
   "{0} listas · {1} conflictos": "{0} ready · {1} conflicts",
   "{0} listas · {1} en conflicto": "{0} ready · {1} in conflict",
   "{0}/{1} listas": "{0}/{1} ready",
-  "Abre Conexiones en Ajustes para el detalle.": "Open Connections in Settings for details.",
   "Abre el instalador para actualizar Hyperion. Tus flujos se conservan en su almacenamiento local.": "Open the installer to update Hyperion. Your workflows remain in local storage.",
   "Abre el paso para consultar el error o rechazo.": "Open the step to see the error or rejection.",
   "Abre la tarea para reintentar": "Open the task to retry",
