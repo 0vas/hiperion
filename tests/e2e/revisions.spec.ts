@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { chooseFromAppMenu } from './app-menu';
 import { readFileSync } from 'node:fs';
 const headers = () => ({
   authorization: `Bearer ${JSON.parse(readFileSync('.hyperion-e2e/credentials.json', 'utf8')).agentToken}`,
@@ -116,8 +117,8 @@ test('a revised future plan arrives live, shows its diff and requires human resu
   ).toContainText('The user prefers a checklist');
   await page.screenshot({ path: 'test-results/plan-revision.png' });
   await page.getByRole('button', { name: 'Cerrar popup' }).click();
-  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
-  await page.getByRole('button', { name: 'Reanudar', exact: true }).click();
+  await chooseFromAppMenu(page, 'Reanudar');
+  await expect(page.getByTestId('run-status')).toHaveClass(/active/);
   const after = await (
     await request.get(`/api/runs/${run.id}`, { headers: headers() })
   ).json();

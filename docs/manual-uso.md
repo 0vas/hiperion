@@ -12,11 +12,11 @@ Instala Hyperion Desktop y elige **Codex**, **Cursor**, **Claude Desktop** o **C
 
 Hyperion incluye **español e inglés** en el canvas y en los menús y diálogos de Desktop. Abre **Ajustes → Idioma** para elegir **Automático (sistema)**, **Español** o **English**. En Desktop también puedes cambiarlo desde **Hyperion → Idioma**.
 
-La versión CalVer (p. ej. `2026.10.17.1811 UTC · preview`) aparece en la vista **Conexiones** (cabecera de identidad) y en **Hyperion → Acerca de** (macOS).
+La versión CalVer (p. ej. `2026.10.17.1811 UTC · preview`) aparece al abrir **Menú** (primera línea), en la vista **Conexiones** y en **Acerca de Hyperion** / **Hyperion → Acerca de** (macOS).
 
 ## Conexiones e integraciones
 
-La cabecera muestra el **servicio local** Hyperion y un acceso calmado a **Conexiones**. «Conectado» solo dice que el proceso local responde; no afirma que un chat tenga las herramientas cargadas.
+La cabecera muestra el **servicio local** Hyperion y un único **Menú** (sin iconos sueltos de Ajustes/Guía/Ayuda). «Conectado» solo dice que el proceso local responde; no afirma que un chat tenga las herramientas cargadas.
 
 La vista **Conexiones** lista siempre las cinco aplicaciones (Codex, Cursor, Claude Desktop, Claude Code, Antigravity) con estado _Configurada_, _Sin configurar_, _Conflicto · no sobrescrita_ o _No se pudo comprobar_, y muestra la CalVer sin buscarla en Ajustes. Hyperion no sobrescribe una entrada distinta: el conflicto se muestra para que la resuelvas en el cliente (con **Reemplazar…** confirmado si eliges sobrescribir). Tras configurar, reinicia esa aplicación y abre un chat nuevo.
 
@@ -109,7 +109,7 @@ Los títulos y decisiones se generan para tu actividad; este ejemplo no es una p
 | Actividad                  | Revisar el historial del proceso                                                                                    |
 | Ajustes                    | Idioma, apariencia, enlace a **Conexiones** y navegación                                                            |
 | Cabecera · Servicio local  | «Conectado» / «Sin conexión» del proceso Hyperion en este equipo — no implica que tu IA tenga herramientas cargadas |
-| Cabecera · Conexiones      | Abre la vista dedicada (inventario + CalVer); sin telemetría N/M en la cabecera                                     |
+| Cabecera · Menú            | Un solo control: CalVer en la primera línea, Conexiones, Ajustes, Guía, Ayuda y Acerca de (sin iconos sueltos)      |
 | Pausar                     | Evitar que se inicien nuevas tareas hasta reanudar                                                                  |
 
 Los ajustes se guardan en este navegador. No alteran tus decisiones ni conceden permisos al agente. Escape cierra un popup sin responder.

@@ -505,5 +505,12 @@
   "Volver": "Back",
   "Volver a comprobar": "Recheck",
   "Volver al canvas": "Back to canvas",
-  "Ya existe otra conexión Hyperion en {0}. No se sobrescribió.": "Another Hyperion connection already exists in {0}. It was not overwritten."
+  "Ya existe otra conexión Hyperion en {0}. No se sobrescribió.": "Another Hyperion connection already exists in {0}. It was not overwritten.",
+  "Menú": "Menu",
+  "Abrir menú": "Open menu",
+  "Cerrar menú": "Close menu",
+  "Acerca de Hyperion": "About Hyperion",
+  "HYPERION": "HYPERION",
+  "Para buscar actualizaciones usa Hyperion → Buscar actualizaciones… en el menú de la aplicación.": "To check for updates, use Hyperion → Check for updates… in the application menu.",
+  "Este flujo": "This workflow"
 }
