@@ -35,21 +35,15 @@ import {
 } from '@xyflow/react';
 import {
   Package,
-  Ellipsis,
   RotateCcw,
-  ExternalLink,
-  Route,
-  Settings2,
   ArrowUpRight,
   Focus,
-  BookOpen,
   ArrowRightLeft,
   ListTree,
   Bot,
   Check,
   CheckCheck,
   ChevronRight,
-  CircleHelp,
   Copy,
   History,
   Layers3,
@@ -58,7 +52,6 @@ import {
   MessageSquareText,
   Pause,
   Play,
-  Plug,
   ShieldCheck,
   Square,
   UserRound,
@@ -89,7 +82,9 @@ import {
   useConnectionInventory,
   type ConnectionRow,
 } from './Connections';
+import { AppMenu, type AppMenuAction } from './AppMenu';
 import { usePreferences } from './preferences';
+import { RELEASE_CHANNEL, VERSION } from '../version';
 import { layoutSteps } from './layout';
 import type { Run, Step, StepStatus } from '../domain/workflow';
 
@@ -689,9 +684,14 @@ export function App() {
     | 'settings'
     | 'connections'
     | 'legend'
-    | 'options'
+    | 'about'
     | null
   >(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isElectron = navigator.userAgent.includes('Electron/');
+  useEffect(() => {
+    document.documentElement.classList.toggle('electron', isElectron);
+  }, [isElectron]);
   useLayoutEffect(() => {
     if (popup && document.activeElement === document.body)
       document.querySelector<HTMLButtonElement>('.modal-close')?.focus();
@@ -711,6 +711,9 @@ export function App() {
   const [confirmation, setConfirmation] = useState<
     'cancel' | 'reject' | 'retry' | null
   >(null);
+  useEffect(() => {
+    if (popup || help || confirmation) setMenuOpen(false);
+  }, [popup, help, confirmation]);
   const [conflictRow, setConflictRow] = useState<ConnectionRow | null>(null);
   const [replaceConfirm, setReplaceConfirm] = useState<ConnectionRow | null>(
     null,
@@ -718,8 +721,50 @@ export function App() {
   const [setupNotice, setSetupNotice] = useState('');
   const connections = useConnectionInventory(loaded && online);
   const openConnections = () => {
+    setMenuOpen(false);
     setHelp(false);
     setPopup('connections');
+  };
+  const openFromMenu = (action: AppMenuAction) => {
+    setMenuOpen(false);
+    setHelp(false);
+    if (action === 'connections') {
+      setPopup('connections');
+      return;
+    }
+    if (action === 'settings') {
+      setPopup('settings');
+      return;
+    }
+    if (action === 'guide') {
+      setPopup('guide');
+      return;
+    }
+    if (action === 'help') {
+      setPopup(null);
+      setHelp(true);
+      return;
+    }
+    if (action === 'legend') {
+      setPopup('legend');
+      return;
+    }
+    if (action === 'window') {
+      openWindow();
+      return;
+    }
+    if (action === 'updates') {
+      setPopup('about');
+      setNotice(
+        t(
+          'Para buscar actualizaciones usa Hyperion → Buscar actualizaciones… en el menú de la aplicación.',
+        ),
+      );
+      return;
+    }
+    if (action === 'about') {
+      setPopup('about');
+    }
   };
   const setupConnection = async (clientId: string, replace = false) => {
     setSetupNotice('');
@@ -1296,10 +1341,6 @@ export function App() {
       );
     }
   }
-  const completed =
-    run?.steps.filter((s) => s.status === 'completed').length || 0;
-  const skipped = run?.steps.filter((s) => s.status === 'skipped').length || 0;
-  const running = run?.steps.filter((s) => s.status === 'running').length || 0;
   const waiting = run?.steps.filter((s) => s.status === 'waiting').length || 0;
   const ready = run?.steps.filter((s) => s.status === 'ready').length || 0;
   const live = run?.status === 'active';
@@ -1438,31 +1479,6 @@ export function App() {
             )}
           </div>
           <div className="topbar-right">
-            <button
-              className="icon-button more-options"
-              aria-label={t('Más opciones')}
-              title={t('Más opciones')}
-              aria-haspopup="dialog"
-              onClick={() => setPopup('options')}
-            >
-              <Ellipsis size={19} />
-            </button>
-            <button
-              className="icon-button"
-              aria-label={t('Ajustes')}
-              aria-haspopup="dialog"
-              onClick={() => setPopup('settings')}
-            >
-              <Settings2 size={18} />
-            </button>
-            <button
-              className="icon-button"
-              aria-label={t('Guía de uso')}
-              aria-haspopup="dialog"
-              onClick={() => setPopup('guide')}
-            >
-              <BookOpen size={18} />
-            </button>
             <span
               className={`connection ${online ? 'online' : ''}`}
               title={t(
@@ -1486,25 +1502,20 @@ export function App() {
                     : t('Conectando')}
               </span>
             </span>
-            <button
-              type="button"
-              className="connections-entry"
-              aria-label={t('Conexiones')}
-              aria-haspopup="dialog"
-              title={t('Conexiones')}
-              onClick={openConnections}
-            >
-              <Plug size={16} aria-hidden="true" />
-              <span>{t('Conexiones')}</span>
-            </button>
-            <button
-              className="icon-button"
-              aria-label={t('Ayuda de conexión')}
-              aria-haspopup="dialog"
-              onClick={() => setHelp(true)}
-            >
-              <CircleHelp size={19} />
-            </button>
+            <AppMenu
+              open={menuOpen}
+              onOpenChange={(next) => {
+                if (next) {
+                  setPopup(null);
+                  setHelp(false);
+                }
+                setMenuOpen(next);
+              }}
+              inventory={connections.inventory}
+              reduceMotion={preferences.reduceMotion}
+              isElectron={isElectron}
+              onAction={openFromMenu}
+            />
           </div>
         </header>
         <main className="canvas-main">
@@ -2125,55 +2136,37 @@ export function App() {
                 </button>
               </div>
             )}
-            {popup === 'options' && (
-              <div className="options-panel">
-                <span className="eyebrow">{t('ESPACIO DE TRABAJO')}</span>
-                <h2 id="popup-title">{t('Más opciones')}</h2>
-                {run && (
-                  <p className="muted">
-                    {completed}/{run.steps.length} {t('completados ·')}{' '}
-                    {running} {t('en curso')}
-                    {skipped > 0 ? t(' · {0} omitidos', { 0: skipped }) : ''}
-                  </p>
-                )}
-                {runTools}
-                <div className="workspace-options">
-                  <button onClick={() => openPanel('legend')}>
-                    <Route size={17} />
-                    {t('Colores del flujo')}
-                  </button>
-                  <button onClick={() => openPanel('guide')}>
-                    <BookOpen size={17} />
-                    {t('Guía de uso')}
-                  </button>
-                  <button onClick={openConnections}>
-                    <Plug size={17} />
-                    {t('Conexiones')}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setPopup(null);
-                      setHelp(true);
-                    }}
-                  >
-                    <CircleHelp size={17} />
-                    {t('Ayuda de conexión')}
-                  </button>
-                  {!navigator.userAgent.includes('Electron/') && (
-                    <button onClick={openWindow}>
-                      <ExternalLink size={17} />
-                      {t('Abrir en ventana')}
-                    </button>
-                  )}
-                </div>
+            {popup === 'legend' && <FlowLegend />}
+            {popup === 'about' && (
+              <div className="about-panel">
+                <span className="eyebrow">{t('HYPERION')}</span>
+                <h2 id="popup-title">{t('Acerca de Hyperion')}</h2>
+                <p
+                  className="connections-calver"
+                  title={t('Versión de Hyperion')}
+                >
+                  {t('Hyperion {0} UTC · {1}', {
+                    0: connections.inventory?.version || VERSION,
+                    1:
+                      connections.inventory?.channel ||
+                      RELEASE_CHANNEL ||
+                      'preview',
+                  })}
+                </p>
                 <p className="muted">
                   {t(
-                    'La ventana independiente mantiene este mismo flujo. Puedes dejarla junto a tu chat.',
+                    'El servicio local de Hyperion responde en este equipo. No indica que tu aplicación de IA tenga herramientas cargadas.',
                   )}
                 </p>
+                {isElectron && (
+                  <p className="muted">
+                    {t(
+                      'Para buscar actualizaciones usa Hyperion → Buscar actualizaciones… en el menú de la aplicación.',
+                    )}
+                  </p>
+                )}
               </div>
             )}
-            {popup === 'legend' && <FlowLegend />}
             {popup === 'settings' && (
               <Settings
                 value={preferences}
