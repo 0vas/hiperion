@@ -1467,7 +1467,7 @@ export function App() {
                     : t('Conectando')
               }`}
             >
-              <span />
+              <span className="connection-dot" aria-hidden="true" />
               <small>{t('Servicio local')}</small>
               <span className="connection-state">
                 {online
