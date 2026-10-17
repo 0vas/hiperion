@@ -27,40 +27,35 @@ const STATUS_LABEL: Record<ConnectionStatusId, string> = {
   unknown: 'No se pudo comprobar',
 };
 
-export function integrationsChipLabel(summary: {
+export function connectionsSummaryLine(summary: {
   configured: number;
   conflicts: number;
   total: number;
 }) {
-  if (summary.conflicts > 0)
-    return t('{0} listas · {1} conflictos', {
+  if (summary.conflicts > 0 && summary.configured > 0)
+    return t('{0} listas · {1} en conflicto', {
       0: summary.configured,
       1: summary.conflicts,
     });
-  if (summary.configured === 0) return t('Ninguna configurada');
-  return t('{0}/{1} listas', {
-    0: summary.configured,
-    1: summary.total,
-  });
+  if (summary.conflicts > 0)
+    return t('{0} en conflicto — Hyperion no sobrescribió esas entradas.', {
+      0: summary.conflicts,
+    });
+  if (summary.configured === 0)
+    return t('Ninguna aplicación tiene Hyperion configurado todavía.');
+  if (summary.configured === summary.total)
+    return t('Las {0} integraciones conocidas están configuradas.', {
+      0: summary.configured,
+    });
+  return t(
+    '{0} de {1} aplicaciones listas. Reinicia el cliente y abre un chat nuevo para cargar herramientas.',
+    { 0: summary.configured, 1: summary.total },
+  );
 }
 
-export function integrationsAriaLabel(summary: {
-  configured: number;
-  conflicts: number;
-  total: number;
-}) {
-  if (summary.conflicts > 0)
-    return t('Integraciones: {0} configuradas, {1} en conflicto', {
-      0: summary.configured,
-      1: summary.conflicts,
-    });
-  if (summary.configured === 0) return t('Integraciones: ninguna configurada');
-  if (summary.configured === summary.total)
-    return t('Integraciones: {0} configuradas', { 0: summary.configured });
-  return t('Integraciones: {0} de {1} configuradas', {
-    0: summary.configured,
-    1: summary.total,
-  });
+function truncatePath(path: string) {
+  if (path.length <= 42) return path;
+  return `${path.slice(0, 18)}…${path.slice(-18)}`;
 }
 
 async function fetchInventory(
@@ -71,11 +66,6 @@ async function fetchInventory(
   if (!res.ok)
     throw new Error(body.message || t('No se pudo completar la solicitud.'));
   return body as ConnectionInventory;
-}
-
-function truncatePath(path: string) {
-  if (path.length <= 42) return path;
-  return `${path.slice(0, 18)}…${path.slice(-18)}`;
 }
 
 export function useConnectionInventory(enabled: boolean) {
@@ -115,24 +105,36 @@ export function useConnectionInventory(enabled: boolean) {
   return { inventory, error, busy, refresh, setInventory };
 }
 
-export function ConnectionsPanel({
+function calVerLabel(inventory: ConnectionInventory | null) {
+  if (!inventory?.version) return '';
+  return t('Hyperion {0} UTC · {1}', {
+    0: inventory.version,
+    1: inventory.channel || 'preview',
+  });
+}
+
+export function ConnectionsView({
   online,
   inventory,
   error,
   busy,
+  onClose,
   onRefresh,
   onSetup,
   onConflict,
   onHelp,
+  onConnectAi,
 }: {
   online: boolean;
   inventory: ConnectionInventory | null;
   error: string;
   busy: boolean;
+  onClose: () => void;
   onRefresh: () => void;
   onSetup: (clientId: string) => void;
   onConflict: (row: ConnectionRow) => void;
   onHelp: () => void;
+  onConnectAi: () => void;
 }) {
   useLocale();
   const [copied, setCopied] = useState('');
@@ -145,29 +147,50 @@ export function ConnectionsPanel({
       setCopied('');
     }
   }
-  const versionLabel =
-    inventory?.version &&
-    `${inventory.version} UTC${inventory.channel ? ` · ${inventory.channel}` : ''}`;
+  const version = calVerLabel(inventory);
+  const serviceHost = inventory?.serviceUrl
+    ? inventory.serviceUrl.replace(/^https?:\/\//, '')
+    : '';
   return (
-    <fieldset className="connections-fieldset">
-      <legend>{t('Conexiones')}</legend>
-      <p className="muted">
-        {t(
-          'Revisa el servicio local y las integraciones instaladas en tus aplicaciones de IA.',
-        )}
-      </p>
-      <div className="connection-service-row">
+    <div className="connections-view">
+      <header className="connections-identity">
+        <div>
+          <span className="eyebrow">{t('CONEXIONES')}</span>
+          <h2 id="popup-title">{t('Conexiones')}</h2>
+          {version ? (
+            <p className="connections-calver" title={t('Versión de Hyperion')}>
+              <span className="form-sr-only">{t('Versión de Hyperion')}: </span>
+              {version}
+            </p>
+          ) : (
+            <p className="connections-calver muted">…</p>
+          )}
+        </div>
+        <div className="connections-identity-actions">
+          <button type="button" className="ghost-button" onClick={onClose}>
+            {t('Volver al canvas')}
+          </button>
+          <button
+            type="button"
+            className="ghost-button"
+            disabled={busy}
+            onClick={onRefresh}
+          >
+            {t('Volver a comprobar')}
+          </button>
+        </div>
+      </header>
+
+      <div className="connection-service-strip">
         <div>
           <strong>{t('Servicio local')}</strong>
-          <p className="muted">
+          <p>
             {online ? t('Conectado') : t('Sin conexión')}
-            {inventory?.serviceUrl
-              ? ` · ${inventory.serviceUrl.replace(/^https?:\/\//, '')}`
-              : ''}
+            {serviceHost ? ` · ${serviceHost}` : ''}
           </p>
           <p className="muted connection-honesty">
             {t(
-              'El servicio local de Hyperion responde en este equipo. No indica que tu aplicación de IA tenga herramientas cargadas.',
+              'El servicio local responde en este equipo. No indica qué aplicación de IA está en uso.',
             )}
           </p>
         </div>
@@ -177,38 +200,41 @@ export function ConnectionsPanel({
           {online ? t('Conectado') : t('Sin conexión')}
         </span>
       </div>
-      <div className="connection-integrations-head">
-        <strong>{t('Integraciones con tu IA')}</strong>
-        <button
-          type="button"
-          className="ghost-button"
-          disabled={busy}
-          onClick={onRefresh}
-        >
-          {t('Volver a comprobar')}
+
+      <section className="connections-hero" aria-live="polite">
+        <span className="eyebrow">{t('Tus aplicaciones de IA')}</span>
+        <p className="connections-summary">
+          {inventory
+            ? connectionsSummaryLine(inventory.summary)
+            : busy
+              ? '…'
+              : t('Ninguna aplicación tiene Hyperion configurado todavía.')}
+        </p>
+        <p className="muted">
+          {t(
+            'Hyperion prepara la entrada local en cada aplicación. «Configurada» no significa que un chat abierto ya haya cargado las herramientas.',
+          )}
+        </p>
+        <button type="button" className="primary" onClick={onConnectAi}>
+          {t('Conectar con mi IA…')}
         </button>
-      </div>
-      <p className="muted">
-        {t(
-          'Una integración «Configurada» significa que Hyperion encontró su entrada en el archivo del cliente. Reinicia esa aplicación y abre un chat nuevo para cargar las herramientas.',
-        )}
-      </p>
-      <ul className="connection-list" aria-live="polite">
+      </section>
+
+      <ul className="connection-card-grid" aria-live="polite">
         {(inventory?.integrations || []).map((row) => (
-          <li key={row.id} className={`connection-row status-${row.status}`}>
-            <div className="connection-row-main">
+          <li key={row.id} className={`connection-card status-${row.status}`}>
+            <div className="connection-card-head">
               <strong>{row.name}</strong>
               <span className={`connection-status-badge status-${row.status}`}>
                 {t(STATUS_LABEL[row.status])}
               </span>
             </div>
-            {row.path && (
+            {row.path ? (
               <p className="connection-path" title={row.path}>
                 <span className="eyebrow">{t('Archivo de configuración')}</span>
                 {truncatePath(row.path)}
               </p>
-            )}
-            {!row.path && (
+            ) : (
               <p className="connection-path muted">{t('Ruta no disponible')}</p>
             )}
             {row.status === 'conflict' && row.detail && (
@@ -262,7 +288,8 @@ export function ConnectionsPanel({
           </li>
         ))}
       </ul>
-      <p className="muted">
+
+      <p className="muted connections-footer-note">
         {t(
           'Hyperion no sobrescribe una entrada distinta. Si hay conflicto, resuélvelo en el cliente o retira la entrada antigua y vuelve a conectar.',
         )}
@@ -272,11 +299,15 @@ export function ConnectionsPanel({
           {error}
         </p>
       )}
-      {versionLabel && (
-        <p className="connection-version" title={t('Versión de Hyperion')}>
-          Hyperion {versionLabel}
-        </p>
+      {version && (
+        <footer
+          className="connections-calver-footer"
+          title={t('Versión de Hyperion')}
+        >
+          {version}
+          {' · MIT'}
+        </footer>
       )}
-    </fieldset>
+    </div>
   );
 }

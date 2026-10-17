@@ -103,7 +103,7 @@ Hyperion incluye **español e inglés** en el canvas y en los menús y diálogos
 
 El modo automático toma el idioma del sistema o del navegador; si no está soportado, usa inglés. La selección manual se conserva al volver a abrir la app. En Desktop, el menú y el canvas comparten la preferencia; en el navegador se guarda por separado.
 
-La versión CalVer aparece en **Acerca de** (macOS) y en **Ajustes → Conexiones**. La cabecera muestra el **servicio local** aparte de las **integraciones** (Codex, Cursor, Claude Desktop, Claude Code, Antigravity). «Conectado» no significa que tu IA ya tenga las herramientas cargadas; tras configurar, reinicia el cliente y abre un chat nuevo. Hyperion no sobrescribe una entrada distinta.
+La versión CalVer aparece en la vista **Conexiones** y en **Acerca de** (macOS). La cabecera muestra el **servicio local** y un acceso a **Conexiones** (Codex, Cursor, Claude Desktop, Claude Code, Antigravity). «Conectado» no significa que tu IA ya tenga las herramientas cargadas; tras configurar, reinicia el cliente y abre un chat nuevo. Hyperion no sobrescribe una entrada distinta.
 
 ::: tip Tu contenido conserva su idioma
 Cambiar la interfaz no traduce nombres de tareas, preguntas del agente, respuestas, resultados ni logs. Tampoco reinicia el flujo ni descarta un formulario sin enviar. Los diagnósticos originales de herramientas y del servicio mantienen su texto para poder investigarlos.

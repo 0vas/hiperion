@@ -58,6 +58,7 @@ import {
   MessageSquareText,
   Pause,
   Play,
+  Plug,
   ShieldCheck,
   Square,
   UserRound,
@@ -83,8 +84,8 @@ import { FlowLegend } from './FlowLegend';
 import { JobNode } from './JobNode';
 import { Settings } from './Settings';
 import {
-  integrationsAriaLabel,
-  integrationsChipLabel,
+  ConnectionsView,
+  connectionsSummaryLine,
   useConnectionInventory,
   type ConnectionRow,
 } from './Connections';
@@ -686,6 +687,7 @@ export function App() {
     | 'artifacts'
     | 'next-cycle'
     | 'settings'
+    | 'connections'
     | 'legend'
     | 'options'
     | null
@@ -717,12 +719,7 @@ export function App() {
   const connections = useConnectionInventory(loaded && online);
   const openConnections = () => {
     setHelp(false);
-    setPopup('settings');
-    window.setTimeout(() => {
-      document
-        .querySelector<HTMLElement>('.connections-fieldset')
-        ?.scrollIntoView({ block: 'nearest' });
-    }, 0);
+    setPopup('connections');
   };
   const setupConnection = async (clientId: string, replace = false) => {
     setSetupNotice('');
@@ -1491,24 +1488,14 @@ export function App() {
             </span>
             <button
               type="button"
-              className={`integrations-chip${
-                (connections.inventory?.summary.conflicts || 0) > 0
-                  ? ' has-conflict'
-                  : ''
-              }`}
-              aria-label={
-                connections.inventory
-                  ? integrationsAriaLabel(connections.inventory.summary)
-                  : t('Integraciones')
-              }
+              className="connections-entry"
+              aria-label={t('Conexiones')}
+              aria-haspopup="dialog"
+              title={t('Conexiones')}
               onClick={openConnections}
             >
-              {t('Integraciones')}
-              <em>
-                {connections.inventory
-                  ? integrationsChipLabel(connections.inventory.summary)
-                  : '…'}
-              </em>
+              <Plug size={16} aria-hidden="true" />
+              <span>{t('Conexiones')}</span>
             </button>
             <button
               className="icon-button"
@@ -1551,22 +1538,20 @@ export function App() {
                   className="primary"
                   onClick={() => {
                     if (runId) selectRun('');
-                    else if (
-                      (connections.inventory?.summary.configured || 0) > 0
-                    )
-                      openConnections();
-                    else setHelp(true);
+                    else openConnections();
                   }}
                 >
                   {runId
                     ? t('Ver mis flujos')
-                    : (connections.inventory?.summary.configured || 0) > 0
-                      ? t('Ver integraciones')
+                    : (connections.inventory?.summary.configured || 0) > 0 ||
+                        (connections.inventory?.summary.conflicts || 0) > 0
+                      ? t('Ver conexiones')
                       : t('Conectar mi agente')}{' '}
                   <ArrowUpRight size={16} />
                 </button>
                 {!runId &&
-                  (connections.inventory?.summary.configured || 0) > 0 && (
+                  ((connections.inventory?.summary.configured || 0) > 0 ||
+                    (connections.inventory?.summary.conflicts || 0) > 0) && (
                     <button className="secondary" onClick={() => setHelp(true)}>
                       {t('Conectar otra')}
                     </button>
@@ -1756,7 +1741,7 @@ export function App() {
           onClose={() => setPopup(null)}
         >
           <section
-            className={`modal canvas-popup ${['step', 'activity', 'io', 'trace', 'artifacts'].includes(popup || '') ? 'step-popup' : ''}`}
+            className={`modal canvas-popup ${['step', 'activity', 'io', 'trace', 'artifacts'].includes(popup || '') ? 'step-popup' : ''}${popup === 'connections' ? ' connections-popup' : ''}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="popup-title"
@@ -2161,6 +2146,10 @@ export function App() {
                     <BookOpen size={17} />
                     {t('Guía de uso')}
                   </button>
+                  <button onClick={openConnections}>
+                    <Plug size={17} />
+                    {t('Conexiones')}
+                  </button>
                   <button
                     onClick={() => {
                       setPopup(null);
@@ -2189,12 +2178,18 @@ export function App() {
               <Settings
                 value={preferences}
                 onChange={setPreferences}
+                onOpenConnections={openConnections}
+              />
+            )}
+            {popup === 'connections' && (
+              <ConnectionsView
                 online={online}
                 inventory={connections.inventory}
-                connectionsError={connections.error || setupNotice}
-                connectionsBusy={connections.busy || busy}
-                onRefreshConnections={() => void connections.refresh()}
-                onSetupConnection={(id) => void setupConnection(id)}
+                error={connections.error || setupNotice}
+                busy={connections.busy || busy}
+                onClose={() => setPopup(null)}
+                onRefresh={() => void connections.refresh()}
+                onSetup={(id) => void setupConnection(id)}
                 onConflict={setConflictRow}
                 onHelp={() => {
                   setPopup(null);
@@ -2352,14 +2347,14 @@ export function App() {
               <div className="help-integrations-strip">
                 <strong>{t('Estado de tus integraciones')}</strong>
                 <p>
-                  {integrationsAriaLabel(connections.inventory.summary)}
+                  {connectionsSummaryLine(connections.inventory.summary)}
                   {' · '}
                   <button
                     type="button"
                     className="linkish"
                     onClick={openConnections}
                   >
-                    {t('Abre Conexiones en Ajustes para el detalle.')}
+                    {t('Abrir conexiones')}
                   </button>
                 </p>
               </div>
